@@ -7,7 +7,6 @@ with the expected message."""
 import importlib.util
 import os
 import shutil
-import sys
 import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -33,8 +32,28 @@ def broken(path, old, new, expect):
     print(f"ok    {expect}")
 
 
-broken("plugins/org-repo/skills/org-repo/SKILL.md", "name: org-repo", "name: other", "frontmatter name `other`")
-broken("plugins/org-repo/.claude-plugin/plugin.json", '"version": "0.1.0"', '"version": "0.2.0"', "version 0.2.0 != marketplace 0.1.0")
-broken(".claude-plugin/marketplace.json", '"source": "./plugins/org-repo"', '"source": "https://x"', "source must be a ./relative path")
-broken(".claude-plugin/marketplace.json", '"name": "org-repo"', '"name": "Org_Repo"', "name must be kebab-case")
+broken(
+    "plugins/org-repo/skills/org-repo/SKILL.md",
+    "name: org-repo",
+    "name: other",
+    "frontmatter name `other`",
+)
+broken(
+    "plugins/org-repo/.claude-plugin/plugin.json",
+    '"version": "0.1.0"',
+    '"version": "0.2.0"',
+    "version 0.2.0 != marketplace 0.1.0",
+)
+broken(
+    ".claude-plugin/marketplace.json",
+    '"source": "./plugins/org-repo"',
+    '"source": "https://x"',
+    "source must be a ./relative path",
+)
+broken(
+    ".claude-plugin/marketplace.json",
+    '"name": "org-repo"',
+    '"name": "Org_Repo"',
+    "name must be kebab-case",
+)
 print("check-plugins self-test: OK")
