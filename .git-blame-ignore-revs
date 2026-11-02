@@ -1,0 +1,4 @@
+# Formatting-only commits: `git blame --ignore-revs-file .git-blame-ignore-revs`
+# (GitHub's blame view reads this file automatically).
+# style(tools): ruff format the plugin checker (#5)
+238fd2acd7f22c9e0b122bd2fcba9392757d7114
