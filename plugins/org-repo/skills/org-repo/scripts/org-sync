@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Copyright (c) 2026 Daniel Joppi (https://github.com/swarm-routing)
+# SPDX-License-Identifier: MIT OR GPL-2.0-only
+#
+# Thin wrapper: runs swarm-routing/.github tools/org-sync/org_sync.py from a
+# cached shallow clone of the org repo. All the logic is in org_sync.py; this
+# only finds it (org rule 9: the skill works because the script does).
+#   ORG_SYNC_DIR  use this checkout of swarm-routing/.github instead
+#   ORG_SYNC_REF  branch or tag to fetch (default main)
+set -euo pipefail
+dir=${ORG_SYNC_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/swarm-routing/dotgithub}
+ref=${ORG_SYNC_REF:-main}
+if [ -z "${ORG_SYNC_DIR:-}" ]; then
+    if [ -d "$dir/.git" ]; then
+        git -C "$dir" fetch -q --depth 1 origin "$ref" && git -C "$dir" checkout -q --detach FETCH_HEAD
+    else
+        mkdir -p "$(dirname "$dir")"
+        git clone -q --depth 1 --branch "$ref" https://github.com/swarm-routing/.github "$dir"
+    fi
+fi
+exec python3 -I "$dir/tools/org-sync/org_sync.py" "$@"
