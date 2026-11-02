@@ -63,9 +63,13 @@ def check(root):
         manifest = load(os.path.relpath(os.path.join(pdir, ".claude-plugin/plugin.json"), root))
         if manifest is not None:
             if manifest.get("name") != name:
-                errs.append(f"{src}/.claude-plugin/plugin.json: name `{manifest.get('name')}` != `{name}`")
+                errs.append(
+                    f"{src}/.claude-plugin/plugin.json: name `{manifest.get('name')}` != `{name}`"
+                )
             if manifest.get("version") != p.get("version"):
-                errs.append(f"{src}: version {manifest.get('version')} != marketplace {p.get('version')}")
+                errs.append(
+                    f"{src}: version {manifest.get('version')} != marketplace {p.get('version')}"
+                )
         sdir = os.path.join(pdir, "skills")
         skills = sorted(os.listdir(sdir)) if os.path.isdir(sdir) else []
         if not skills:
@@ -86,7 +90,11 @@ def check(root):
             d = fm.get("description", "")
             if not d or len(d) > 1024:
                 errs.append(f"{rel}: description must be 1-1024 characters (is {len(d)})")
-            for script in os.listdir(os.path.join(sdir, s, "scripts")) if os.path.isdir(os.path.join(sdir, s, "scripts")) else []:
+            for script in (
+                os.listdir(os.path.join(sdir, s, "scripts"))
+                if os.path.isdir(os.path.join(sdir, s, "scripts"))
+                else []
+            ):
                 sp = os.path.join(sdir, s, "scripts", script)
                 if not os.access(sp, os.X_OK):
                     errs.append(f"{os.path.relpath(sp, root)}: not executable")
