@@ -1,0 +1,30 @@
+# Copyright (c) 2026 Daniel Joppi (https://github.com/swarm-routing)
+# SPDX-License-Identifier: MIT OR GPL-2.0-only
+name: CI
+
+# The marketplace and every plugin manifest and SKILL.md validate; the skill
+# wrappers pass shellcheck; the workflows pass actionlint. Licence headers and
+# the org-sync drift check run in their own workflows (licence.yml, org-sync.yml).
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  plugins:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: make test (marketplace, plugin.json, SKILL.md frontmatter, + self-test)
+        run: make test
+      - name: lint (actionlint, shellcheck on the skill wrappers)
+        run: |
+          pip install --quiet actionlint-py==1.7.7.23 shellcheck-py==0.10.0.1
+          actionlint .github/workflows/*.yml
+          find plugins -path '*/scripts/*' -type f -print0 | xargs -0 -r shellcheck

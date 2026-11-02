@@ -1,3 +1,54 @@
 # skills
 
-The swarm-routing Claude Code plugin marketplace. Bootstrapped in the first pull request.
+<!-- org-sync:begin badges -->
+[![CI](https://github.com/swarm-routing/skills/actions/workflows/ci.yml/badge.svg)](https://github.com/swarm-routing/skills/actions/workflows/ci.yml)
+[![Licence: MIT OR GPL-2.0-only](https://img.shields.io/badge/licence-MIT%20OR%20GPL--2.0--only-blue)](LICENSING.md)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow)](https://www.conventionalcommits.org)
+[![Claude Code plugins](https://img.shields.io/badge/Claude%20Code-plugin%20marketplace-blueviolet)](https://docs.claude.com/en/docs/claude-code/plugin-marketplaces)
+<!-- org-sync:end badges -->
+
+The swarm-routing **Claude Code plugin marketplace**: org-wide skills that any
+org repository enables from its committed `.claude/settings.json`
+(swarm-routing/.github#10). The first plugin is `org-repo`: set up or update a
+repository from the org templates (badges, README, AI files, ADRs, licence,
+security policy, Makefile targets) through `tools/org-sync`, script first.
+
+## Use it in an org repository
+
+Commit this to the repository's `.claude/settings.json` (`org-sync` writes and
+checks these keys):
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "swarm-routing": { "source": { "source": "github", "repo": "swarm-routing/skills" } }
+  },
+  "enabledPlugins": { "org-repo@swarm-routing": true }
+}
+```
+
+A Claude Code session in that repository then offers the plugins below. To
+install one by hand instead:
+
+```
+/plugin install org-repo --marketplace swarm-routing/skills
+```
+ To
+review changes before your sessions load them, pin the source to a tag or
+commit instead (see [SECURITY.md](SECURITY.md)).
+
+| Plugin | Skill | What it does |
+|--------|-------|--------------|
+| [`org-repo`](plugins/org-repo/) | [`org-repo`](plugins/org-repo/skills/org-repo/SKILL.md) | set up or update a repo from the org templates through `swarm-routing/.github` `tools/org-sync`: plan, apply, resolve conflicts, check, open the PR |
+
+## Add a skill
+
+A plugin is `plugins/<name>/.claude-plugin/plugin.json` plus
+`plugins/<name>/skills/<skill>/SKILL.md`, listed in
+[`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json).
+`make test` validates all three. A skill holds a procedure; whatever it runs
+is a script that works without it (org rule 9).
+
+## Licence
+
+See [LICENSING.md](LICENSING.md).

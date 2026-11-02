@@ -1,0 +1,31 @@
+# org-sync configuration (swarm-routing/.github tools/org-sync).
+kind = "skills"
+title = "skills"
+dual = [""]
+posture = "the org's agent tooling: Claude Code skills (instructions) and thin wrappers, no simulation code"
+description = """
+The swarm-routing **Claude Code plugin marketplace**: org-wide skills that any
+org repository enables from its committed `.claude/settings.json`
+(swarm-routing/.github#10). The first plugin is `org-repo`: set up or update a
+repository from the org templates (badges, README, AI files, ADRs, licence,
+security policy, Makefile targets) through `tools/org-sync`, script first."""
+trust_boundary = """
+The skill text and any command a skill tells the agent to run. A skill is
+instructions that an agent follows with the permissions of the session that
+loads it, in every repository that enables this marketplace, so a change
+merged here reaches every org repository's agent sessions. Skills hold
+procedures only: every action they take is a script in
+`swarm-routing/.github` `tools/` (org rule 9), which works without the
+skill. Every change is reviewed in a pull request before it reaches `main`,
+which is what sessions load."""
+limitations = """
+- **A skill cannot restrict what an agent may do.** The session's permission
+  mode and the person approving tool calls decide that; a skill only says what
+  to do.
+- **The marketplace follows `main`.** A repository that enables it gets every
+  merged change on its next session. To review changes first, pin the
+  marketplace to a tag or commit in `.claude/settings.json`."""
+verifying = """
+There is nothing to download. To pin what your sessions load, set the
+marketplace source in `.claude/settings.json` to a reviewed tag or commit
+instead of `main`, and compare `git log` of this repository before moving it."""
