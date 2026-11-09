@@ -5,7 +5,8 @@
 # Offline stand-in for the gh CLI in this eval: `gh api PATH` (GET only) serves
 # the recorded response api/<PATH>.json next to this script (`?`, `&` and `=`
 # in PATH read as `_`); a missing file is an HTTP 404. Every call is logged to
-# calls.log. Anything that would write to GitHub is refused.
+# calls.log. Only GET is served: any other method (-X, --method, --method=),
+# any option that is not a header and any second path are refused.
 set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 printf '%s\n' "$*" >> "$here/calls.log"
@@ -15,19 +16,21 @@ if [ "${1:-}" != api ]; then
     exit 1
 fi
 shift
-path=""
+refuse() { echo "gh (offline fixture): $1 refused, the fixture is read-only" >&2; exit 1; }
+path="" method=GET
 while [ $# -gt 0 ]; do
     case "$1" in
-        -H|--header) shift 2 ;;
-        -X|--method)
-            [ "$2" = GET ] || { echo "gh (offline fixture): $2 refused, the fixture is read-only" >&2; exit 1; }
-            shift 2 ;;
-        -f|-F|--field|--raw-field|--input)
-            echo "gh (offline fixture): $1 refused, the fixture is read-only" >&2; exit 1 ;;
-        -*) shift ;;
-        *) path=$1; shift ;;
+        -H|--header) [ $# -ge 2 ] || refuse "$1 without a value"; shift 2 ;;
+        --header=*) shift ;;
+        -X|--method) [ $# -ge 2 ] || refuse "$1 without a value"; method=$2; shift 2 ;;
+        --method=*) method=${1#--method=}; shift ;;
+        -X?*) method=${1#-X}; shift ;;
+        -*) refuse "option $1" ;;
+        *) [ -z "$path" ] || refuse "a second path ($1)"; path=$1; shift ;;
     esac
 done
+[ "$(printf '%s' "$method" | tr '[:lower:]' '[:upper:]')" = GET ] || refuse "method $method"
+[ -n "$path" ] || refuse "a call without a path"
 file="$here/api/$(printf '%s' "${path#/}" | tr '?&=' '___').json"
 if [ -f "$file" ]; then cat "$file"; exit 0; fi
 echo "gh: Not Found (HTTP 404)" >&2
