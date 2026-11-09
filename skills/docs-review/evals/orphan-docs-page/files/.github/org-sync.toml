@@ -1,0 +1,8 @@
+# org-sync configuration (swarm-routing/.github tools/org-sync).
+kind = "c-cpp"
+title = "ns3-tools"
+dual = ["python/", "tools/"]
+badges = ["licence", "conventional", "arena", "ns3dev"]
+
+[docs]
+arena_id = "ns3-tools"

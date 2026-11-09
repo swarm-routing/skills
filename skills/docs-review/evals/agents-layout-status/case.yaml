@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: agents-layout-status
+expected_outcome: |
+  check_docs warns: AGENTS.md's layout names core/ and ns3/, which do not exist and are not marked planned; the README says Status: alpha while AGENTS.md says empty; CONTEXT.md is still the seed. The fix marks the layout as the plan (not mkdir), makes the README status agree with the tree (empty: only docs/ exists; nothing is alpha), rewrites the README Quick start command that runs the not-yet-existing ns-3 module as the plan, and fills CONTEXT.md with the current state and the next work (#3 anchor-miss analysis before core/).
+context:
+  scaffold_script: place-files.sh

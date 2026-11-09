@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: orphan-docs-page
+expected_outcome: |
+  check_docs fails on a broken relative link (docs/markers.md -> ../python/README.md, which does not exist; the readers' docs are python/ns3_tool/README.md) and warns that docs/arenas.md is linked from nowhere. The fix repoints the link to the file that exists (no stub created) and adds arenas.md to docs/README.md with a one-line description (or removes it with a reason). The docs map's description of markers.md is wrong (it says the arenas) and is corrected.
+context:
+  scaffold_script: place-files.sh
