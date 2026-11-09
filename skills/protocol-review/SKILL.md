@@ -16,7 +16,8 @@ that need judgement are yours. Run the script first, so your attention goes
 to what it cannot see.
 
 ```bash
-SKILL="${CLAUDE_PLUGIN_ROOT:?}/skills/protocol-review"   # this SKILL.md's directory; with skills.sh, where it installed the skill
+SKILL="$CLAUDE_PLUGIN_ROOT/skills/protocol-review"   # as the Claude Code plugin
+# installed with skills.sh (npx skills add): SKILL=<the directory this SKILL.md is in>
 "$SKILL"/scripts/check-invariants . --base origin/main   # in the repo under review
 ```
 
