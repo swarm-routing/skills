@@ -16,7 +16,7 @@ status is honest and whether Quick start works are yours. Run the script
 first.
 
 ```bash
-SKILL="$CLAUDE_PLUGIN_ROOT/skills/docs-review"   # as the Claude Code plugin
+SKILL="${CLAUDE_PLUGIN_ROOT}/skills/docs-review"   # as the Claude Code plugin
 # installed with skills.sh (npx skills add): SKILL=<the directory this SKILL.md is in>
 "$SKILL"/scripts/check-docs .   # in the repository under review; --json for machine output
 ```
