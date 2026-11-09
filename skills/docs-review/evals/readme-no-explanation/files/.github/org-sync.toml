@@ -1,0 +1,5 @@
+# org-sync configuration (swarm-routing/.github tools/org-sync).
+kind = "protocol"
+title = "ARA"
+dual = ["core/", "tools/"]
+badges = ["licence", "conventional"]

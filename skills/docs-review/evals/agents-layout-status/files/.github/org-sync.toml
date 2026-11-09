@@ -1,0 +1,8 @@
+# org-sync configuration (swarm-routing/.github tools/org-sync).
+kind = "protocol"
+title = "Termite"
+dual = ["core/", "tools/"]
+badges = ["licence", "conventional", "arena", "ns3dev"]
+
+[docs]
+arena_id = "Termite"

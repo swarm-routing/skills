@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: readme-no-explanation
+expected_outcome: |
+  check_docs warns: no explanation near the top, no link to the site page (https://swarm-routing.github.io/arena/ARA/) and no link to the ns-3 image. The fix: an opening paragraph of two or three sentences taken from AGENTS.md (ARA, Güneş, Sorges & Bouazizi 2002, as a standalone core/ + ns-3 module on swarm-core, replacing AntHocNet's arm; status: core/ in progress, ns3/ planned); the site and image links through the `arena` and `ns3dev` badges in .github/org-sync.toml (then org_sync.py apply), not typed into the badge markers by hand. The unbacked claim ('delivering 97 % of packets (better than AODV)') is removed, since no 20-seed paired run backs it.
+context:
+  scaffold_script: place-files.sh
