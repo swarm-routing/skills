@@ -1,0 +1,13 @@
+name: ci
+on: [pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: make test
+      - uses: actions/upload-artifact@v5
+        with:
+          name: logs
+          path: build/
+          retention-days: 30
