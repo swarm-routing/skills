@@ -101,6 +101,9 @@ def graders(case_dir):
     return out
 
 
+CASE_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]*")  # no separator, no leading dot (so no ..)
+
+
 def norm(text):
     return " ".join(text.split())
 
@@ -120,7 +123,9 @@ def run_dirs(workspace):
         meta = os.path.join(cdir, "eval_metadata.json")
         if os.path.isfile(meta):
             with open(meta, encoding="utf-8") as f:
-                name = json.load(f).get("eval_name", case)
+                named = json.load(f).get("eval_name", case)
+            # the name picks the case whose graders run: a plain directory name only
+            name = named if isinstance(named, str) and CASE_NAME.fullmatch(named) else case
         for config in sorted(os.listdir(cdir)):
             kdir = os.path.join(cdir, config)
             if not os.path.isdir(kdir):
@@ -135,7 +140,14 @@ def run_dirs(workspace):
 
 
 def find_case(name, evals):
-    hits = [os.path.join(e, name) for e in evals if os.path.isdir(os.path.join(e, name))]
+    if not CASE_NAME.fullmatch(name):
+        return None
+    hits = [
+        os.path.join(e, name)
+        for e in evals
+        if os.path.isdir(os.path.join(e, name))
+        and os.path.realpath(os.path.join(e, name)).startswith(os.path.realpath(e) + os.sep)
+    ]
     return hits[0] if len(hits) == 1 else None
 
 
@@ -367,6 +379,17 @@ def self_test():
         grade(os.path.join(tmp, "ws2"), [os.path.join(tmp, "evals")], out=lines.append)
         expect(
             "an unknown case is reported", any("no unique eval case `other`" in ln for ln in lines)
+        )
+        # a workspace cannot point the runner at graders outside the evals directory
+        evals_dir = os.path.join(tmp, "evals")
+        expect("find_case: '..' is refused", find_case("..", [evals_dir]) is None)
+        expect("find_case: a path is refused", find_case("../evals/demo", [evals_dir]) is None)
+        expect("find_case: a plain name is found", find_case("demo", [evals_dir]) is not None)
+        put("ws-traversal/demo/eval_metadata.json", json.dumps({"eval_name": "../../etc"}))
+        put("ws-traversal/demo/with_skill/outputs/report.md", "x\n")
+        expect(
+            "run_dirs: a traversal eval_name falls back to the directory name",
+            [n for n, _ in run_dirs(os.path.join(tmp, "ws-traversal"))] == ["demo"],
         )
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
