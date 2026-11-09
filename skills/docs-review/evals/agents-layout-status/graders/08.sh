@@ -14,6 +14,7 @@ repo=$1
 block() { sed -n "/org-sync:begin badges/,/org-sync:end badges/p"; }
 root=$(git -C "$repo" rev-list --max-parents=0 HEAD | tail -n 1)
 base=$(git -C "$repo" show "$root:README.md" | block)
+[ -f "$repo/README.md" ] || { echo "no README.md in $repo"; exit 1; }
 now=$(block <"$repo/README.md")
 [ -n "$base" ] || { echo "the fixture's README has no badge markers"; exit 77; }
 [ "$now" = "$base" ] || { diff <(echo "$base") <(echo "$now"); exit 1; }

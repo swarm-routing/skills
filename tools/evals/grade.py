@@ -19,8 +19,9 @@ grader is an executable whose header names its criterion:
 `NN.sh REPO OUTPUTS` from OUTPUTS, where REPO is the run's edited fixture
 repository and OUTPUTS its outputs directory (either may be missing; the
 grader decides). Exit 0 is a pass, 77 means it cannot grade this run (an input
-it needs is missing), anything else is a fail; the tail of its output is the
-evidence. `claude plugin eval` reads only graders/*.md, so a .sh grader does
+it needs is missing, or a tool it calls failed), anything else is a fail; the
+tail of its output is the evidence. A grader that cannot be started at all is a
+SKIP too, so a tooling error never lands in grading.json as a fail. `claude plugin eval` reads only graders/*.md, so a .sh grader does
 not disturb it (an .md with an unknown `type` would make the case fail to load).
 
 WORKSPACE is a skill-creator iteration directory: <case>/<config>/ holding
@@ -154,8 +155,8 @@ def run_script(path, run_dir):
         code, out = p.returncode, (p.stdout + p.stderr)
     except subprocess.TimeoutExpired:
         code, out = 1, f"timed out after {TIMEOUT} s"
-    except OSError as e:
-        code, out = 1, f"cannot run: {e}"
+    except OSError as e:  # not executable, no interpreter: a tooling error, not a grade
+        code, out = SKIP, f"cannot run: {e}"
     lines = [ln.rstrip() for ln in out.strip().splitlines() if ln.strip()]
     tail = [ln if len(ln) <= EVIDENCE_WIDTH else ln[: EVIDENCE_WIDTH - 1] + "…" for ln in lines]
     evidence = " / ".join(tail[-EVIDENCE_LINES:]) or f"exit {code}"
@@ -287,6 +288,7 @@ def self_test():
             '|| { echo "no diff.patch"; exit 77; }\n',
             0o755,
         )
+        put("evals/demo/graders/05.sh", "#!/bin/sh\n# grader: Not executable.\nexit 0\n")
         expect(
             "criterion reads the header and its continuation",
             criterion(os.path.join(case, "graders/02.sh"))
@@ -321,11 +323,12 @@ def self_test():
         )
         expect("a failing script is FAIL", "FAIL   03.sh  report.md: no fix" in text)
         expect("exit 77 is SKIP", "SKIP   04.sh  no diff.patch" in text)
+        expect("a grader that cannot start is SKIP", "SKIP   05.sh  cannot run:" in text)
         expect("a hand grade that differs is flagged", "DIFFERS from grading.json" in text)
         expect(
             "the counts",
             (counts["pass"], counts["fail"], counts["skip"], counts["judge"], counts["differ"])
-            == (2, 2, 2, 2, 1),
+            == (2, 2, 4, 2, 1),
         )
         expect("the summary line", lines[-1].startswith("grade: 2 run(s); script graders 2 passed"))
         with open(os.path.join(good, "grading.json"), encoding="utf-8") as f:

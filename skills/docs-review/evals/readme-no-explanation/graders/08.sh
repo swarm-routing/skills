@@ -9,5 +9,6 @@
 set -u
 repo=$1
 [ -d "$repo" ] || { echo "no repository at $repo"; exit 77; }
+[ -f "$repo/README.md" ] || { echo "no README.md in $repo"; exit 1; }
 grep -inE '97 ?%|better than AODV' "$repo/README.md" && exit 1
 echo "README.md has no 97 % or better-than-AODV claim"

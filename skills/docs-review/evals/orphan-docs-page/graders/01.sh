@@ -14,6 +14,8 @@ repo=$1
 [ -e "$repo/python/README.md" ] && { echo "python/README.md exists (a stub)"; exit 1; }
 grep -n '](\.\./python/README\.md' "$repo/docs/markers.md" && exit 1
 docs=$(cd "$(dirname "$0")/../../../scripts" && pwd)/check-docs
-out=$("$docs" "$repo")
+out=$("$docs" "$repo" 2>&1)
+# no PASS/WARN/FAIL line: the tool crashed or could not fetch the org repo
+grep -qE "^(PASS|WARN|FAIL) " <<<"$out" || { echo "check-docs gave no result: $(tail -n 2 <<<"$out")"; exit 77; }
 grep -A3 "relative links to missing files" <<<"$out" && exit 1
 echo "no python/README.md; docs/markers.md does not link it; every relative link resolves"

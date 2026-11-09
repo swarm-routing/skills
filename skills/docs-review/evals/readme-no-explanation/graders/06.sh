@@ -11,7 +11,13 @@ set -u
 repo=$1
 [ -d "$repo" ] || { echo "no repository at $repo"; exit 77; }
 python3 -I - "$repo/.github/org-sync.toml" <<'PY'
-import sys, tomllib
+import sys
+
+try:
+    import tomllib
+except ImportError:
+    print("tomllib needs Python 3.11+; cannot grade")
+    sys.exit(77)
 with open(sys.argv[1], "rb") as f:
     badges = tomllib.load(f).get("badges", [])
 print(f"badges = {badges}")

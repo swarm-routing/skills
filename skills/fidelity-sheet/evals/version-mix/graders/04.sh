@@ -11,11 +11,14 @@ set -u
 sheet=$1/docs/fidelity.md
 [ -f "$sheet" ] || sheet=$2/docs/fidelity.md
 [ -f "$sheet" ] || { echo "no docs/fidelity.md in the repository or the outputs"; exit 1; }
-row=$(grep -iE '^\|[[:space:]]*seed period[[:space:]]*\|' "$sheet")
+row=$(grep -iE '^\|[[:space:]]*seed period[[:space:]]*\|' "$sheet" | head -n 1)
 echo "${row:-no seed period row}"
-case $row in
-*30*'Table 4.1'*) ;;
-*) echo "the seed period row is not 30 s from Table 4.1"; exit 1 ;;
-esac
+# The Parameters row is | Parameter | Value | Source | Notes |: the Value cell must
+# be exactly 30 s and the Source cell must cite Table 4.1 (not 4.10, 4.11, ...).
+IFS='|' read -r _ _ value source _ <<<"$row"
+trim() { sed "s/^[[:space:]]*//; s/[[:space:]]*$//" <<<"$1"; }
+value=$(trim "$value") source=$(trim "$source")
+[ "$value" = "30 s" ] || { echo "the seed period value is '$value', not '30 s'"; exit 1; }
+grep -qE 'Table 4\.1([^0-9]|$)' <<<"$source" || { echo "the seed period source '$source' does not cite Table 4.1"; exit 1; }
 tool=$(cd "$(dirname "$0")/../../../scripts" && pwd)/fidelity
 cd "$(dirname "$sheet")" && exec "$tool" check fidelity.md
