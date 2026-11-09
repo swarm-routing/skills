@@ -19,7 +19,8 @@ to open the paper at the cited place and find the value there.
 Two paths, set once; you work from the protocol's checkout:
 
 ```bash
-SKILL="${CLAUDE_PLUGIN_ROOT:?}/skills/fidelity-sheet"   # this SKILL.md's directory; with skills.sh, where it installed the skill
+SKILL="$CLAUDE_PLUGIN_ROOT/skills/fidelity-sheet"   # as the Claude Code plugin
+# installed with skills.sh (npx skills add): SKILL=<the directory this SKILL.md is in>
 PAPERS="$HOME/papers"   # your swarm-routing/papers checkout (private): the library and the pdf-extract skill
 ```
 
@@ -141,8 +142,25 @@ ships as an infeasibility verdict, not as numbers.
 
 ```bash
 "$SKILL"/scripts/fidelity check docs/fidelity.md      # must end "fidelity check: ok"
+"$SKILL"/scripts/fidelity verify docs/fidelity.md --text G02=<scratch>/g02.txt [--text R05=...]
 "$SKILL"/scripts/fidelity row docs/fidelity.md --protocol ARA
 ```
+
+`verify` opens the cited places for you. It takes each source's text, the
+`pdfx.py text --out` file from step 4, one `--text KEY=PATH` per source
+key. For every row it checks:
+
+- that the cited section, table or figure exists in that text;
+- for a Parameters row citing a table, that the row's value appears in that
+  table on a line naming the parameter;
+- for an equation, that its label `(N)` is there.
+
+A FAIL is a row whose citation or value the paper does not hold: fix the row
+(the value is unknown, or another section gives it), never the text. A
+WARN that a key was not checked means a source had no `--text`: give it
+one, or say in the PR why that source is not in hand. `verify` replaces
+re-reading each cited page by hand. Read the paper yourself only for the
+rows it flags, and for Mechanism rows, whose meaning no script can check.
 
 `check` names every malformed row. Fix the row, never the checker. Its summary
 line lists the unknowns, the repo choices, and the **open** rows: mechanisms
@@ -156,7 +174,7 @@ swarm-protocol review (swarm-routing/.github#54) and the issue comment use.
 ## 8. Pull request
 
 One PR per repo, titled `docs: fidelity sheet for <protocol> (#N)`. In the body:
-- the `check` summary line;
+- the `check` summary line and the `verify` summary line (locators checked, misses);
 - the unknowns, as a checklist for the maintainer;
 - the open rows (ambiguous readings), each with the choices and their evidence;
 - the anchor candidate.
