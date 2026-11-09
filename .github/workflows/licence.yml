@@ -15,5 +15,5 @@ jobs:
   headers:
     uses: swarm-routing/.github/.github/workflows/reusable-licence-check.yml@main
     with:
-      dual-roots: plugins/ tools/ .github/
+      dual-roots: skills/ tools/ .github/
       core-roots: ''

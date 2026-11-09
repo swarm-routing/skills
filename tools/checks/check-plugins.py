@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Daniel Joppi (https://github.com/swarm-routing)
 # SPDX-License-Identifier: MIT OR GPL-2.0-only
-"""Validate the marketplace: .claude-plugin/marketplace.json, every plugin's
-.claude-plugin/plugin.json, and every SKILL.md's frontmatter. One line per
-problem; exit 1 if any. Stdlib only.
+"""Validate the marketplace and the skills against the Agent Skills spec
+(https://agentskills.io/specification, the format skills.sh installs):
+.claude-plugin/marketplace.json, every plugin's .claude-plugin/plugin.json,
+and every skills/<name>/SKILL.md (frontmatter fields and limits, name =
+directory, executable scripts, body under 500 lines). Every skill directory
+under skills/ must belong to a listed plugin. One line per problem; exit 1 if
+any. Stdlib only.
 
 Usage: check-plugins.py [REPO_DIR]
 """
@@ -13,19 +17,50 @@ import os
 import re
 import sys
 
-NAME = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+NAME = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")  # no leading, trailing or doubled hyphen
+FIELDS = {
+    "name",
+    "description",
+    "license",
+    "compatibility",
+    "metadata",
+    "allowed-tools",
+}
+MAX_LINES = 500
+
+
+def scalar(raw):
+    """One-line YAML scalar -> (value, problem). Quoted values are decoded; a
+    plain value YAML would misread (": " makes it a mapping, " #" starts a
+    comment) is a problem, since loaders that parse YAML reject the skill."""
+    v = raw.strip()
+    if v.startswith('"'):
+        try:
+            return json.loads(v), None
+        except json.JSONDecodeError:
+            return v, "double-quoted value is not closed or has a bad escape"
+    if v.startswith("'"):
+        if len(v) < 2 or not v.endswith("'"):
+            return v, "single-quoted value is not closed"
+        return v[1:-1].replace("''", "'"), None
+    if ": " in v or " #" in v or v.endswith(":"):
+        return v, "plain value contains `: ` or ` #`, which YAML misreads; quote it"
+    return v, None
 
 
 def frontmatter(text):
+    """(fields, problems), or None without a frontmatter block."""
     m = re.match(r"^---\n(.*?)\n---\n", text, re.S)
     if not m:
         return None
-    out = {}
+    out, problems = {}, []
     for line in m.group(1).splitlines():
         k, sep, v = line.partition(":")
         if sep and not line.startswith(" "):
-            out[k.strip()] = v.strip()
-    return out
+            out[k.strip()], problem = scalar(v)
+            if problem:
+                problems.append(f"`{k.strip()}`: {problem}")
+    return out, problems
 
 
 def check(root):
@@ -46,6 +81,7 @@ def check(root):
         if key not in mkt:
             errs.append(f"marketplace.json: missing `{key}`")
     names = set()
+    seen = set()
     for p in mkt.get("plugins", []):
         name, src = p.get("name", ""), p.get("source", "")
         where = f"marketplace.json plugin `{name}`"
@@ -85,8 +121,27 @@ def check(root):
             if fm is None:
                 errs.append(f"{rel}: no --- frontmatter ---")
                 continue
+            fm, yaml_problems = fm
+            errs.extend(f"{rel}: frontmatter {p}" for p in yaml_problems)
             if fm.get("name") != s:
                 errs.append(f"{rel}: frontmatter name `{fm.get('name')}` != directory `{s}`")
+            if not NAME.match(s) or len(s) > 64:
+                errs.append(
+                    f"{rel}: name must be 1-64 lowercase letters, digits and single hyphens"
+                )
+            for key in fm:
+                if key not in FIELDS:
+                    errs.append(f"{rel}: frontmatter field `{key}` is not in the Agent Skills spec")
+            c = fm.get("compatibility")
+            if c is not None and not (1 <= len(c) <= 500):
+                errs.append(f"{rel}: compatibility must be 1-500 characters (is {len(c)})")
+            with open(os.path.join(root, rel), encoding="utf-8") as f:
+                nlines = sum(1 for _ in f)
+            if nlines > MAX_LINES:
+                errs.append(
+                    f"{rel}: {nlines} lines; keep SKILL.md under {MAX_LINES} (move detail to references/)"
+                )
+            seen.add(os.path.normpath(os.path.join(sdir, s)))
             d = fm.get("description", "")
             if not d or len(d) > 1024:
                 errs.append(f"{rel}: description must be 1-1024 characters (is {len(d)})")
@@ -98,6 +153,10 @@ def check(root):
                 sp = os.path.join(sdir, s, "scripts", script)
                 if not os.access(sp, os.X_OK):
                     errs.append(f"{os.path.relpath(sp, root)}: not executable")
+    top = os.path.join(root, "skills")
+    for s in sorted(os.listdir(top)) if os.path.isdir(top) else []:
+        if os.path.normpath(os.path.join(top, s)) not in seen:
+            errs.append(f"skills/{s}: not in any plugin listed in marketplace.json")
     return errs
 
 

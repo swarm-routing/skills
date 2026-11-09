@@ -1,6 +1,11 @@
 ---
 name: org-repo
-description: Set up a new swarm-routing repository, or update an existing one, from the org templates — README badge row, AGENTS.md/CLAUDE.md org sections, CONTEXT.md, docs/adr, LICENSE/LICENSING.md, SECURITY.md, the standard Makefile targets, the org-sync CI check and the marketplace keys of .claude/settings.json. Use when bootstrapping an org repo, when its org-sync check is red, or when an org template changed and repos need the update. Script first: run tools/org-sync and read its summaries, never the files.
+description: "Set up a new swarm-routing repository, or update an existing one, from the org templates — README badge row, AGENTS.md/CLAUDE.md org sections, CONTEXT.md, docs/adr, LICENSE/LICENSING.md, SECURITY.md, the standard Makefile targets, the org-sync CI check and the marketplace keys of .claude/settings.json. Use when bootstrapping an org repo, when its org-sync check is red, or when an org template changed and repos need the update. Script first: run tools/org-sync and read its summaries, never the files."
+license: MIT OR GPL-2.0-only
+compatibility: Needs git, python3 and network access to github.com (scripts/org-sync clones swarm-routing/.github tools/org-sync).
+metadata:
+  author: swarm-routing
+  repository: https://github.com/swarm-routing/skills
 ---
 
 # org-repo

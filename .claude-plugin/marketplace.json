@@ -5,14 +5,17 @@
     "url": "https://github.com/swarm-routing"
   },
   "metadata": {
-    "description": "Org-wide Claude Code skills for the swarm-routing repositories."
+    "description": "The swarm-routing org's agent skills: one Claude Code plugin, swarm-routing, whose skills follow the Agent Skills spec (skills/<name>/SKILL.md), so `npx skills add swarm-routing/skills` installs the same skills in any agent."
   },
   "plugins": [
     {
-      "name": "org-repo",
-      "source": "./plugins/org-repo",
-      "description": "Set up or update a swarm-routing repository from the org templates (badges, README, AGENTS.md/CLAUDE.md, ADRs, licence, SECURITY.md, Makefile targets), script first through swarm-routing/.github tools/org-sync.",
-      "version": "0.1.0"
+      "name": "swarm-routing",
+      "source": "./",
+      "description": "Skills for building and maintaining the swarm-routing ns-3 protocols and their org: org-repo, fidelity-sheet; ns-3-specific skills carry the ns3- prefix.",
+      "version": "0.2.0"
     }
-  ]
+  ],
+  "renames": {
+    "org-repo": "swarm-routing"
+  }
 }

@@ -29,7 +29,7 @@ which is what sessions load.
 - A skill that instructs an agent to send data anywhere, to weaken or skip a
   check, to change permissions or repository settings, or to run something
   other than what its text says it runs.
-- A wrapper script under `plugins/*/skills/*/scripts/` that does more than
+- A wrapper script under `skills/*/scripts/` that does more than
   locate and call the org tool it names.
 - A compromised or tampered `.claude-plugin/marketplace.json` or
   `plugin.json` (for example a `source` that points outside this repository).

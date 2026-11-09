@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: termite-table-constants
+expected_outcome: |
+  A docs/fidelity.md whose Parameters table carries Termite's nominal constants with the values of the dissertation's Table 4.1 (initial pheromone 1, ceiling 10000, floor 0.1, decay rate 0.105 per 1 s period, RREQ timeout 2 s, TTL 32, seed TTL 4, seed period 30 s, hello period 1 s, 2 RREQs per request), each citing Table 4.1 or its section; K and F from section 4.2.5 or marked; any constant not in the dissertation (such as the per-packet increment if it is not given) marked unknown or repo choice with a reason; the file passes fidelity.py check.
