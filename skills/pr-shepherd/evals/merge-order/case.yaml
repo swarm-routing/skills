@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: merge-order
+expected_outcome: |
+  pr-status shows ns3-swarm-core#20 as ci=pass, merge=clean, threads=0, and ARA#12 as ci=pending (two ns3 checks in progress). The user asked for the merges. ns3-swarm-core#20 is merged first, as a squash with expectedHeadSha set to its head SHA. ARA#12 is not merged: its CI is pending (a wait times out), and after swarm-core's merge its CI must pass against the new main. The agent reports ARA#12 as blocked on CI. The drafted comment in actions.md says issue #5 stays open until the anchor run is done, and does not contain a closing keyword before #5 (close/closes/fix/fixes/resolve/resolves #5); it uses wording like "Refs #5" or "issue #5 stays open".
+context:
+  scaffold_script: place-files.sh

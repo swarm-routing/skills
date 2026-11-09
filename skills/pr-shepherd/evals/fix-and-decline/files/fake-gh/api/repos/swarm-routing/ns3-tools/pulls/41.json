@@ -1,0 +1,20 @@
+{
+ "number": 41,
+ "title": "feat(python): pair two arms' runs by seed",
+ "user": {
+  "login": "danieljoppi"
+ },
+ "state": "open",
+ "draft": false,
+ "head": {
+  "sha": "__HEAD__",
+  "ref": "x"
+ },
+ "base": {
+  "ref": "main"
+ },
+ "mergeable": true,
+ "mergeable_state": "clean",
+ "body": "",
+ "html_url": "https://github.com/swarm-routing/ns3-tools/pull/41"
+}

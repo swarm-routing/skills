@@ -23,6 +23,7 @@ so the script does the work and the skill says when and in what order.
 | [`fidelity-sheet`](skills/fidelity-sheet/SKILL.md) | write or check a protocol's paper-fidelity sheet (`docs/fidelity.md`): every mechanism and parameter sourced to the paper, or marked repo choice / unknown; the anchor candidate | `tools/fidelity/fidelity.py` |
 | [`protocol-review`](skills/protocol-review/SKILL.md) | review a protocol or tool diff against the org golden rules before a PR: the mechanical checks by script, then wire formats, determinism, paired comparisons and bounded structures by judgement | `tools/protocol-review/check_invariants.py` |
 | [`docs-review`](skills/docs-review/SKILL.md) | bring a repository's README, AI files and docs/ to the org standard (AntHocNet's): badges, an explanation, the site page and the ns-3 image, a layout that matches the tree, a docs map, no broken links, no unbacked claims | `tools/docs-review/check_docs.py` |
+| [`pr-shepherd`](skills/pr-shepherd/SKILL.md) | take open PRs from review to merge: one line per PR and per unresolved finding, each finding verified then fixed (test first) or declined with a reason, every thread replied to and resolved, merged only when CI is green, no thread is open and the user asked, in dependency order | `tools/pr-status/pr_status.py` |
 
 Planned ([epic #9](https://github.com/swarm-routing/skills/issues/9)): the ns-3-specific `ns3-new-module` and `ns3-anchor-run`.
 
@@ -68,7 +69,11 @@ your sessions load them, pin the plugin source to a tag or commit (see
    - under 500 lines.
 2. Name the skill after its task. If it only applies to ns-3 work, prefix it with `ns3-`.
 3. Anything the skill runs goes in `skills/<name>/scripts/` as a thin wrapper around a script in `swarm-routing/.github` `tools/`, which works without the skill (org rule 9).
-4. Test cases go in `skills/<name>/evals/`.
+4. Test cases go in `skills/<name>/evals/<case>/`: `prompt.md`, `case.yaml` and `graders/`. A criterion that needs judgement is a `graders/NN.md` (`type: llm`). A criterion a script can decide ("check_docs.py passes", "no stub file was created") is an executable `graders/NN.sh`:
+   - its header line `# grader: <criterion>` is the expectation's text;
+   - it runs as `NN.sh REPO OUTPUTS`, and exit 0 is a pass, 77 "cannot grade this run", anything else a fail.
+
+   `tools/evals/grade.py <workspace>` runs them on every run of a skill-creator workspace and lists the `.md` graders as needing judgement; `--write` merges the results into each run's `grading.json`. `claude plugin eval` reads only the `.md` graders.
 5. Bump the plugin's version in both `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` (rule 12).
 6. Run the checks:
    - `make test` validates the manifests and every skill against the spec;

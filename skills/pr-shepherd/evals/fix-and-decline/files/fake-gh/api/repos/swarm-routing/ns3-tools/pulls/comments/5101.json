@@ -1,0 +1,9 @@
+{
+ "id": 5101,
+ "user": {
+  "login": "coderabbitai[bot]"
+ },
+ "path": "python/ns3_tool/pair.py",
+ "line": 6,
+ "body": "<!-- coderabbit-ai-generated:v1 -->\n\n**<picture><img src=\"https://example.invalid/i.svg\" alt=\"\"></picture> Major** \u00b7 **Functional Correctness**\n\n**Guard the empty run list.**\n\n`mean()` divides by `len(values)`. The docstring says a crashed run leaves its seed with an empty list, so `pair()` raises `ZeroDivisionError` on such a seed instead of skipping it.\n\n<!-- ai-agent-prompt:start -->\n\n<details>\n<summary>Prompt for AI Agents</summary>\n\n```\nMake pair() skip a seed whose run list is empty in either arm, and add a test.\n```\n\n</details>\n\n<!-- ai-agent-prompt:end -->\n"
+}
