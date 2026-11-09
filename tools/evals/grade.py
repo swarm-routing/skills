@@ -115,9 +115,11 @@ def run_dirs(workspace):
         return any(os.path.exists(os.path.join(d, x)) for x in ("repo", "outputs", "grading.json"))
 
     out = []
-    for case in sorted(os.listdir(workspace)):
-        cdir = os.path.join(workspace, case)
-        if not os.path.isdir(cdir):
+    root = os.path.realpath(workspace)
+    for case in sorted(os.listdir(root)):
+        # read only inside the workspace: a case that links elsewhere is skipped
+        cdir = os.path.realpath(os.path.join(root, case))
+        if not cdir.startswith(root + os.sep) or not os.path.isdir(cdir):
             continue
         name = case
         meta = os.path.join(cdir, "eval_metadata.json")
@@ -217,7 +219,7 @@ def grade(workspace, evals, write=False, out=print):
         out(f"grade: no runs under {workspace} (<case>/<config>/ with repo/ or outputs/)")
     for name, run_dir in runs:
         case_dir = find_case(name, evals)
-        out(os.path.relpath(run_dir, workspace))
+        out(os.path.relpath(run_dir, os.path.realpath(workspace)))
         if case_dir is None:
             out(f"  ?      no unique eval case `{name}` under {', '.join(evals)}")
             continue
@@ -389,6 +391,12 @@ def self_test():
         put("ws-traversal/demo/with_skill/outputs/report.md", "x\n")
         expect(
             "run_dirs: a traversal eval_name falls back to the directory name",
+            [n for n, _ in run_dirs(os.path.join(tmp, "ws-traversal"))] == ["demo"],
+        )
+        put("outside/with_skill/outputs/report.md", "x\n")
+        os.symlink(os.path.join(tmp, "outside"), os.path.join(tmp, "ws-traversal", "linked"))
+        expect(
+            "run_dirs: a case that links outside the workspace is skipped",
             [n for n, _ in run_dirs(os.path.join(tmp, "ws-traversal"))] == ["demo"],
         )
     finally:
