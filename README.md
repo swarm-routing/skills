@@ -21,8 +21,9 @@ so the script does the work and the skill says when and in what order.
 |-------|--------------|--------|
 | [`org-repo`](skills/org-repo/SKILL.md) | set up or update a repo from the org templates: plan, apply, resolve conflicts, check, open the PR | `tools/org-sync/org_sync.py` |
 | [`fidelity-sheet`](skills/fidelity-sheet/SKILL.md) | write or check a protocol's paper-fidelity sheet (`docs/fidelity.md`): every mechanism and parameter sourced to the paper, or marked repo choice / unknown; the anchor candidate | `tools/fidelity/fidelity.py` |
+| [`protocol-review`](skills/protocol-review/SKILL.md) | review a protocol or tool diff against the org golden rules before a PR: the mechanical checks by script, then wire formats, determinism, paired comparisons and bounded structures by judgement | `tools/protocol-review/check_invariants.py` |
 
-Planned ([epic #9](https://github.com/swarm-routing/skills/issues/9)): `protocol-review`, `handoff`, and the ns-3-specific `ns3-new-module` and `ns3-anchor-run`.
+Planned ([epic #9](https://github.com/swarm-routing/skills/issues/9)): the ns-3-specific `ns3-new-module` and `ns3-anchor-run`.
 
 ## Install
 

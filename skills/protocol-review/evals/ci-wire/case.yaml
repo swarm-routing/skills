@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: ci-wire
+expected_outcome: |
+  Rule 8 FAIL: actions/checkout@v6 and actions/upload-artifact@v5 not pinned by full SHA with a # vX.Y.Z comment; retention-days 30 > 7. Rule 3: the wire header gained a field without bumping kWireVersion, and the roundtrip and fuzz tests must change in the same PR.
+context:
+  scaffold_script: place-files.sh

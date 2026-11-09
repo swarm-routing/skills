@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: clean-script-judgement
+expected_outcome: |
+  check_invariants passes (or only warns), but the review finds three blocking issues by judgement: the new seen-forager history (std::deque, push_back on every receive, no eviction) is unbounded (rule 7: needs a configured cap and a test); and PR.md's comparison claim (BeeAdHoc beats AODV by 4.1 % PDR on 5 seeds, means only) breaks rule 6 (paired per-seed deltas over >= 20 seeds from the marker lines, with the run linked); and PR.md's claim that foragers seen before are now dropped is not what the code does (OnForager only appends, and nothing calls Seen to drop a duplicate).
+context:
+  scaffold_script: place-files.sh

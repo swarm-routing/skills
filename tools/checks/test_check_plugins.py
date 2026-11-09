@@ -5,6 +5,7 @@
 with the expected message."""
 
 import importlib.util
+import json
 import os
 import shutil
 import tempfile
@@ -17,6 +18,10 @@ spec.loader.exec_module(cp)
 
 assert cp.check(ROOT) == [], cp.check(ROOT)
 print("ok    this repo's marketplace is valid")
+
+
+with open(os.path.join(ROOT, ".claude-plugin/plugin.json")) as fh:
+    VERSION = json.load(fh)["version"]
 
 
 def broken(path, old, new, expect):
@@ -46,9 +51,9 @@ broken(
 )
 broken(
     ".claude-plugin/plugin.json",
-    '"version": "0.2.0"',
-    '"version": "0.3.0"',
-    "version 0.3.0 != marketplace 0.2.0",
+    f'"version": "{VERSION}"',
+    '"version": "9.9.9"',
+    f"version 9.9.9 != marketplace {VERSION}",
 )
 broken(
     ".claude-plugin/marketplace.json",
