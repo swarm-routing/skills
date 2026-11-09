@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Daniel Joppi (https://github.com/swarm-routing)
 // SPDX-License-Identifier: MIT OR GPL-2.0-only
-#include "core/router.h"
+#include "router.h"
 #include <cstdlib>
 #include <ns3/simulator.h>
 
