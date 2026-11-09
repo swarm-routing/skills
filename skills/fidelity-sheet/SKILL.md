@@ -138,8 +138,12 @@ scripts/fidelity row docs/fidelity.md --protocol ARA
 ```
 
 `check` names every malformed row. Fix the row, never the checker. Its summary
-line lists the unknowns and repo choices: those are the open questions to
-put in the PR body and the issue. `row` prints the one-line summary that the
+line lists the unknowns, the repo choices, and the **open** rows: mechanisms
+that cite a section but whose Status is `unknown: …` because the section does
+not settle them (an ambiguous reading). Mark such a row that way rather than
+picking a reading silently. All three lists are the open questions to put in
+the PR body and the issue; the open rows are the ones to pre-register before
+`core/` (as swarm-routing/ARA#15). `row` prints the one-line summary that the
 swarm-protocol review (swarm-routing/.github#54) and the issue comment use.
 
 ## 8. Pull request
@@ -147,7 +151,7 @@ swarm-protocol review (swarm-routing/.github#54) and the issue comment use.
 One PR per repo, titled `docs: fidelity sheet for <protocol> (#N)`. In the body:
 - the `check` summary line;
 - the unknowns, as a checklist for the maintainer;
-- any ambiguous readings;
+- the open rows (ambiguous readings), each with the choices and their evidence;
 - the anchor candidate.
 
 Close the fidelity issue only when the maintainer has answered the unknowns, or
