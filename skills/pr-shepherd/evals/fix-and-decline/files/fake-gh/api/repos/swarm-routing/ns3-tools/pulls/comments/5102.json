@@ -1,0 +1,9 @@
+{
+ "id": 5102,
+ "user": {
+  "login": "coderabbitai[bot]"
+ },
+ "path": "python/ns3_tool/pair.py",
+ "line": 16,
+ "body": "<!-- coderabbit-ai-generated:v1 -->\n\n**<picture><img src=\"https://example.invalid/i.svg\" alt=\"\"></picture> Major** \u00b7 **Determinism**\n\n**Pair the seeds in a deterministic order.**\n\n`pair()` iterates `set(a) & set(b)`, whose order depends on hashing, so the output order can change between runs (golden rule 5).\n\n<!-- ai-agent-prompt:start -->\n\n<details>\n<summary>Prompt for AI Agents</summary>\n\n```\nIterate the common seeds in sorted order in pair().\n```\n\n</details>\n\n<!-- ai-agent-prompt:end -->\n"
+}

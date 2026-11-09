@@ -1,0 +1,20 @@
+{
+ "number": 12,
+ "title": "feat(core): choose the next hop with swarm-core's RouletteSelect",
+ "user": {
+  "login": "danieljoppi"
+ },
+ "state": "open",
+ "draft": false,
+ "head": {
+  "sha": "c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2c1d0",
+  "ref": "x"
+ },
+ "base": {
+  "ref": "main"
+ },
+ "mergeable": false,
+ "mergeable_state": "unstable",
+ "body": "Builds against ns3-swarm-core main; needs swarm-routing/ns3-swarm-core#20 merged first. Refs #5.",
+ "html_url": "https://github.com/swarm-routing/ARA/pull/12"
+}
