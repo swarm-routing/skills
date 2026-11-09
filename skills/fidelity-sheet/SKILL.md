@@ -1,6 +1,6 @@
 ---
 name: fidelity-sheet
-description: Write or update a swarm-routing protocol's paper-fidelity sheet (docs/fidelity.md) — every mechanism and parameter mapped to the paper section that gives it, or marked repo choice / unknown — and the anchor candidate, then check it with tools/fidelity/fidelity.py. Use whenever a protocol or comparator arm needs its fidelity sheet (ARA#4, BeeAdHoc#4, Termite#4, HOPNET#4, any ns3-tools arm), before writing a protocol's core/, when someone asks where a parameter's default comes from, or when reviewing an arm against its paper. Script first: the script checks the shape and the sources; you read the paper with pdf-extract.
+description: "Write or update a swarm-routing protocol's paper-fidelity sheet (docs/fidelity.md) — every mechanism and parameter mapped to the paper section that gives it, or marked repo choice / unknown — and the anchor candidate, then check it with tools/fidelity/fidelity.py. Use whenever a protocol or comparator arm needs its fidelity sheet (ARA#4, BeeAdHoc#4, Termite#4, HOPNET#4, any ns3-tools arm), before writing a protocol's core/, when someone asks where a parameter's default comes from, or when reviewing an arm against its paper. Script first: the script checks the shape and the sources; you read the paper with pdf-extract."
 license: MIT OR GPL-2.0-only
 compatibility: Needs git, python3 and network access to github.com (scripts/fidelity clones swarm-routing/.github tools/fidelity); reading papers uses the papers repository's pdf-extract skill.
 metadata:
@@ -16,8 +16,15 @@ says, so the code can be written from the paper and not from an older arm or
 from memory. Its value is that every row can be traced: a reviewer must be able
 to open the paper at the cited place and find the value there.
 
-`scripts/fidelity` (next to this file) runs `swarm-routing/.github`
-`tools/fidelity/fidelity.py` from a cached clone. Inside a `.github` checkout,
+Two paths, set once; you work from the protocol's checkout:
+
+```bash
+SKILL="${CLAUDE_PLUGIN_ROOT:?}/skills/fidelity-sheet"   # this SKILL.md's directory; with skills.sh, where it installed the skill
+PAPERS="$HOME/papers"   # your swarm-routing/papers checkout (private): the library and the pdf-extract skill
+```
+
+`$SKILL/scripts/fidelity` runs `swarm-routing/.github` `tools/fidelity/fidelity.py`
+from a cached clone. Inside a `.github` checkout,
 `python3 tools/fidelity/fidelity.py` is the same; `ORG_TOOLS_DIR=<checkout>`
 points the wrapper at a local one.
 
@@ -77,7 +84,7 @@ exists to prevent.
 If the repo has no `docs/fidelity.md`:
 
 ```bash
-scripts/fidelity skeleton --protocol ARA --key G02 \
+"$SKILL"/scripts/fidelity skeleton --protocol ARA --key G02 \
   --citation "M. Güneş, U. Sorges, I. Bouazizi, ARA – The Ant-Colony Based Routing Algorithm for MANETs, ICPP Workshops (IWAHN) 2002, pp. 79–85, DOI 10.1109/ICPPW.2002.1039715" > docs/fidelity.md
 ```
 
@@ -88,11 +95,11 @@ The key is short and stable (first author's initial + year).
 Do not read the whole PDF into context. Find the structure first, then each mechanism:
 
 ```bash
-python3 .claude/skills/pdf-extract/pdfx.py grep <pdf> '^[0-9IVX]+\.?\s+[A-Z]' -C 0   # section headings
-python3 .claude/skills/pdf-extract/pdfx.py grep <pdf> 'evaporat|pheromone|Table' -C 2
+python3 -I "$PAPERS"/.claude/skills/pdf-extract/pdfx.py grep <pdf> '^[0-9IVX]+\.?\s+[A-Z]' -C 0   # section headings
+python3 -I "$PAPERS"/.claude/skills/pdf-extract/pdfx.py grep <pdf> 'evaporat|pheromone|Table' -C 2
 ```
 
-(the PDF path is the library path). `pdfx.py text` caches the extracted text
+(the PDF is under `$PAPERS/AntHocNet/library/<protocol>/`). `pdfx.py text` caches the extracted text
 next to the PDF; to keep the papers checkout clean, extract once with
 `pdfx.py text <pdf> --out <scratch>/<name>.txt` and grep that file, or copy
 the PDF to a scratch directory first. For each
@@ -133,8 +140,8 @@ ships as an infeasibility verdict, not as numbers.
 ## 7. Check, then summarise
 
 ```bash
-scripts/fidelity check docs/fidelity.md      # must end "fidelity check: ok"
-scripts/fidelity row docs/fidelity.md --protocol ARA
+"$SKILL"/scripts/fidelity check docs/fidelity.md      # must end "fidelity check: ok"
+"$SKILL"/scripts/fidelity row docs/fidelity.md --protocol ARA
 ```
 
 `check` names every malformed row. Fix the row, never the checker. Its summary

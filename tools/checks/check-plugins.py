@@ -29,16 +29,38 @@ FIELDS = {
 MAX_LINES = 500
 
 
+def scalar(raw):
+    """One-line YAML scalar -> (value, problem). Quoted values are decoded; a
+    plain value YAML would misread (": " makes it a mapping, " #" starts a
+    comment) is a problem, since loaders that parse YAML reject the skill."""
+    v = raw.strip()
+    if v.startswith('"'):
+        try:
+            return json.loads(v), None
+        except json.JSONDecodeError:
+            return v, "double-quoted value is not closed or has a bad escape"
+    if v.startswith("'"):
+        if len(v) < 2 or not v.endswith("'"):
+            return v, "single-quoted value is not closed"
+        return v[1:-1].replace("''", "'"), None
+    if ": " in v or " #" in v or v.endswith(":"):
+        return v, "plain value contains `: ` or ` #`, which YAML misreads; quote it"
+    return v, None
+
+
 def frontmatter(text):
+    """(fields, problems), or None without a frontmatter block."""
     m = re.match(r"^---\n(.*?)\n---\n", text, re.S)
     if not m:
         return None
-    out = {}
+    out, problems = {}, []
     for line in m.group(1).splitlines():
         k, sep, v = line.partition(":")
         if sep and not line.startswith(" "):
-            out[k.strip()] = v.strip()
-    return out
+            out[k.strip()], problem = scalar(v)
+            if problem:
+                problems.append(f"`{k.strip()}`: {problem}")
+    return out, problems
 
 
 def check(root):
@@ -99,6 +121,8 @@ def check(root):
             if fm is None:
                 errs.append(f"{rel}: no --- frontmatter ---")
                 continue
+            fm, yaml_problems = fm
+            errs.extend(f"{rel}: frontmatter {p}" for p in yaml_problems)
             if fm.get("name") != s:
                 errs.append(f"{rel}: frontmatter name `{fm.get('name')}` != directory `{s}`")
             if not NAME.match(s) or len(s) > 64:

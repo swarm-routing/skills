@@ -39,6 +39,12 @@ broken(
     "frontmatter name `other`",
 )
 broken(
+    "skills/org-repo/SKILL.md",
+    'description: "',
+    "description: ",
+    "which YAML misreads; quote it",
+)
+broken(
     ".claude-plugin/plugin.json",
     '"version": "0.2.0"',
     '"version": "0.3.0"',

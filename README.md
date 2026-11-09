@@ -51,8 +51,11 @@ npx skills add swarm-routing/skills --skill fidelity-sheet  # one skill
 }
 ```
 
-Both routes follow `main`. To review changes before your sessions load them,
-pin the source to a tag or commit (see [SECURITY.md](SECURITY.md)).
+The plugin route follows `main`: Claude Code picks up new commits when it
+refreshes the marketplace. The skills.sh route copies the skills at install
+time; run `npx skills update` to get later commits. To review changes before
+your sessions load them, pin the plugin source to a tag or commit (see
+[SECURITY.md](SECURITY.md)).
 
 ## Add a skill
 
