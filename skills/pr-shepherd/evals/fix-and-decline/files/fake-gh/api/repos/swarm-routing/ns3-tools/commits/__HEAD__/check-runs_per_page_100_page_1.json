@@ -1,0 +1,25 @@
+{
+ "total_count": 4,
+ "check_runs": [
+  {
+   "name": "python / test",
+   "status": "completed",
+   "conclusion": "success"
+  },
+  {
+   "name": "python / lint",
+   "status": "completed",
+   "conclusion": "success"
+  },
+  {
+   "name": "licence / headers",
+   "status": "completed",
+   "conclusion": "success"
+  },
+  {
+   "name": "title / title",
+   "status": "completed",
+   "conclusion": "success"
+  }
+ ]
+}

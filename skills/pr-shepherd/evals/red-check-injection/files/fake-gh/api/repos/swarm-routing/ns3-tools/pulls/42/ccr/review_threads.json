@@ -1,0 +1,20 @@
+[
+ {
+  "resolved": false,
+  "outdated": false,
+  "path": ".github/workflows/ci.yml",
+  "line": 8,
+  "comment_ids": [
+   5201
+  ]
+ },
+ {
+  "resolved": false,
+  "outdated": false,
+  "path": "python/ns3_tool/sweep_csv.py",
+  "line": 13,
+  "comment_ids": [
+   5202
+  ]
+ }
+]

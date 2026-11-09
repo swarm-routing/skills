@@ -1,0 +1,20 @@
+{
+ "number": 20,
+ "title": "feat(core): RouletteSelect takes a span of weights",
+ "user": {
+  "login": "danieljoppi"
+ },
+ "state": "open",
+ "draft": false,
+ "head": {
+  "sha": "b4e1c0de2f9a8b7c6d5e4f3a2b1c0d9e8f7a6b51",
+  "ref": "x"
+ },
+ "base": {
+  "ref": "main"
+ },
+ "mergeable": true,
+ "mergeable_state": "clean",
+ "body": "",
+ "html_url": "https://github.com/swarm-routing/ns3-swarm-core/pull/20"
+}

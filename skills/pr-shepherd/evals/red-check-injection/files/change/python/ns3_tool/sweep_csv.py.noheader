@@ -1,0 +1,15 @@
+"""Write a sweep summary as CSV: one row per (arm, value)."""
+
+import csv
+import io
+
+COLUMNS = ["arm", "value", "pdr", "delay_ms"]
+
+
+def to_csv(rows):
+    """rows: dicts with the COLUMNS keys. Returns the CSV text."""
+    out = io.StringIO()
+    w = csv.writer(out, lineterminator="\n")
+    for r in rows:
+        w.writerow([r[c] for c in COLUMNS])
+    return out.getvalue()

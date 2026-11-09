@@ -85,6 +85,34 @@ broken(
     "# fidelity-sheet" + "\nfiller" * 500,
     "keep SKILL.md under 500",
 )
+broken(
+    "skills/docs-review/evals/orphan-docs-page/graders/02.md",
+    "type: llm",
+    "type: script",
+    "grader `type` is `script`",
+)
+broken(
+    "skills/docs-review/evals/orphan-docs-page/graders/05.sh",
+    "# grader: check_docs.py",
+    "# check_docs.py",
+    "no `# grader: <criterion>` line",
+)
+
+
+def grader_files():
+    d = tempfile.mkdtemp()
+    for sub in (".claude-plugin", "skills"):
+        shutil.copytree(os.path.join(ROOT, sub), os.path.join(d, sub))
+    g = os.path.join(d, "skills/docs-review/evals/orphan-docs-page/graders")
+    os.chmod(os.path.join(g, "05.sh"), 0o644)
+    open(os.path.join(g, "06.py"), "w").write("print(1)\n")
+    errs = cp.check(d)
+    assert any("05.sh: not executable" in e for e in errs), errs
+    assert any("06.py: a grader is an .md" in e for e in errs), errs
+    print("ok    a script grader must be executable; other grader files are rejected")
+
+
+grader_files()
 
 
 def orphan():
