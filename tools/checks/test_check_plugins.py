@@ -82,7 +82,10 @@ def orphan():
         shutil.copytree(os.path.join(ROOT, sub), os.path.join(d, sub))
     os.makedirs(os.path.join(d, "elsewhere"))
     shutil.move(os.path.join(d, "skills", "fidelity-sheet"), os.path.join(d, "elsewhere"))
-    shutil.copytree(os.path.join(d, "elsewhere", "fidelity-sheet"), os.path.join(d, "skills", "ns3--bad"))
+    shutil.copytree(
+        os.path.join(d, "elsewhere", "fidelity-sheet"),
+        os.path.join(d, "skills", "ns3--bad"),
+    )
     errs = cp.check(d)
     assert any("ns3--bad" in e and "single hyphens" in e for e in errs), errs
     print("ok    a doubled hyphen in a skill name is rejected")

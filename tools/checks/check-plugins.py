@@ -18,7 +18,14 @@ import re
 import sys
 
 NAME = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")  # no leading, trailing or doubled hyphen
-FIELDS = {"name", "description", "license", "compatibility", "metadata", "allowed-tools"}
+FIELDS = {
+    "name",
+    "description",
+    "license",
+    "compatibility",
+    "metadata",
+    "allowed-tools",
+}
 MAX_LINES = 500
 
 
@@ -95,7 +102,9 @@ def check(root):
             if fm.get("name") != s:
                 errs.append(f"{rel}: frontmatter name `{fm.get('name')}` != directory `{s}`")
             if not NAME.match(s) or len(s) > 64:
-                errs.append(f"{rel}: name must be 1-64 lowercase letters, digits and single hyphens")
+                errs.append(
+                    f"{rel}: name must be 1-64 lowercase letters, digits and single hyphens"
+                )
             for key in fm:
                 if key not in FIELDS:
                     errs.append(f"{rel}: frontmatter field `{key}` is not in the Agent Skills spec")
@@ -105,7 +114,9 @@ def check(root):
             with open(os.path.join(root, rel), encoding="utf-8") as f:
                 nlines = sum(1 for _ in f)
             if nlines > MAX_LINES:
-                errs.append(f"{rel}: {nlines} lines; keep SKILL.md under {MAX_LINES} (move detail to references/)")
+                errs.append(
+                    f"{rel}: {nlines} lines; keep SKILL.md under {MAX_LINES} (move detail to references/)"
+                )
             seen.add(os.path.normpath(os.path.join(sdir, s)))
             d = fm.get("description", "")
             if not d or len(d) > 1024:
