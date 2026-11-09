@@ -1,0 +1,12 @@
+{
+  "name": "protocol-dev",
+  "version": "0.1.0",
+  "description": "Develop a swarm-routing protocol or comparator arm the org's way, script first: its paper-fidelity sheet (more skills follow: invariant review, module scaffold, anchor runs).",
+  "author": {
+    "name": "Daniel Joppi",
+    "url": "https://github.com/swarm-routing"
+  },
+  "homepage": "https://github.com/swarm-routing/skills",
+  "repository": "https://github.com/swarm-routing/skills",
+  "license": "MIT OR GPL-2.0-only"
+}

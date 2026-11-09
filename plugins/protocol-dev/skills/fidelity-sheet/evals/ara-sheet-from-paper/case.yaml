@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: ara-sheet-from-paper
+expected_outcome: |
+  A docs/fidelity.md for ARA whose every mechanism and parameter row cites a section of the 2002 paper or is marked repo choice (with a reason) or unknown; constants the paper does not give (pheromone increment, evaporation rate and period, thresholds) are unknown rather than invented; a section lists the differences from AntHocNet's ara arm; an anchor candidate states the paper's trend with its locator; the sheet passes fidelity.py check.

@@ -13,6 +13,12 @@
       "source": "./plugins/org-repo",
       "description": "Set up or update a swarm-routing repository from the org templates (badges, README, AGENTS.md/CLAUDE.md, ADRs, licence, SECURITY.md, Makefile targets), script first through swarm-routing/.github tools/org-sync.",
       "version": "0.1.0"
+    },
+    {
+      "name": "protocol-dev",
+      "source": "./plugins/protocol-dev",
+      "description": "Develop a swarm-routing protocol or comparator arm the org's way, script first: its paper-fidelity sheet (swarm-routing/.github tools/fidelity).",
+      "version": "0.1.0"
     }
   ]
 }

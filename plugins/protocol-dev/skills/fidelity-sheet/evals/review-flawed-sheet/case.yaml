@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: review-flawed-sheet
+expected_outcome: |
+  Every planted flaw is named: a mechanism sourced 'the paper'; a mechanism with no source and no status; a parameter with no source whose note says it came from the AntHocNet arm; a repo choice with no reason; a reference to an undeclared key [GECCO05]; an anchor source not in [KEY] form. Fixes that need no paper are made (status to unknown, the arm-derived value to unknown with the value kept in Notes or as a repo choice with reason, the anchor locator to [PG460] ch. 7, GECCO05 declared as a source or the row marked unknown), nothing is invented, and fidelity.py check passes on the fixed file.
+context:
+  scaffold_script: place-files.sh
