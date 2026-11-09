@@ -69,7 +69,11 @@ your sessions load them, pin the plugin source to a tag or commit (see
    - under 500 lines.
 2. Name the skill after its task. If it only applies to ns-3 work, prefix it with `ns3-`.
 3. Anything the skill runs goes in `skills/<name>/scripts/` as a thin wrapper around a script in `swarm-routing/.github` `tools/`, which works without the skill (org rule 9).
-4. Test cases go in `skills/<name>/evals/`.
+4. Test cases go in `skills/<name>/evals/<case>/`: `prompt.md`, `case.yaml` and `graders/`. A criterion that needs judgement is a `graders/NN.md` (`type: llm`). A criterion a script can decide ("check_docs.py passes", "no stub file was created") is an executable `graders/NN.sh`:
+   - its header line `# grader: <criterion>` is the expectation's text;
+   - it runs as `NN.sh REPO OUTPUTS`, and exit 0 is a pass, 77 "cannot grade this run", anything else a fail.
+
+   `tools/evals/grade.py <workspace>` runs them on every run of a skill-creator workspace and lists the `.md` graders as needing judgement; `--write` merges the results into each run's `grading.json`. `claude plugin eval` reads only the `.md` graders.
 5. Bump the plugin's version in both `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` (rule 12).
 6. Run the checks:
    - `make test` validates the manifests and every skill against the spec;

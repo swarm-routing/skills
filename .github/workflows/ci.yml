@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: MIT OR GPL-2.0-only
 name: CI
 
-# The marketplace and every plugin manifest and SKILL.md validate; the skill
-# wrappers pass shellcheck; the workflows pass actionlint; tools/ passes ruff
-# and its self-test runs under coverage (report-only, swarm-routing/.github#35). Licence headers and
-# the org-sync drift check run in their own workflows (licence.yml, org-sync.yml).
+# The marketplace and every plugin manifest, SKILL.md and eval grader validate;
+# the skill wrappers and the script graders pass shellcheck; the workflows pass
+# actionlint; tools/ passes ruff and its self-tests run under coverage
+# (report-only, swarm-routing/.github#35). Licence headers and the org-sync
+# drift check run in their own workflows (licence.yml, org-sync.yml).
 on:
   push:
     branches: [main]
@@ -24,15 +25,15 @@ jobs:
           persist-credentials: false
       - name: make test (marketplace, plugin.json, SKILL.md frontmatter, + self-test)
         run: make test
-      - name: lint (actionlint, shellcheck on the skill wrappers)
+      - name: lint (actionlint, shellcheck on the skill wrappers and script graders)
         run: |
           pip install --quiet actionlint-py==1.7.7.23 shellcheck-py==0.10.0.1
           actionlint .github/workflows/*.yml
-          find plugins -path '*/scripts/*' -type f -print0 | xargs -0 -r shellcheck
+          find skills \( -path '*/scripts/*' -o -path '*/graders/*.sh' \) -type f -print0 | xargs -0 -r shellcheck
 
   python:
     uses: swarm-routing/.github/.github/workflows/reusable-python-ci.yml@main
     with:
       paths: tools
-      tests: tools/checks/test_check_plugins.py
+      tests: tools/checks/test_check_plugins.py tools/evals/test_grade.py
       source: tools

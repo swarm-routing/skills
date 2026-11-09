@@ -22,6 +22,7 @@ build: ## build what this repo ships
 
 test: ## the fast tests CI runs on every PR
 	python3 -I tools/checks/check-plugins.py . && python3 -I tools/checks/test_check_plugins.py
+	python3 -I tools/evals/grade.py --self-test
 
 lint: ## static checks, no changes
 	actionlint
