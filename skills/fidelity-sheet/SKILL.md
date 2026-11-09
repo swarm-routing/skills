@@ -97,9 +97,20 @@ The key is short and stable (first author's initial + year).
 Do not read the whole PDF into context. Find the structure first, then each mechanism:
 
 ```bash
-python3 -I "$PAPERS"/.claude/skills/pdf-extract/pdfx.py grep <pdf> '^[0-9IVX]+\.?\s+[A-Z]' -C 0   # section headings
+python3 -I "$PAPERS"/.claude/skills/pdf-extract/pdfx.py outline <pdf>   # headings, tables, figures, equations: line and page
 python3 -I "$PAPERS"/.claude/skills/pdf-extract/pdfx.py grep <pdf> 'evaporat|pheromone|Table' -C 2
 ```
+
+`outline` is the map: it skips the table of contents and gives each section,
+caption and equation label with its text line and its PDF and printed page,
+so you open the right place without reading the paper, and you cite the
+section and table numbers it prints rather than ones remembered from another
+version.
+
+`outline` needs a papers checkout from 2026-11-09 or later: if `pdfx.py
+--help` does not list it, `git -C "$PAPERS" pull` first. Without that, grep
+for the structure instead (`pdfx.py grep <pdf> '^(Table|Fig\.|[0-9]+(\.[0-9]+)*) '`)
+and check each section number against the text you cite.
 
 (the PDF is under `$PAPERS/AntHocNet/library/<protocol>/`). `pdfx.py text` caches the extracted text
 next to the PDF; to keep the papers checkout clean, extract once with
