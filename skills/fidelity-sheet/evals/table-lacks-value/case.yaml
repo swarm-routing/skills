@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: table-lacks-value
+expected_outcome: |
+  Table 4.1 (p. 84) lists 16 entries and holds neither F nor γc. The sheet's F = 10 and γc = 1 rows are fixed: ch. 4 gives no value for either, so they become unknown (F: §4.2.5 gives only its effect; γc: eq. 4.1 names it without a value), with the other chapters' values (F = 10 in ch. 7 §7.3.1; γc = 1 in ch. 5) at most in Notes, attributed to their own chapter. The three correct rows (initial pheromone 1, τ 0.105, 2 RREQs) are kept, and fidelity.py check passes.
+context:
+  scaffold_script: place-files.sh

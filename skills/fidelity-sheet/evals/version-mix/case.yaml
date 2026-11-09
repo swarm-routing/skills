@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: version-mix
+expected_outcome: |
+  The τ, F and R rows come from §7.3.1, ReTermite (ch. 7), a different version from the ch. 4 Termite this repo implements. Fixed: τ becomes 0.105 per 1 s decay period (Table 4.1, periodic not continuous); F becomes unknown for ch. 4 (§4.2.5 gives only its effect), with ch. 7's 10 at most a note; R is not a ch. 4 parameter (introduced in ch. 5, eq. 5.2) and is removed or marked as not part of ch. 4. The seed period row stays. fidelity.py check passes.
+context:
+  scaffold_script: place-files.sh
