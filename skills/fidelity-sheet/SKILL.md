@@ -1,6 +1,11 @@
 ---
 name: fidelity-sheet
 description: Write or update a swarm-routing protocol's paper-fidelity sheet (docs/fidelity.md) — every mechanism and parameter mapped to the paper section that gives it, or marked repo choice / unknown — and the anchor candidate, then check it with tools/fidelity/fidelity.py. Use whenever a protocol or comparator arm needs its fidelity sheet (ARA#4, BeeAdHoc#4, Termite#4, HOPNET#4, any ns3-tools arm), before writing a protocol's core/, when someone asks where a parameter's default comes from, or when reviewing an arm against its paper. Script first: the script checks the shape and the sources; you read the paper with pdf-extract.
+license: MIT OR GPL-2.0-only
+compatibility: Needs git, python3 and network access to github.com (scripts/fidelity clones swarm-routing/.github tools/fidelity); reading papers uses the papers repository's pdf-extract skill.
+metadata:
+  author: swarm-routing
+  repository: https://github.com/swarm-routing/skills
 ---
 
 # fidelity-sheet
@@ -30,7 +35,7 @@ Four required sections, each a Markdown table (`fidelity.py skeleton` writes the
 Optional: `## Differences from <arm>` (Paper · Arm · Difference), and any prose.
 
 A **Source** cell is one of:
-- `[KEY] §3.1`, `[KEY] Table 4.1`, `[KEY] Fig. 2`, `[KEY] eq. 4.3`, `[KEY] p. 7` (several joined by `;`, or by `,` after one key);
+- `[KEY] §3.1`, `[KEY] Table 4.1`, `[KEY] Fig. 2`, `[KEY] Listing 13.17`, `[KEY] Alg. 2`, `[KEY] eq. 4.3`, `[KEY] p. 84`, `[KEY] ch. 13` (several joined by `;`, or by `,` after one key). Prefer the narrowest: a page or listing over a whole chapter;
 - `repo choice: <why>`: the paper is silent and we picked a value, with the reason (for example "ns-3 AODV's NetTraversalTime, so the reactive arms wait alike");
 - `unknown`: the paper is silent and nothing is chosen yet. Its Value is `—`.
 
@@ -48,7 +53,26 @@ because it looks authoritative.
 Secondary sources (reviews, theses that restate the protocol) get their own key
 in `## Sources`. Cite them where they are the only source, and say so in Notes.
 
-## 2. Start the file
+## 2. Which version of the protocol?
+
+A thesis or project report often describes the protocol more than once: a formal
+model, a revised design, an enhanced variant, an implementation. Their constants
+and mechanisms differ. Termite's dissertation has three (ch. 4, ch. 5, ch. 7
+ReTermite); the BeeAdHoc PG 460 report has a model with a dance floor (chs. 3–4)
+and a Linux module without one (chs. 12–13). Before filling rows:
+
+- list the versions the source describes, with their chapters;
+- note which one any existing arm followed, and which one the anchor's
+  published comparison used: they are not always the same;
+- if the repo's AGENTS.md or an issue already chose one, follow it; otherwise
+  say which one each row belongs to (prefix the row, `ch. 4:`), and put the
+  choice to the maintainer in the PR. It must be pre-registered in an issue
+  before code.
+
+Mixing rows from two versions without saying so is the silent error this sheet
+exists to prevent.
+
+## 3. Start the file
 
 If the repo has no `docs/fidelity.md`:
 
@@ -59,7 +83,7 @@ scripts/fidelity skeleton --protocol ARA --key G02 \
 
 The key is short and stable (first author's initial + year).
 
-## 3. Read the paper by grepping it
+## 4. Read the paper by grepping it
 
 Do not read the whole PDF into context. Find the structure first, then each mechanism:
 
@@ -68,7 +92,10 @@ python3 .claude/skills/pdf-extract/pdfx.py grep <pdf> '^[0-9IVX]+\.?\s+[A-Z]' -C
 python3 .claude/skills/pdf-extract/pdfx.py grep <pdf> 'evaporat|pheromone|Table' -C 2
 ```
 
-(run from the papers checkout; the PDF path is the library path). For each
+(the PDF path is the library path). `pdfx.py text` caches the extracted text
+next to the PDF; to keep the papers checkout clean, extract once with
+`pdfx.py text <pdf> --out <scratch>/<name>.txt` and grep that file, or copy
+the PDF to a scratch directory first. For each
 mechanism the paper describes, write one Mechanisms row with the locator where
 it is defined. For each constant, write one Parameters row:
 
@@ -86,7 +113,7 @@ it is defined. For each constant, write one Parameters row:
 Quote at most a sentence or a formula, attributed. The protocol repos are
 public; the paper's text is not ours to copy.
 
-## 4. Compare with the existing arm
+## 5. Compare with the existing arm
 
 When the protocol already exists as an AntHocNet comparator arm
 (`ns3/baselines/adaptive/README.md` in `swarm-routing/AntHocNet` carries those
@@ -94,7 +121,7 @@ arms' sheets) or in ns3-tools, add `## Differences from <arm>` with one row per
 difference: what the paper says, what the arm does, and the consequence. That
 list is what the fresh implementation must not inherit by accident.
 
-## 5. The anchor candidate
+## 6. The anchor candidate
 
 One row: the paper's headline trend, as a testable rule (metric, direction,
 the conditions compared), the scenario it was measured in (nodes, area,
@@ -103,7 +130,7 @@ reproduce it with the arms it has (AODV, OLSR, DSDV, AntHocNet, …). If the
 paper reports nothing reproducible, write `none: <why>`. The protocol then
 ships as an infeasibility verdict, not as numbers.
 
-## 6. Check, then summarise
+## 7. Check, then summarise
 
 ```bash
 scripts/fidelity check docs/fidelity.md      # must end "fidelity check: ok"
@@ -115,7 +142,7 @@ line lists the unknowns and repo choices: those are the open questions to
 put in the PR body and the issue. `row` prints the one-line summary that the
 swarm-protocol review (swarm-routing/.github#54) and the issue comment use.
 
-## 7. Pull request
+## 8. Pull request
 
 One PR per repo, titled `docs: fidelity sheet for <protocol> (#N)`. In the body:
 - the `check` summary line;

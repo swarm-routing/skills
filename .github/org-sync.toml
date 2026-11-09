@@ -4,11 +4,14 @@ title = "skills"
 dual = [""]
 posture = "the org's agent tooling: Claude Code skills (instructions) and thin wrappers, no simulation code"
 description = """
-The swarm-routing **Claude Code plugin marketplace**: org-wide skills that any
-org repository enables from its committed `.claude/settings.json`
-(swarm-routing/.github#10). The first plugin is `org-repo`: set up or update a
-repository from the org templates (badges, README, AI files, ADRs, licence,
-security policy, Makefile targets) through `tools/org-sync`, script first."""
+The swarm-routing org's **agent skills**, published two ways from one tree:
+as the Claude Code plugin **`swarm-routing`** (marketplace `swarm-routing`,
+enabled from each org repository's committed `.claude/settings.json`,
+swarm-routing/.github#10), and as plain [Agent Skills](https://agentskills.io/specification)
+that [skills.sh](https://skills.sh) installs into any agent with
+`npx skills add swarm-routing/skills`. Each skill is a procedure over a script
+in `swarm-routing/.github` `tools/`, script first; ns-3-specific skills carry
+the `ns3-` prefix."""
 trust_boundary = """
 The skill text and any command a skill tells the agent to run. A skill is
 instructions that an agent follows with the permissions of the session that

@@ -7,47 +7,67 @@
 [![Claude Code plugins](https://img.shields.io/badge/Claude%20Code-plugin%20marketplace-blueviolet)](https://docs.claude.com/en/docs/claude-code/plugin-marketplaces)
 <!-- org-sync:end badges -->
 
-The swarm-routing **Claude Code plugin marketplace**: org-wide skills that any
-org repository enables from its committed `.claude/settings.json`
-(swarm-routing/.github#10). The first plugin is `org-repo`: set up or update a
-repository from the org templates (badges, README, AI files, ADRs, licence,
-security policy, Makefile targets) through `tools/org-sync`, script first.
+[![skills.sh](https://skills.sh/b/swarm-routing/skills)](https://skills.sh/swarm-routing/skills)
 
-## Use it in an org repository
+The swarm-routing org's **agent skills**, published two ways from one tree:
+as the Claude Code plugin **`swarm-routing`**, and as plain
+[Agent Skills](https://agentskills.io/specification) that
+[skills.sh](https://skills.sh) installs into any agent (Claude Code, Codex,
+Cursor, Copilot, …). Each skill is a procedure over a script in
+[`swarm-routing/.github`](https://github.com/swarm-routing/.github) `tools/`,
+so the script does the work and the skill says when and in what order.
 
-Commit this to the repository's `.claude/settings.json` (`org-sync` writes and
-checks these keys):
+| Skill | What it does | Script |
+|-------|--------------|--------|
+| [`org-repo`](skills/org-repo/SKILL.md) | set up or update a repo from the org templates: plan, apply, resolve conflicts, check, open the PR | `tools/org-sync/org_sync.py` |
+| [`fidelity-sheet`](skills/fidelity-sheet/SKILL.md) | write or check a protocol's paper-fidelity sheet (`docs/fidelity.md`): every mechanism and parameter sourced to the paper, or marked repo choice / unknown; the anchor candidate | `tools/fidelity/fidelity.py` |
+
+Planned ([epic #9](https://github.com/swarm-routing/skills/issues/9)): `protocol-review`, `handoff`, and the ns-3-specific `ns3-new-module` and `ns3-anchor-run`.
+
+## Install
+
+**Any agent, with skills.sh:**
+
+```bash
+npx skills add swarm-routing/skills                       # pick skills and agents interactively
+npx skills add swarm-routing/skills --skill fidelity-sheet  # one skill
+```
+
+**Claude Code, as a plugin:**
+
+```
+/plugin install swarm-routing --marketplace swarm-routing/skills
+```
+
+**Every session in an org repository**: commit this to the repository's
+`.claude/settings.json` (`org-sync` writes and checks these keys):
 
 ```json
 {
   "extraKnownMarketplaces": {
     "swarm-routing": { "source": { "source": "github", "repo": "swarm-routing/skills" } }
   },
-  "enabledPlugins": { "org-repo@swarm-routing": true }
+  "enabledPlugins": { "swarm-routing@swarm-routing": true }
 }
 ```
 
-A Claude Code session in that repository then offers the plugins below. To
-install one by hand instead:
-
-```
-/plugin install org-repo --marketplace swarm-routing/skills
-```
- To
-review changes before your sessions load them, pin the source to a tag or
-commit instead (see [SECURITY.md](SECURITY.md)).
-
-| Plugin | Skill | What it does |
-|--------|-------|--------------|
-| [`org-repo`](plugins/org-repo/) | [`org-repo`](plugins/org-repo/skills/org-repo/SKILL.md) | set up or update a repo from the org templates through `swarm-routing/.github` `tools/org-sync`: plan, apply, resolve conflicts, check, open the PR |
+Both routes follow `main`. To review changes before your sessions load them,
+pin the source to a tag or commit (see [SECURITY.md](SECURITY.md)).
 
 ## Add a skill
 
-A plugin is `plugins/<name>/.claude-plugin/plugin.json` plus
-`plugins/<name>/skills/<skill>/SKILL.md`, listed in
-[`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json).
-`make test` validates all three. A skill holds a procedure; whatever it runs
-is a script that works without it (org rule 9).
+1. Create `skills/<name>/SKILL.md` in the [Agent Skills format](https://agentskills.io/specification):
+   - `name` equals the directory;
+   - `description` says what the skill does **and when to use it**;
+   - optional `license`, `compatibility` and `metadata`;
+   - under 500 lines.
+2. Name the skill after its task. If it only applies to ns-3 work, prefix it with `ns3-`.
+3. Anything the skill runs goes in `skills/<name>/scripts/` as a thin wrapper around a script in `swarm-routing/.github` `tools/`, which works without the skill (org rule 9).
+4. Test cases go in `skills/<name>/evals/`.
+5. Bump the plugin's version in both `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` (rule 12).
+6. Run the checks:
+   - `make test` validates the manifests and every skill against the spec;
+   - `claude plugin validate .` is Claude Code's own check.
 
 ## Epics
 

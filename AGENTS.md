@@ -7,17 +7,21 @@ before changing anything. Org-wide conventions:
 
 ## What this repo is
 
-The swarm-routing **Claude Code plugin marketplace**: org-wide skills that any
-org repository enables from its committed `.claude/settings.json`
-(swarm-routing/.github#10). The first plugin is `org-repo`: set up or update a
-repository from the org templates (badges, README, AI files, ADRs, licence,
-security policy, Makefile targets) through `tools/org-sync`, script first.
+The swarm-routing org's **agent skills**, published two ways from one tree:
+as the Claude Code plugin **`swarm-routing`** (marketplace `swarm-routing`,
+enabled from each org repository's committed `.claude/settings.json`,
+swarm-routing/.github#10), and as plain [Agent Skills](https://agentskills.io/specification)
+that [skills.sh](https://skills.sh) installs into any agent with
+`npx skills add swarm-routing/skills`. Each skill is a procedure over a script
+in `swarm-routing/.github` `tools/`, script first; ns-3-specific skills carry
+the `ns3-` prefix.
 
 ```
-.claude-plugin/marketplace.json            the marketplace: one entry per plugin (name, ./source, version)
-plugins/<plugin>/.claude-plugin/plugin.json the plugin manifest (version equals the marketplace entry)
-plugins/<plugin>/skills/<skill>/SKILL.md   the procedure; frontmatter name = directory, description <= 1024 chars
-plugins/<plugin>/skills/<skill>/scripts/   thin wrappers only (org rule 9)
+.claude-plugin/marketplace.json  the marketplace: one plugin, `swarm-routing`, source ./ (version equals plugin.json's)
+.claude-plugin/plugin.json       the plugin manifest; Claude Code loads skills/ from the plugin root
+skills/<skill>/SKILL.md          the procedure (Agent Skills spec: name = directory, 1-64 chars, description <= 1024, < 500 lines)
+skills/<skill>/scripts/          thin wrappers only (org rule 9)
+skills/<skill>/evals/            the skill's test cases (skill-creator / `claude plugin eval` layout)
 tools/checks/check-plugins.py              validates all of the above (+ test_check_plugins.py)
 .github/org-sync.toml                      this repo's org-sync config (kind = "skills")
 ```
@@ -28,7 +32,8 @@ tools/checks/check-plugins.py              validates all of the above (+ test_ch
 make help    # the org's standard target names: build, test, lint, format, check, clean, shell, ci
 make test    # check-plugins.py + its self-test
 make check   # what CI gates on: lint, test, licence headers, org-sync check
-ORG_SYNC_DIR=/path/to/swarm-routing/.github plugins/org-repo/skills/org-repo/scripts/org-sync plan .
+ORG_SYNC_DIR=/path/to/swarm-routing/.github skills/org-repo/scripts/org-sync plan .
+claude plugin validate .   # Claude Code's own check of the plugin and marketplace
 ```
 
 ## Golden rules (invariants — do not break)
@@ -88,6 +93,13 @@ Org-wide (1–9), then this repo's own.
     the script's summary, not raw files.
 12. **Versions move together.** A plugin change bumps its `plugin.json`
     version and its marketplace entry in the same PR (`check-plugins.py`).
+13. **One plugin, Agent Skills format.** Every skill lives in `skills/<name>/`
+    and follows the [Agent Skills spec](https://agentskills.io/specification),
+    so the Claude Code plugin `swarm-routing` and `npx skills add
+    swarm-routing/skills` (skills.sh) install the same files. Names are short
+    and describe the task (`fidelity-sheet`, `org-repo`); a skill that only
+    applies to ns-3 work carries the `ns3-` prefix (`ns3-new-module`,
+    `ns3-anchor-run`). The org is named once, by the plugin, not in every skill.
 
 ## Conventions
 
