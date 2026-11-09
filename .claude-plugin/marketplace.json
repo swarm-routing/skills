@@ -11,8 +11,8 @@
     {
       "name": "swarm-routing",
       "source": "./",
-      "description": "Skills for building and maintaining the swarm-routing ns-3 protocols and their org: org-repo, fidelity-sheet, protocol-review, docs-review; ns-3-specific skills carry the ns3- prefix.",
-      "version": "0.6.0"
+      "description": "Skills for building and maintaining the swarm-routing ns-3 protocols and their org: org-repo, fidelity-sheet, protocol-review, docs-review, pr-shepherd; ns-3-specific skills carry the ns3- prefix.",
+      "version": "0.7.0"
     }
   ],
   "renames": {

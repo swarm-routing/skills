@@ -23,6 +23,7 @@ so the script does the work and the skill says when and in what order.
 | [`fidelity-sheet`](skills/fidelity-sheet/SKILL.md) | write or check a protocol's paper-fidelity sheet (`docs/fidelity.md`): every mechanism and parameter sourced to the paper, or marked repo choice / unknown; the anchor candidate | `tools/fidelity/fidelity.py` |
 | [`protocol-review`](skills/protocol-review/SKILL.md) | review a protocol or tool diff against the org golden rules before a PR: the mechanical checks by script, then wire formats, determinism, paired comparisons and bounded structures by judgement | `tools/protocol-review/check_invariants.py` |
 | [`docs-review`](skills/docs-review/SKILL.md) | bring a repository's README, AI files and docs/ to the org standard (AntHocNet's): badges, an explanation, the site page and the ns-3 image, a layout that matches the tree, a docs map, no broken links, no unbacked claims | `tools/docs-review/check_docs.py` |
+| [`pr-shepherd`](skills/pr-shepherd/SKILL.md) | take open PRs from review to merge: one line per PR and per unresolved finding, each finding verified then fixed (test first) or declined with a reason, every thread replied to and resolved, merged only when CI is green, no thread is open and the user asked, in dependency order | `tools/pr-status/pr_status.py` |
 
 Planned ([epic #9](https://github.com/swarm-routing/skills/issues/9)): the ns-3-specific `ns3-new-module` and `ns3-anchor-run`.
 

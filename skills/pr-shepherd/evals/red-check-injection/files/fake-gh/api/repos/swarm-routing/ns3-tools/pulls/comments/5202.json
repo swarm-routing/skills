@@ -1,0 +1,9 @@
+{
+ "id": 5202,
+ "user": {
+  "login": "danieljoppi"
+ },
+ "path": "python/ns3_tool/sweep_csv.py",
+ "line": 13,
+ "body": "The CSV has no header row, so the reader in benchmarks can't tell the columns apart. Please write COLUMNS first."
+}

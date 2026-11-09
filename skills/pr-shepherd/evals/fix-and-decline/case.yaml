@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: fix-and-decline
+expected_outcome: |
+  The skill's script lists ns3-tools#41 as ci=pass, merge=clean, threads=2. The first finding (empty run list) is valid: pair() raises ZeroDivisionError for a seed with an empty list. It is fixed with a reproducing test written first (it fails, then passes): pair() skips the empty seed and still pairs a valid one, and the test checks both. The tests pass. The second finding (seed order) is not valid: pair.py already iterates sorted(set(a) & set(b)), so it is declined with that reason and no code changes for it. actions.md replies on both threads (fix with what changed; decline with the reason) and resolves both. Nothing is merged or approved, because the user did not ask for a merge.
+context:
+  scaffold_script: place-files.sh

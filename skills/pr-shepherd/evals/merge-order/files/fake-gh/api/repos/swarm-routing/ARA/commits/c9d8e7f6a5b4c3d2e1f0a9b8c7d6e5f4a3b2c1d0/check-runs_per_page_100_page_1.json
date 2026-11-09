@@ -1,0 +1,25 @@
+{
+ "total_count": 4,
+ "check_runs": [
+  {
+   "name": "ns3 / debug",
+   "status": "in_progress",
+   "conclusion": null
+  },
+  {
+   "name": "ns3 / sanitized",
+   "status": "in_progress",
+   "conclusion": null
+  },
+  {
+   "name": "licence / headers",
+   "status": "completed",
+   "conclusion": "success"
+  },
+  {
+   "name": "title / title",
+   "status": "completed",
+   "conclusion": "success"
+  }
+ ]
+}
