@@ -4,7 +4,7 @@ Operational guide for LLM agents working in `swarm-routing/ARA`.
 
 ## What this repo is
 
-**Status: core/ in progress; ns3/ planned (#4).****
+**Status: core/ in progress; ns3/ planned (#4).**
 
 ARA, the Ant-Colony-Based Routing Algorithm (Güneş, Sorges & Bouazizi, 2002), as a standalone hexagonal protocol: a simulator-agnostic `core/` and an ns-3 `ns3/` adapter (contrib module `ara`) linking against `swarm-core`. It replaces AntHocNet's `ara` comparator arm. No benchmark has run yet: the anchor waits for the ns-3 module.
 

@@ -4,7 +4,7 @@ Operational guide for LLM agents working in `swarm-routing/Termite`.
 
 ## What this repo is
 
-**Status: empty.** Populated in Phase 5; docs/ holds the fidelity sheet. Explain the anchor miss before code (#3).**
+**Status: empty.** Populated in Phase 5; docs/ holds the fidelity sheet. Explain the anchor miss before code (#3).
 
 Termite (Roth & Wicker) as a standalone hexagonal protocol: routing by stigmergy, a simulator-agnostic `core/` and an ns-3 `ns3/` adapter (contrib module `termite`) on `swarm-core`.
 

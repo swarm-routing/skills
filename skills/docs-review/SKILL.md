@@ -56,6 +56,9 @@ or the next run undoes the edit:
   `badges` in `.github/org-sync.toml`. The site and image links are the
   `arena` and `ns3dev` badges: add the names there and run
   `org_sync.py apply` (the `org-repo` skill). Never type a badge by hand.
+  If `org_sync.py plan` does not know those names (an older checkout of the
+  org tools), link the site page and the image in the opening paragraph
+  instead, and say so in the report.
 - **The org sections of AGENTS.md and CLAUDE.md** (between `org-sync`
   markers) come from `swarm-routing/.github` `templates/`.
 - **`## Epics`** comes from `epics.py readme`.

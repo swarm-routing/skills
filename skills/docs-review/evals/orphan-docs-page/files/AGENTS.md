@@ -4,7 +4,7 @@ Operational guide for LLM agents working in `swarm-routing/ns3-tools`.
 
 ## What this repo is
 
-**Status: being populated (Phase 4).****
+**Status: being populated (Phase 4).**
 
 Protocol-agnostic diagnostics and comparison tooling.
 
