@@ -5,9 +5,11 @@
 (https://agentskills.io/specification, the format skills.sh installs):
 .claude-plugin/marketplace.json, every plugin's .claude-plugin/plugin.json,
 and every skills/<name>/SKILL.md (frontmatter fields and limits, name =
-directory, executable scripts, body under 500 lines). Every skill directory
-under skills/ must belong to a listed plugin. One line per problem; exit 1 if
-any. Stdlib only.
+directory, executable scripts, body under 500 lines), and every eval grader
+(skills/<name>/evals/<case>/graders/: an .md with a `type` that `claude plugin
+eval` knows, or an executable .sh script grader with a `# grader:` line, run by
+tools/evals/grade.py). Every skill directory under skills/ must belong to a
+listed plugin. One line per problem; exit 1 if any. Stdlib only.
 
 Usage: check-plugins.py [REPO_DIR]
 """
@@ -27,6 +29,9 @@ FIELDS = {
     "allowed-tools",
 }
 MAX_LINES = 500
+# The grader types `claude plugin eval` accepts in graders/*.md; a script
+# grader is a .sh instead, which it ignores (tools/evals/grade.py runs it).
+GRADER_TYPES = {"regex", "tool_order", "tool_used", "file_exists", "llm", "baseline"}
 
 
 def scalar(raw):
@@ -61,6 +66,35 @@ def frontmatter(text):
             if problem:
                 problems.append(f"`{k.strip()}`: {problem}")
     return out, problems
+
+
+def check_graders(root, skill_dir):
+    """Problems with the graders of every eval case of one skill."""
+    errs = []
+    evals = os.path.join(skill_dir, "evals")
+    for case in sorted(os.listdir(evals)) if os.path.isdir(evals) else []:
+        gdir = os.path.join(evals, case, "graders")
+        for name in sorted(os.listdir(gdir)) if os.path.isdir(gdir) else []:
+            path = os.path.join(gdir, name)
+            rel = os.path.relpath(path, root)
+            with open(path, encoding="utf-8") as f:
+                text = f.read()
+            if name.endswith(".md"):
+                fm = frontmatter(text)
+                kind = fm[0].get("type") if fm else None
+                if kind not in GRADER_TYPES:
+                    errs.append(
+                        f"{rel}: grader `type` is `{kind}`, not one of {sorted(GRADER_TYPES)}"
+                        " (a script grader is a .sh)"
+                    )
+            elif name.endswith(".sh"):
+                if not os.access(path, os.X_OK):
+                    errs.append(f"{rel}: not executable")
+                if not re.search(r"^#\s*grader:\s*\S", text, re.M):
+                    errs.append(f"{rel}: no `# grader: <criterion>` line")
+            else:
+                errs.append(f"{rel}: a grader is an .md (LLM-judged) or an .sh (script)")
+    return errs
 
 
 def check(root):
@@ -153,6 +187,7 @@ def check(root):
                 sp = os.path.join(sdir, s, "scripts", script)
                 if not os.access(sp, os.X_OK):
                     errs.append(f"{os.path.relpath(sp, root)}: not executable")
+            errs.extend(check_graders(root, os.path.join(sdir, s)))
     top = os.path.join(root, "skills")
     for s in sorted(os.listdir(top)) if os.path.isdir(top) else []:
         if os.path.normpath(os.path.join(top, s)) not in seen:

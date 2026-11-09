@@ -21,8 +21,9 @@ the `ns3-` prefix.
 .claude-plugin/plugin.json       the plugin manifest; Claude Code loads skills/ from the plugin root
 skills/<skill>/SKILL.md          the procedure (Agent Skills spec: name = directory, 1-64 chars, description <= 1024, < 500 lines)
 skills/<skill>/scripts/          thin wrappers only (org rule 9)
-skills/<skill>/evals/            the skill's test cases (skill-creator / `claude plugin eval` layout)
+skills/<skill>/evals/            the skill's test cases (skill-creator / `claude plugin eval` layout); graders/NN.md judged by a model, graders/NN.sh script graders
 tools/checks/check-plugins.py              validates all of the above (+ test_check_plugins.py)
+tools/evals/grade.py                       runs the script graders on an eval workspace, merges them into grading.json (+ test_grade.py)
 .github/org-sync.toml                      this repo's org-sync config (kind = "skills")
 ```
 
@@ -30,7 +31,8 @@ tools/checks/check-plugins.py              validates all of the above (+ test_ch
 
 ```bash
 make help    # the org's standard target names: build, test, lint, format, check, clean, shell, ci
-make test    # check-plugins.py + its self-test
+make test    # check-plugins.py + its self-test, grade.py --self-test
+ORG_TOOLS_DIR=/path/to/swarm-routing/.github python3 tools/evals/grade.py <skill>-workspace/iteration-N [--write]
 make check   # what CI gates on: lint, test, licence headers, org-sync check
 ORG_SYNC_DIR=/path/to/swarm-routing/.github skills/org-repo/scripts/org-sync plan .
 claude plugin validate .   # Claude Code's own check of the plugin and marketplace
@@ -192,5 +194,6 @@ here is undone by the next `org_sync.py apply`).
 | How Claude Code plugins and marketplaces work | Claude Code docs: plugins, plugin marketplaces, skills |
 | The org templates the `org-repo` skill applies | `swarm-routing/.github` `templates/`, `tools/org-sync/` |
 | The script-first model | AntHocNet ADR-0014, its `.claude/skills/benchmark-results` |
+| Grade an eval run: what a script can check, by script | `tools/evals/grade.py` (its docstring: the `graders/NN.sh` contract, `--write`); README "Add a skill" |
 | Record an architecture decision | [`docs/adr/`](docs/adr/) (`0000-template.md`) |
 | Pick up open work | this repo's issues — highest open `priority:P*` first; newest open `handoff` issue for work in flight |
