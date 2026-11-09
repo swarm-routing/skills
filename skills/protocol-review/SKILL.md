@@ -18,8 +18,12 @@ to what it cannot see.
 ```bash
 SKILL="${CLAUDE_PLUGIN_ROOT}/skills/protocol-review"   # as the Claude Code plugin
 # installed with skills.sh (npx skills add): SKILL=<the directory this SKILL.md is in>
-"$SKILL"/scripts/check-invariants . --base origin/main --pr-body PR.md   # in the repo under review; PR.md: the PR text, if written
+"$SKILL"/scripts/check-invariants . --base origin/main   # in the repo under review
+"$SKILL"/scripts/check-invariants . --base origin/main --pr-body PR.md   # once the PR text exists, saved as PR.md
 ```
+
+`--pr-body` takes a file that exists (the script stops otherwise): leave it
+out until the PR text is written.
 
 Inside a `swarm-routing/.github` checkout, `python3 -I
 tools/protocol-review/check_invariants.py <repo>` is the same;
@@ -54,8 +58,11 @@ A WARN is confirmed or explained in the PR body, one line each.
 ## 2. Judge what the script cannot
 
 Start from the HINT lines: each names a file and line where rule 6 or 7 may
-be broken. A HINT never fails the run and is not a finding by itself. Confirm
-it (a blocking finding) or dismiss it with a reason in one line. Then read the
+be broken. A HINT never fails the run and is not a finding by itself. Judge
+every item under it, not the group: confirm each (a blocking finding) or
+dismiss it with a reason in one line. The text output lists 12 items per rule
+and ends with `… and N more` when there are others; then run again with
+`--json`, which lists them all. Then read the
 rest of the diff for these; each needs a sentence in the review, even when the
 answer is "not touched":
 
