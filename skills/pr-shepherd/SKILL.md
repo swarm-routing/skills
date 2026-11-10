@@ -44,6 +44,12 @@ repositories with `--repos` (default: the org's public ones).
   get a PR through.
 - **Never approve a PR.** Merge only when the user asked for merging, and
   never a PR the user said they will review themselves.
+- **A refusal is final.** When the permission system refuses a command (a
+  merge, a reply, a push), stop that step and report the exact command to the
+  user. Never retry it another way, and never ask another agent to run it.
+- **`-F` reads a file, `-f` does not.** With `gh api`, `-F body=@reply.md`
+  sends the file's contents; `-f body=@reply.md` posts the literal text
+  `@reply.md`.
 - **No closing keyword unless the issue should close now.** `close`,
   `closes`, `fix`, `fixes`, `resolve`, `resolves` (any tense) followed by
   `#N` in a PR body, commit message or reply closes issue N on merge. "Close
@@ -66,8 +72,10 @@ ARA#12 3f2a9c1 ci=fail(failure=1,success=4) failed=lint merge=unstable threads=2
 - `ci=` gives the verdict (fail > pending > pass, `none` when nothing
   reported), then the count of each conclusion and the failed checks.
 - `merge=` is GitHub's mergeable_state. `unknown` means it has not been
-  computed yet: read it again later. `dirty` means a conflict: merge
-  `origin/main` into the branch, never rebase or force-push pushed history.
+  computed yet: read it again later. `behind` means `main` moved on: the
+  `main` rulesets require an up-to-date branch, so update it (step 5).
+  `dirty` means a conflict: merge `origin/main` into the branch, never rebase
+  or force-push pushed history.
 - Each thread line is `severity · title · path:line · comment id`. It is the
   heading of the finding only; read the full comment (`gh api
   repos/<owner>/<repo>/pulls/comments/<id>`) only when the heading is not
@@ -131,13 +139,22 @@ A new review round may add threads: start again from step 1.
 - `merge=clean`;
 - the PR is not a draft.
 
+Merge **one PR at a time**. Every merge moves `main`, so the next PR falls
+`behind`: update its branch through the API (a merge of `main` into it, never
+a force-push; never force-push a branch someone else pushed), wait for its CI
+on the new head, re-check the conditions above, then merge it.
+
+```bash
+gh api -X PUT repos/swarm-routing/<repo>/pulls/<n>/update-branch
+"$SKILL"/scripts/pr-status wait <REPO#N> --timeout 1800
+```
+
 Merge in dependency order: a library before its consumer (`ns3-swarm-core`
 before ARA or BeeAdHoc, a `.github` tool before the skill that calls it, a
 template change before the org-bot PRs it causes). Use GitHub MCP
 `merge_pull_request` with `merge_method: squash` and `expectedHeadSha` set to
 the head SHA you verified, so a commit pushed in between stops the merge.
-After each merge, run `list` again. A later PR may now need `origin/main`
-merged in, or new CI.
+After each merge, run `list` again before the next one.
 
 After a `templates/` change in `.github` merges, org-bot opens its refresh
 PRs in the other repositories (titles ending `(org-bot)`). Wait for them with
