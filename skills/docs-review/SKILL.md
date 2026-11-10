@@ -1,6 +1,6 @@
 ---
 name: docs-review
-description: "Bring a swarm-routing repository's README, AI files (AGENTS.md, CLAUDE.md, CONTEXT.md) and docs/ to the org documentation standard, which is AntHocNet's: the org-sync badge row, a short explanation of the project, its page on the Colony Arena site, the ns-3 image for ns-3 repos, a layout that matches the tree, Epics, licence and how-to-work-here sections, a docs/ map with no orphan pages and no broken links, and no claim the repository cannot back. Use whenever a README or docs page is written or reviewed in an org repository, a repository is set up or its status changes, someone asks for badges, the game or site link, the container link or a docs cleanup, or before a docs PR. Script first: check_docs.py does the mechanical checks; you judge the prose."
+description: "Bring a swarm-routing repository's README, AI files (AGENTS.md, CLAUDE.md, CONTEXT.md) and docs/ to the org documentation standard, which is AntHocNet's: the org-sync badge row, a short explanation of the project, its page on the Colony Arena site, the ns-3 image for ns-3 repos, a layout that matches the tree, Epics, licence and how-to-work-here sections, a docs/ map with no orphan pages and no broken links, and no claim the repository cannot back. Use whenever a README or docs page is written or reviewed in an org repository, a repository is set up or its status changes, someone asks for badges, the game or site link, the container link or a docs cleanup, before a docs PR, or when handoff lessons or a `[docs] AI files` issue should be folded back into AGENTS.md and CLAUDE.md. Script first: check_docs.py does the mechanical checks; you judge the prose."
 license: MIT OR GPL-2.0-only
 compatibility: Needs python3 and network access to github.com (scripts/check-docs clones swarm-routing/.github tools/docs-review).
 metadata:
@@ -42,6 +42,7 @@ on a FAIL:
 | CONTEXT.md | still the org-sync seed although the repo has code | WARN |
 | docs/ | a `docs/README.md` map once there are two pages; pages linked from nowhere; ADRs missing from `docs/adr/README.md` | WARN |
 | links | relative links in README, AGENTS.md, CONTEXT.md and docs/ resolve | FAIL |
+| AI files | outside the org-sync sections of AGENTS.md, CLAUDE.md, CONTEXT.md: paths that do not exist; paths marked planned that exist; with `--online`, issues written as open or blocking that are closed; text an org rule replaced (the script's `CONTRADICTIONS` table names each source); checks called required that are not | WARN |
 
 A repository tunes it in a `[docs]` table of `.github/org-sync.toml`:
 `arena_id` (its id in the site's `projects.json`, default the repo name) and
@@ -97,7 +98,40 @@ Each needs a sentence in the report, even when the answer is "fine":
 - **docs/README.md** says in one line what each page is for, so a reader picks
   the right one.
 
-## 4. Report
+## 4. Fold recorded lessons back into the AI files
+
+The AI files are what the next agent reads, so what earlier sessions learned
+belongs in them. Two sources say what to change:
+
+```bash
+R=swarm-routing/<repo>
+# the "Lessons for the AI files" field of recent handoffs (open and closed)
+gh api "repos/$R/issues?labels=handoff&state=all&per_page=15" \
+  --jq '.[] | "#\(.number) [\(.state)] \(.title)\n\(.body // "" | split("### Lessons for the AI files")[1] // "(no lessons field)" | split("\n### ")[0])"'
+# the weekly findings issue (swarm-routing/.github ai-files-review.yml)
+gh api "repos/$R/issues?labels=documentation&state=open" \
+  --jq '.[] | select(.title | startswith("[docs] AI files:")) | "#\(.number) \(.title)\n\(.body)"'
+"$SKILL"/scripts/check-docs . --online   # the same findings, now
+```
+
+Sort every lesson and finding into one of three, and say which in the report:
+
+- **An org rule** (every repository should know it): a PR to
+  `swarm-routing/.github` changing `templates/agents/` (and CONTRIBUTING.md
+  where the rule lives), so org-sync renders it everywhere. Never paste an org
+  rule into one repository's hand-written section.
+- **A local fact** (true of this repository only): fix it in this repository's
+  own sections of AGENTS.md, CLAUDE.md or CONTEXT.md, together with the
+  checker's findings, in one PR, `docs(agents): fix stale facts in the ai
+  files`. A managed section changes only through `templates/`.
+- **A change to a rule** (the lesson contradicts an existing rule, or the
+  checker flags a contradiction): a maintainer decision. List it on the
+  findings issue or the handoff with the evidence; do not change the rule.
+
+A lesson already in the AI files needs nothing. Link the handoff issue the
+lesson came from in the PR body.
+
+## 5. Report
 
 ```
 check_docs: <last line, e.g. "WARN  review the warnings above">
@@ -105,6 +139,8 @@ check_docs: <last line, e.g. "WARN  review the warnings above">
 - generated: <badges / org sections / Epics changed through which tool, or "none">
 - explained: <each WARN left, and why>
 - judgement: explanation <ok / rewritten>; status <consistent / fixed: …>; claims <none unbacked / removed: …>; quick start <matches / fixed>
+- lessons: <handoff #N: org rule → .github PR / local fact → this PR / decision → listed on #M; or "none recorded">
 ```
 
-Propose the edits as one PR per repository (a `docs:` title). Do not merge.
+Propose the edits as one PR per repository (a `docs:` title), and one
+`swarm-routing/.github` PR for org rules. Do not merge.
