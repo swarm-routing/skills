@@ -12,7 +12,9 @@ dir=${ORG_SYNC_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/swarm-routing/dotgithub}
 ref=${ORG_SYNC_REF:-main}
 if [ -z "${ORG_SYNC_DIR:-}" ]; then
     if [ -d "$dir/.git" ]; then
-        git -C "$dir" fetch -q --depth 1 origin "$ref" && git -C "$dir" checkout -q --detach FETCH_HEAD
+        # two commands, so set -e stops on a failed fetch instead of running a stale ref
+        git -C "$dir" fetch -q --depth 1 origin "$ref"
+        git -C "$dir" checkout -q --detach FETCH_HEAD
     else
         mkdir -p "$(dirname "$dir")"
         git clone -q --depth 1 --branch "$ref" https://github.com/swarm-routing/.github "$dir"
