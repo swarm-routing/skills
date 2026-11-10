@@ -139,13 +139,16 @@ A new review round may add threads: start again from step 1.
 - `merge=clean`;
 - the PR is not a draft.
 
-Merge **one PR at a time**. Every merge moves `main`, so the next PR falls
-`behind`: update its branch through the API (a merge of `main` into it, never
-a force-push; never force-push a branch someone else pushed), wait for its CI
-on the new head, re-check the conditions above, then merge it.
+Merge **one PR at a time**. A merge moves its own repository's `main`, so
+the next PR there usually falls `behind` (a merge in another repository does
+not). When `list` shows `merge=behind`, update the branch through the API (a
+merge of `main` into it, never a force-push; never force-push a branch someone
+else pushed). Run `list` again until the PR shows a new head SHA, and only
+then `wait` for CI on that head, re-check the conditions above, and merge it.
 
 ```bash
 gh api -X PUT repos/swarm-routing/<repo>/pulls/<n>/update-branch
+"$SKILL"/scripts/pr-status list --repos <repo>      # until the head SHA changes
 "$SKILL"/scripts/pr-status wait <REPO#N> --timeout 1800
 ```
 
