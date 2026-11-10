@@ -85,7 +85,10 @@ citations from Crossref's fields. A `differ` is resolved on the publisher's
 page (an online-first year against the issue year is the usual cause), never
 by picking the convenient value; say which you used. `unavailable` means a
 cross-check source was down: the Crossref fields still stand, say it was not
-cross-checked.
+cross-checked. When Crossref has no record (a DataCite DOI, such as arXiv's
+`10.48550/…`), cite from a source that has one and name it ("fields from
+Semantic Scholar"), or mark the citation unconfirmed; never fill the gap from
+memory.
 
 A work without a DOI (a thesis, a tech report): `confirm --title` shows the
 best matches of Crossref and Semantic Scholar, each labelled. A match whose
