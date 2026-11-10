@@ -34,7 +34,7 @@ marketplace source in `.claude/settings.json` to a reviewed tag or commit
 instead of `main`, and compare `git log` of this repository before moving it."""
 
 [settings]
-# GitHub settings as code: swarm-routing/.github tools/repo-settings (#117).
+# GitHub settings as code: swarm-routing/.github tools/repo-settings (swarm-routing/.github#117).
 description = "The swarm-routing org's agent skills: one Claude Code plugin (swarm-routing) and plain Agent Skills for any agent (npx skills add swarm-routing/skills). Each skill is a procedure over a script in swarm-routing/.github tools/, script first."
 homepage = ""
 topics = ["claude-code", "claude-code-plugin", "agent-skills", "ai-agents", "automation", "swarm-intelligence"]
