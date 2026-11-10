@@ -31,7 +31,7 @@ jobs:
         run: make test
       - name: lint (actionlint, shellcheck on the skill wrappers and script graders)
         run: |
-          pip install --quiet actionlint-py==1.7.7.23 shellcheck-py==0.10.0.1
+          pip install --quiet actionlint-py==1.7.12.25 shellcheck-py==0.10.0.1
           actionlint .github/workflows/*.yml
           find skills \( -path '*/scripts/*' -o -path '*/graders/*.sh' \) -type f -print0 | xargs -0 -r shellcheck
 
