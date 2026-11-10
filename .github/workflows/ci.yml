@@ -30,6 +30,7 @@ jobs:
       - name: make test (marketplace, plugin.json, SKILL.md frontmatter, + self-test)
         run: make test
       - name: lint (actionlint, shellcheck on the skill wrappers and script graders)
+        timeout-minutes: 5  # the pip install of the two pinned linters (org CONTRIBUTING invariant 5)
         run: |
           pip install --quiet actionlint-py==1.7.12.25 shellcheck-py==0.10.0.1
           actionlint .github/workflows/*.yml
