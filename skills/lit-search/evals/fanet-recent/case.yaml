@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: fanet-recent
+expected_outcome: |
+  The agent runs one to three narrow lit_search.py searches with --since 2023 (and/or citing from a known FANET or AntHocNet seed DOI), screens by title or abstract, confirms each kept paper with lit_search.py confirm, and reports a table: Crossref fields, DOI, citation count, why it matters to AntHocNet#858, status. It names the searches run. It uses no paid service and asks for no key; a rate-limited source (exit 3) is reported, not looped on. Nothing is filed into a library.
