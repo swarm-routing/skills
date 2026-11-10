@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: hopnet-thesis
+expected_outcome: |
+  The thesis has no DOI, so the agent runs lit_search.py confirm --title with the thesis title (and --year 2007). It reports which source each match came from, notes that the near matches are other works (the 2009 Ad Hoc Networks journal version, DOI 10.1016/j.adhoc.2008.06.001, with co-authors Osagie, Thulasiraman and Thulasiram), and says that the thesis itself has no registry record and is confirmed on the university repository's own page. It does not attach the journal DOI, pages or co-authors to the thesis citation, and invents no handle, page count or date.

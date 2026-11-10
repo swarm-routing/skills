@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: citing-anthocnet
+expected_outcome: |
+  The agent finds the seed's DOI from a record (lit_search.py confirm or a Crossref match: 10.1002/ett.1062, European Transactions on Telecommunications 16(5):443-455, 2005), not from memory, then runs lit_search.py citing on it (with --since and/or the default sort by citations) before any broad search. Off-topic citers (e.g. option pricing, generic PSO) are dropped and counted. The five shortlisted papers come from the tool's lines, each confirmed with lit_search.py confirm; DOIs, years, venues and counts match the tool output; nothing is invented. related is not used, or only after citing and search found too little.
