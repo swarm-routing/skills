@@ -2,7 +2,7 @@
 name: docs-review
 description: "Bring a swarm-routing repository's README, AI files (AGENTS.md, CLAUDE.md, CONTEXT.md) and docs/ to the org documentation standard, which is AntHocNet's: the org-sync badge row, a short explanation of the project, its page on the Colony Arena site, the ns-3 image for ns-3 repos, a layout that matches the tree, Epics, licence and how-to-work-here sections, a docs/ map with no orphan pages and no broken links, and no claim the repository cannot back. Use whenever a README or docs page is written or reviewed in an org repository, a repository is set up or its status changes, someone asks for badges, the game or site link, the container link or a docs cleanup, before a docs PR, or when handoff lessons or a `[docs] AI files` issue should be folded back into AGENTS.md and CLAUDE.md. Script first: check_docs.py does the mechanical checks; you judge the prose."
 license: MIT OR GPL-2.0-only
-compatibility: Needs python3 and network access to github.com (scripts/check-docs clones swarm-routing/.github tools/docs-review).
+compatibility: Needs python3 and network access to github.com (scripts/check-docs clones swarm-routing/.github tools/docs-review); step 4 and --online also need the GitHub CLI, logged in (gh auth login) or with GH_TOKEN set.
 metadata:
   author: swarm-routing
   repository: https://github.com/swarm-routing/skills
@@ -104,17 +104,24 @@ The AI files are what the next agent reads, so what earlier sessions learned
 belongs in them. Two sources say what to change:
 
 ```bash
-R=swarm-routing/<repo>
+# owner/name of the repository under review, from its origin remote
+R=$(git remote get-url origin | sed -E 's#^.*github\.com[:/]##; s#\.git$##')
 # the "Lessons for the AI files" field of recent handoffs (open and closed)
 gh api "repos/$R/issues?labels=handoff&state=all&per_page=15" \
   --jq '.[] | "#\(.number) [\(.state)] \(.title)\n\(.body // "" | split("### Lessons for the AI files")[1] // "(no lessons field)" | split("\n### ")[0])"'
 # the weekly findings issue (swarm-routing/.github ai-files-review.yml)
-gh api "repos/$R/issues?labels=documentation&state=open" \
+gh api --paginate "repos/$R/issues?labels=documentation&state=open&per_page=100" \
   --jq '.[] | select(.title | startswith("[docs] AI files:")) | "#\(.number) \(.title)\n\(.body)"'
 "$SKILL"/scripts/check-docs . --online   # the same findings, now
 ```
 
-Sort every lesson and finding into one of three, and say which in the report:
+`--online` and the AI-files rows need the org tools at or after
+swarm-routing/.github#146; with an older `ORG_TOOLS_DIR` or `ORG_TOOLS_REF`
+the script rejects the flag, so update that checkout first. If `gh` reports
+it is not logged in, run `gh auth login` (or set `GH_TOKEN`) and repeat; never
+skip the step silently.
+
+Sort every lesson and finding into one of four, and say which in the report:
 
 - **An org rule** (every repository should know it): a PR to
   `swarm-routing/.github` changing `templates/agents/` (and CONTRIBUTING.md
@@ -124,9 +131,12 @@ Sort every lesson and finding into one of three, and say which in the report:
   own sections of AGENTS.md, CLAUDE.md or CONTEXT.md, together with the
   checker's findings, in one PR, `docs(agents): fix stale facts in the ai
   files`. A managed section changes only through `templates/`.
-- **A change to a rule** (the lesson contradicts an existing rule, or the
-  checker flags a contradiction): a maintainer decision. List it on the
-  findings issue or the handoff with the evidence; do not change the rule.
+- **Stale text the checker flags as contradicting an org rule** (its
+  `CONTRADICTIONS` table names the rule and its source): the org rule already
+  decided it, so correct the repository's text in the same `docs(agents)` PR.
+- **A change to a rule** (a lesson that says an existing rule, org or local,
+  should change): a maintainer decision. List it on the findings issue or the
+  handoff with the evidence; do not change the rule.
 
 A lesson already in the AI files needs nothing. Link the handoff issue the
 lesson came from in the PR body.
