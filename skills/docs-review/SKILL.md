@@ -75,8 +75,11 @@ or the next run undoes the edit:
   Confirm each DOI with the `lit-search` skill
   (`lit_search.py confirm <DOI>`) and copy title, year and venue from
   Crossref's output. Then run `org_sync.py apply` and
-  `org_sync.py reseed CITATION.cff` (CITATION.cff is a seed: only a reseed
-  rewrites it). A tagged repository without `zenodo_concept` waits for Zenodo
+  `org_sync.py reseed CITATION.cff`. CITATION.cff is a seed and a reseed
+  rewrites the whole file: run `org_sync.py seeds` first, and when it says
+  the file differs by more than the template's own change (fields added by
+  hand, a dataset's message), add the `references:` entries by hand instead
+  and keep the rest. A tagged repository without `zenodo_concept` waits for Zenodo
   to archive the release; report it, never invent a DOI.
 
 Everything else is the repository's own: the opening paragraph, the layout
