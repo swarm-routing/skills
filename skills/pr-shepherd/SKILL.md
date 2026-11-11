@@ -79,7 +79,9 @@ ARA#12 3f2a9c1 ci=fail(failure=1,success=4) failed=lint merge=unstable threads=2
   Scorecard or `dco` is report-only: read it, say what it found, and do not
   hold the PR for it. `dco` is red on every agent-made commit until
   swarm-routing/.github#212 is decided; never add a `Signed-off-by` to turn
-  it green, for the maintainer or anyone else.
+  it green, for the maintainer or anyone else. A red `dco` on an outside
+  contributor's commit is different: that PR waits for the author's own
+  sign-off (CONTRIBUTING "Outside contributions").
 - `merge=` is GitHub's mergeable_state. `unknown` means it has not been
   computed yet: read it again later. `behind` means `main` moved on; the
   rulesets no longer require an up-to-date branch (swarm-routing/.github#205),
@@ -163,6 +165,11 @@ step 2). `pr-status merge` does not enter a queue yet, and it waits on or
 stops at checks no ruleset requires (swarm-routing/.github#196), so do not
 use it there.
 
+**A behind `bot/release` PR** (the release bump) is never updated or
+queued as it is: dispatch the release `bump` again, so the version and
+changelog are rebuilt on the new `main`, and only when the user asked for
+the release.
+
 **Everywhere else**, let the script do the whole loop; do not run
 `update-branch` or a merge by hand:
 
@@ -193,6 +200,13 @@ stop, 2 a timeout. Act on a stop as in steps 2–4: a failing check or an open
 thread goes back to step 2; a `conflict` means merging `origin/main` into the
 branch, never a rebase or force-push; a `refused` is final (Ground rules).
 Then run `merge` again for what is left.
+
+If `merge` stops only on `failing:` or pending checks that the ruleset does
+not require (a report-only `codecov/patch`, or `dco` on agent commits;
+swarm-routing/.github#196), every required check is green and no thread is
+open, squash-merge that PR pinned to its head, as `merge` would:
+`gh api -X PUT repos/<owner>/<repo>/pulls/<n>/merge -f merge_method=squash
+-f sha=<head> -f commit_title="<PR title> (#<n>)"`. A refusal is final.
 
 **Dependency order across repositories is yours.** `merge` orders PRs only
 within one repository. A library goes before its consumer

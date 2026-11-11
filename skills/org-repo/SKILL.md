@@ -76,7 +76,9 @@ itself introduces; drift already on `main` is a warning
 ## 5. Citation, badges and Zenodo
 
 Every public repository releases and is archived on Zenodo
-(swarm-routing/.github#216). In `.github/org-sync.toml`, top level:
+(swarm-routing/.github#216). Set these before step 2 (or rerun `apply` and
+`check` after setting them): the flags alone write nothing. In
+`.github/org-sync.toml`, top level:
 
 - `citation = true` seeds `CITATION.cff` (the `cite` badge follows it); add
   `"CITATION.cff:^version:"` to the Commitizen `version_files` so each bump
@@ -85,9 +87,12 @@ Every public repository releases and is archived on Zenodo
 - After the first release is archived, read the concept record from Zenodo
   (`zenodo.py status --repo swarm-routing/<repo>` in `swarm-routing/.github`,
   or the record's page), never from memory, and set
-  `zenodo_concept = "<record id>"`; then `scripts/org-sync reseed
-  CITATION.cff .` writes the concept DOI into `CITATION.cff`, and `apply`
-  adds the `doi` badge. One PR, `docs: the zenodo doi badge and citation`.
+  `zenodo_concept = "<record id>"`, and run `apply` and `check` again for the
+  `doi` badge. `CITATION.cff` is the repository's once seeded: `scripts/org-sync
+  reseed CITATION.cff .` prints the diff and rewrites the whole file from
+  today's template, so use it only while the file is still the seed; if the
+  repository has added authors or other fields, add the `doi:` line by hand
+  instead. One PR, `docs: the zenodo doi badge and citation`.
 
 A release itself is not this skill's job: it is cut only when the maintainer
 asks, once the issues labelled with that version (`release:vX.Y.Z`, the
