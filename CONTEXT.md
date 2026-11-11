@@ -10,7 +10,8 @@ The swarm-routing **Claude Code plugin marketplace**: org-wide skills that any
 org repository enables from its committed `.claude/settings.json`
 (swarm-routing/.github#10). The first plugin is `org-repo`: set up or update a
 repository from the org templates (badges, README, AI files, ADRs, licence,
-security policy, Makefile targets) through `tools/org-sync`, script first.
+security policy, Makefile targets) through swarm-routing/.github's
+`tools/org-sync`, script first.
 
 ## Glossary
 
