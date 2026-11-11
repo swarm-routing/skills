@@ -69,4 +69,33 @@ One PR to `main` with a Conventional Commit title, e.g.
 what `apply` printed, the conflicts and how each was resolved, the
 `settings` checklist, and anything that could not be applied (a badge whose
 target does not exist yet). CI runs the same `check` through
-`reusable-org-sync-check.yml`.
+`reusable-org-sync-check.yml`. On a PR the check fails only on drift the PR
+itself introduces; drift already on `main` is a warning
+(swarm-routing/.github#206), so fix that in its own PR.
+
+## 5. Citation, badges and Zenodo
+
+Every public repository releases and is archived on Zenodo
+(swarm-routing/.github#216). Set these before step 2 (or rerun `apply` and
+`check` after setting them): the flags alone write nothing. In
+`.github/org-sync.toml`, top level:
+
+- `citation = true` seeds `CITATION.cff` (the `cite` badge follows it); add
+  `"CITATION.cff:^version:"` to the Commitizen `version_files` so each bump
+  keeps its version current.
+- The `release` badge appears once a workflow calls `reusable-release.yml`.
+- After the first release is archived, read the concept record from Zenodo
+  (`zenodo.py status --repo swarm-routing/<repo>` in `swarm-routing/.github`,
+  or the record's page), never from memory, and set
+  `zenodo_concept = "<record id>"`, and run `apply` and `check` again for the
+  `doi` badge. `CITATION.cff` is the repository's once seeded: `scripts/org-sync
+  reseed CITATION.cff .` prints the diff and rewrites the whole file from
+  today's template, so use it only while the file is still the seed; if the
+  repository has added authors or other fields, add the `doi:` line by hand
+  instead. One PR, `docs: the zenodo doi badge and citation`.
+
+A release itself is not this skill's job: it is cut only when the maintainer
+asks, once the issues labelled with that version (`release:vX.Y.Z`, the
+repository's `docs/roadmap.md` ladder) are done, by dispatching the release
+workflow's `bump` (CONTRIBUTING "Cutting a release"; a `release` skill is
+planned, swarm-routing/skills#43).

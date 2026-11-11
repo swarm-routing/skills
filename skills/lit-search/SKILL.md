@@ -111,6 +111,10 @@ the report series), and the report says the record is not in a registry.
 
   with the DOI and fields from `confirm`, never from a search line alone, and
   the searches you ran (command, date) so the search can be repeated.
+- **In a public issue, PR or doc**, cite each paper by its
+  `https://doi.org/<DOI>` link (the maintainer's preference), or, without a
+  DOI, by its publisher's or institution's page; never by a path in, or a
+  mention of, the private library.
 
 Only legitimate routes to a paper: the publisher's open access, an author's
 or institution's repository, arXiv. Never a shadow library, never a mirror of
