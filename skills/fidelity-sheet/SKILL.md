@@ -2,7 +2,7 @@
 name: fidelity-sheet
 description: "Write or update a swarm-routing protocol's paper-fidelity sheet (docs/fidelity.md) — every mechanism and parameter mapped to the paper section that gives it, or marked repo choice / unknown — and the anchor candidate, then check it with tools/fidelity/fidelity.py. Use whenever a protocol or comparator arm needs its fidelity sheet (ARA#4, BeeAdHoc#4, Termite#4, HOPNET#4, any ns3-tools arm), before writing a protocol's core/, when someone asks where a parameter's default comes from, or when reviewing an arm against its paper. Script first: the script checks the shape and the sources; you read the paper with pdf-extract."
 license: MIT OR GPL-2.0-only
-compatibility: Needs git, python3 and network access to github.com (scripts/fidelity clones swarm-routing/.github tools/fidelity); reading papers uses the papers repository's pdf-extract skill.
+compatibility: Needs git, python3 and network access to github.com (scripts/fidelity clones swarm-routing/.github tools/fidelity); reading papers uses the pdf-extract skill of a private library the maintainer keeps.
 metadata:
   author: swarm-routing
   repository: https://github.com/swarm-routing/skills
@@ -21,7 +21,7 @@ Two paths, set once; you work from the protocol's checkout:
 ```bash
 SKILL="${CLAUDE_PLUGIN_ROOT}/skills/fidelity-sheet"   # as the Claude Code plugin
 # installed with skills.sh (npx skills add): SKILL=<the directory this SKILL.md is in>
-PAPERS="$HOME/papers"   # your swarm-routing/papers checkout (private): the library and the pdf-extract skill
+PAPERS="$HOME/papers"   # a checkout of the private library the maintainer keeps: the papers and the pdf-extract skill
 SCRATCH="$(mktemp -d)"   # extracted paper text (step 4); outside every repository
 ```
 
@@ -52,9 +52,9 @@ A **Source** cell is one of:
 
 ## 1. Find the paper
 
-The primary source is in the private papers library (`swarm-routing/papers`,
-`AntHocNet/library/<protocol>/`), searched with that repository's `pdf-extract`
-skill. If the paper is only listed in `library/MANUAL-DOWNLOADS.md`, it has not
+The primary source is in the private library the maintainer keeps
+(`$PAPERS/AntHocNet/library/<protocol>/`), searched with that library's
+`pdf-extract` skill. If the paper is only listed in `library/MANUAL-DOWNLOADS.md`, it has not
 been downloaded: say so and stop. Downloading a paywalled paper is a human step,
 and a sheet written from an abstract or from memory is worse than no sheet,
 because it looks authoritative.
