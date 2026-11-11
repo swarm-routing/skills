@@ -98,7 +98,7 @@ the report series), and the report says the record is not in a registry.
 
 ## 4. Hand over or report
 
-- **With the private `swarm-routing/papers` repository checked out**: hand
+- **With the private library the maintainer keeps checked out**: hand
   each kept paper to its `lit-source` skill, which verifies the citation,
   finds legitimate open copies and files it; pass `--library` with that
   library's README.md and MANUAL-DOWNLOADS.md so the lines say what is
