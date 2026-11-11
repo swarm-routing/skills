@@ -2,7 +2,7 @@
 name: pr-shepherd
 description: "Take open pull requests across the swarm-routing repositories from review to merge: see each PR's CI, mergeable state and unresolved review threads in one compact view, verify every finding (CodeRabbit or human) against the code, fix it with a test or decline it with a reason, reply on and resolve each thread, re-run the checks, and merge only when CI is green, no thread is open and the user asked for the merge, in dependency order. Use whenever asked to babysit, shepherd, land, get green or merge PRs, to handle or answer review comments or CodeRabbit findings, or to wait for CI on org PRs. Script first: pr_status.py gives one line per PR and per unresolved finding, so raw review bodies stay out of context."
 license: MIT OR GPL-2.0-only
-compatibility: Needs git, python3, the gh CLI logged in (or GH_TOKEN) and network access to github.com (scripts/pr-status clones swarm-routing/.github tools/pr-status). Replying, resolving and merging use the GitHub MCP tools.
+compatibility: Needs git, python3, the gh CLI logged in (or GH_TOKEN) and network access to github.com (scripts/pr-status clones swarm-routing/.github tools/pr-status). Replying and resolving use the GitHub MCP tools; updating and merging use pr-status merge.
 metadata:
   author: swarm-routing
   repository: https://github.com/swarm-routing/skills
@@ -20,13 +20,15 @@ SKILL="$CLAUDE_PLUGIN_ROOT/skills/pr-shepherd"   # as the Claude Code plugin
 "$SKILL"/scripts/pr-status list --repos .github,skills       # the open PRs and their findings
 "$SKILL"/scripts/pr-status threads skills#30                 # one PR's unresolved threads
 "$SKILL"/scripts/pr-status wait ARA#12 ns3-swarm-core#20 --timeout 900   # until no check is pending
+"$SKILL"/scripts/pr-status merge skills#30 skills#31        # update when behind, wait for green, merge in order
 ```
 
 Inside a `swarm-routing/.github` checkout, `python3 -I
 tools/pr-status/pr_status.py` is the same; `ORG_TOOLS_DIR=<checkout>` points
-the wrapper at a local one. Every command takes `--json`. The script only
-reads (`gh api` GET); the org-wide API is unavailable, so name the
-repositories with `--repos` (default: the org's public ones).
+the wrapper at a local one. Every command takes `--json`. `list`, `threads`
+and `wait` only read (`gh api` GET); `merge` writes only `update-branch` and
+the squash merge. The org-wide API is unavailable, so name the repositories
+with `--repos` (default: the org's public ones).
 
 ## Ground rules
 
@@ -73,7 +75,8 @@ ARA#12 3f2a9c1 ci=fail(failure=1,success=4) failed=lint merge=unstable threads=2
   reported), then the count of each conclusion and the failed checks.
 - `merge=` is GitHub's mergeable_state. `unknown` means it has not been
   computed yet: read it again later. `behind` means `main` moved on: the
-  `main` rulesets require an up-to-date branch, so update it (step 5).
+  `main` rulesets require an up-to-date branch, and `merge` updates it
+  (step 5).
   `dirty` means a conflict: merge `origin/main` into the branch, never rebase
   or force-push pushed history.
 - Each thread line is `severity · title · path:line · comment id`. It is the
@@ -131,33 +134,45 @@ names. A failure your change caused goes back to step 2. A failure on `main`
 too, or an infrastructure flake, is reported to the user, not worked around.
 A new review round may add threads: start again from step 1.
 
-## 5. Merge, only when all of this holds
+## 5. Merge, only when the user asked for it
 
-- the user asked for these PRs to be merged;
-- `ci=pass`, with no failure and no pending check;
-- `threads=0`;
-- `merge=clean`;
-- the PR is not a draft.
-
-Merge **one PR at a time**. A merge moves its own repository's `main`, so
-the next PR there usually falls `behind` (a merge in another repository does
-not). When `list` shows `merge=behind`, update the branch through the API (a
-merge of `main` into it, never a force-push; never force-push a branch someone
-else pushed). Run `list` again until the PR shows a new head SHA, and only
-then `wait` for CI on that head, re-check the conditions above, and merge it.
+Merge only PRs the user asked you to merge, and never a draft. Then let the
+script do the whole loop; do not run `update-branch` or a merge by hand:
 
 ```bash
-gh api -X PUT repos/swarm-routing/<repo>/pulls/<n>/update-branch
-"$SKILL"/scripts/pr-status list --repos <repo>      # until the head SHA changes
-"$SKILL"/scripts/pr-status wait <REPO#N> --timeout 1800
+"$SKILL"/scripts/pr-status merge <REPO#N> … --dry-run   # what it would do now, writes nothing
+"$SKILL"/scripts/pr-status merge <REPO#N> … --timeout 3600
 ```
 
-Merge in dependency order: a library before its consumer (`ns3-swarm-core`
-before ARA or BeeAdHoc, a `.github` tool before the skill that calls it, a
-template change before the org-bot PRs it causes). Use GitHub MCP
-`merge_pull_request` with `merge_method: squash` and `expectedHeadSha` set to
-the head SHA you verified, so a commit pushed in between stops the merge.
-After each merge, run `list` again before the next one.
+`merge` takes the PRs **one at a time per repository, in the order given**
+(repositories run independently). For each PR it:
+
+- skips a PR that is already merged or closed;
+- updates the branch (`PUT pulls/<n>/update-branch`, a merge of `main`,
+  never a force-push) only when GitHub reports it `behind`, then waits for
+  the new head SHA and that head's checks;
+- waits until every check on the head is complete, counting a check the
+  ruleset requires but that has not reported as pending;
+- squash-merges with `sha=<head>` and the title `<PR title> (#n)`, so a
+  commit pushed in between stops the merge;
+- moves on to that repository's next PR only after the merge, because the
+  merge has just put the next one behind.
+
+It prints one line per PR per change of state. It stops a PR, and does not
+run the later PRs of that repository, on `failing: <checks>`, `open threads:
+N` (with the thread lines), `conflict`, `draft` or `refused: <message>`; it
+never reruns a check or resolves a thread. Exit 0 means every PR merged, 1 a
+stop, 2 a timeout. Act on a stop as in steps 2–4: a failing check or an open
+thread goes back to step 2; a `conflict` means merging `origin/main` into the
+branch, never a rebase or force-push; a `refused` is final (Ground rules).
+Then run `merge` again for what is left.
+
+**Dependency order across repositories is yours.** `merge` orders PRs only
+within one repository. A library goes before its consumer
+(`ns3-swarm-core` before ARA or BeeAdHoc, a `.github` tool before the skill
+that calls it, a template change before the org-bot PRs it causes): run
+`merge` on the library's PR first, and on the consumer's only after that has
+merged and the consumer's CI has run again against the new `main`.
 
 After a `templates/` change in `.github` merges, org-bot opens its refresh
 PRs in the other repositories (titles ending `(org-bot)`). Wait for them with
@@ -168,7 +183,7 @@ PRs in the other repositories (titles ending `(org-bot)`). Wait for them with
 One short block to the user:
 
 ```
-<REPO#N> <head7>: merged | ready (merge not asked) | blocked: <why>
+<REPO#N> <head7>: merged | ready (merge not asked) | blocked: <the merge line, e.g. failing: lint>
   fixed: <title> (<commit>) · declined: <title> (<reason>) · open: <title> (<the decision needed>)
 ```
 
