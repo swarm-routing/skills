@@ -30,10 +30,18 @@ jobs:
       - name: make test (marketplace, plugin.json, SKILL.md frontmatter, + self-test)
         run: make test
       - name: lint (actionlint, shellcheck on the skill wrappers and script graders)
-        timeout-minutes: 5  # the pip install of the two pinned linters (org CONTRIBUTING invariant 5)
+        timeout-minutes: 5  # the two downloads (org CONTRIBUTING invariant 5)
+        env:
+          # actionlint 1.7.12's own release, checked against its sha256 (the release's
+          # checksums.txt): actionlint-py has no wheel, and its sdist runs a setup script
+          ACTIONLINT_URL: https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
+          ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
         run: |
-          pip install --quiet actionlint-py==1.7.12.25 shellcheck-py==0.10.0.1
-          actionlint .github/workflows/*.yml
+          pip install --quiet --only-binary :all: shellcheck-py==0.10.0.1
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/actionlint.tgz" "$ACTIONLINT_URL"
+          echo "$ACTIONLINT_SHA256  $RUNNER_TEMP/actionlint.tgz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/actionlint.tgz" -C "$RUNNER_TEMP" actionlint
+          "$RUNNER_TEMP/actionlint" .github/workflows/*.yml
           find skills \( -path '*/scripts/*' -o -path '*/graders/*.sh' \) -type f -print0 | xargs -0 -r shellcheck
 
   python:
