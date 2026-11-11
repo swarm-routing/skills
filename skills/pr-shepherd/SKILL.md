@@ -2,7 +2,7 @@
 name: pr-shepherd
 description: "Take open pull requests across the swarm-routing repositories from review to merge: see each PR's CI, mergeable state and unresolved review threads in one compact view, verify every finding (CodeRabbit or human) against the code, fix it with a test or decline it with a reason, reply on and resolve each thread, re-run the checks, and merge only when CI is green, no thread is open and the user asked for the merge, in dependency order. Use whenever asked to babysit, shepherd, land, get green or merge PRs, to handle or answer review comments or CodeRabbit findings, or to wait for CI on org PRs. Script first: pr_status.py gives one line per PR and per unresolved finding, so raw review bodies stay out of context."
 license: MIT OR GPL-2.0-only
-compatibility: Needs git, python3, the gh CLI logged in (or GH_TOKEN) and network access to github.com (scripts/pr-status clones swarm-routing/.github tools/pr-status). Replying and resolving use the GitHub MCP tools; updating and merging use pr-status merge.
+compatibility: Needs git, python3, the gh CLI logged in (or GH_TOKEN) and network access to github.com (scripts/pr-status clones swarm-routing/.github tools/pr-status). Replying and resolving use the GitHub MCP tools; updating and merging use pr-status merge, or auto-merge where the repository has a merge queue.
 metadata:
   author: swarm-routing
   repository: https://github.com/swarm-routing/skills
@@ -72,11 +72,20 @@ ARA#12 3f2a9c1 ci=fail(failure=1,success=4) failed=lint merge=unstable threads=2
 ```
 
 - `ci=` gives the verdict (fail > pending > pass, `none` when nothing
-  reported), then the count of each conclusion and the failed checks.
+  reported), then the count of each conclusion and the failed checks. It
+  counts every check, required or not. Only the checks the `main` ruleset
+  requires gate a merge (`gh api repos/<owner>/<repo>/rules/branches/main`,
+  the `required_status_checks` rule); a red `codecov/patch`, Sonar,
+  Scorecard or `dco` is report-only: read it, say what it found, and do not
+  hold the PR for it. `dco` is red on every agent-made commit until
+  swarm-routing/.github#212 is decided; never add a `Signed-off-by` to turn
+  it green, for the maintainer or anyone else.
 - `merge=` is GitHub's mergeable_state. `unknown` means it has not been
-  computed yet: read it again later. `behind` means `main` moved on: the
-  `main` rulesets require an up-to-date branch, and `merge` updates it
-  (step 5).
+  computed yet: read it again later. `behind` means `main` moved on; the
+  rulesets no longer require an up-to-date branch (swarm-routing/.github#205),
+  but `merge` still updates one (step 5), and a merge queue rebuilds it on
+  `main` itself. `unstable` means a check that is not required is red or
+  pending: it is mergeable.
   `dirty` means a conflict: merge `origin/main` into the branch, never rebase
   or force-push pushed history.
 - Each thread line is `severity · title · path:line · comment id`. It is the
@@ -136,8 +145,26 @@ A new review round may add threads: start again from step 1.
 
 ## 5. Merge, only when the user asked for it
 
-Merge only PRs the user asked you to merge, and never a draft. Then let the
-script do the whole loop; do not run `update-branch` or a merge by hand:
+Merge only PRs the user asked you to merge, and never a draft.
+
+**A repository with a merge queue** (its ruleset has a `merge_queue` rule;
+`gh api repos/<owner>/<repo>/rules/branches/main -q '.[].type'`; on
+2026-11-11: .github, skills, ns3-swarm-core, BeeAdHoc, HOPNET, benchmarks,
+swarm-routing.github.io, ns3-containers and AntHocNet, with ARA, Termite and
+ns3-tools to follow) refuses a direct merge with HTTP 405 "Changes must be
+made through the merge queue". There, enter the queue by enabling
+auto-merge with the squash method once the required checks are green and no
+thread is open: a GitHub tool's auto-merge call (MCP
+`enable_pr_auto_merge`), `gh pr merge --auto --squash`, or the PR page. Do
+not update the branch first; the queue tests the PR on `main` and the PRs
+ahead of it, and merges it. Follow it with `wait` or `list` until the PR is
+merged, or report it dequeued (a check failed in the merge group: back to
+step 2). `pr-status merge` does not enter a queue yet, and it waits on or
+stops at checks no ruleset requires (swarm-routing/.github#196), so do not
+use it there.
+
+**Everywhere else**, let the script do the whole loop; do not run
+`update-branch` or a merge by hand:
 
 ```bash
 "$SKILL"/scripts/pr-status merge <REPO#N> … --dry-run   # what it would do now, writes nothing
@@ -176,7 +203,19 @@ merged and the consumer's CI has run again against the new `main`.
 
 After a `templates/` change in `.github` merges, org-bot opens its refresh
 PRs in the other repositories (titles ending `(org-bot)`). Wait for them with
-`list`, then shepherd them the same way.
+`list`, then shepherd them the same way. Where a repository has a merge
+queue, org-bot enables auto-merge on its own PR.
+
+**A release bump PR** (`chore(release): bump version A to B`, from
+`bot/release`) merges like any PR, and its merge publishes the release. If
+the release run's publish then fails, or waits for the `release` environment
+(off for now, swarm-routing/.github#215): approving it is the maintainer's
+alone, never yours. A failed publish is recovered with **"Re-run all jobs"**
+on that run (`gh api -X POST repos/<owner>/<repo>/actions/runs/<id>/rerun`),
+and only when the user asks: "Re-run failed jobs" reuses the reusable
+workflow at the first attempt's commit, so a fix merged in `.github` since
+would not apply (swarm-routing/ns3-tools#105). Never dispatch a new `bump`
+to work around it.
 
 ## 6. Report
 
