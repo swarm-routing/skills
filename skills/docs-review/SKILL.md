@@ -1,6 +1,6 @@
 ---
 name: docs-review
-description: "Bring a swarm-routing repository's README, AI files (AGENTS.md, CLAUDE.md, CONTEXT.md) and docs/ to the org documentation standard, which is AntHocNet's: the org-sync badge row, a short explanation of the project, its page on the Colony Arena site, the ns-3 image for ns-3 repos, a layout that matches the tree, Epics, licence and how-to-work-here sections, a docs/ map with no orphan pages and no broken links, and no claim the repository cannot back. Use whenever a README or docs page is written or reviewed in an org repository, a repository is set up or its status changes, someone asks for badges, the game or site link, the container link or a docs cleanup, before a docs PR, or when handoff lessons or a `[docs] AI files` issue should be folded back into AGENTS.md and CLAUDE.md. Script first: check_docs.py does the mechanical checks; you judge the prose."
+description: "Bring a swarm-routing repository's README, AI files (AGENTS.md, CLAUDE.md, CONTEXT.md) and docs/ to the org documentation standard, which is AntHocNet's: the org-sync badge row, a short explanation of the project, its page on the Colony Arena site, the ns-3 image for ns-3 repos, a layout that matches the tree, Epics, licence and how-to-work-here sections, a released repository's DOI and citing section with the papers it implements, a docs/ map with no orphan pages and no broken links, and no claim the repository cannot back. Use whenever a README or docs page is written or reviewed in an org repository, a repository is set up or its status changes, someone asks for badges, citation or DOI references, the game or site link, the container link or a docs cleanup, before a docs PR, or when handoff lessons or a `[docs] AI files` issue should be folded back into AGENTS.md and CLAUDE.md. Script first: check_docs.py does the mechanical checks; you judge the prose."
 license: MIT OR GPL-2.0-only
 compatibility: Needs python3 and network access to github.com (scripts/check-docs clones swarm-routing/.github tools/docs-review); step 4 and --online also need the GitHub CLI, logged in (gh auth login) or with GH_TOKEN set.
 metadata:
@@ -42,6 +42,8 @@ on a FAIL:
 | CONTEXT.md | still the org-sync seed although the repo has code | WARN |
 | docs/ | a `docs/README.md` map once there are two pages; pages linked from nowhere; ADRs missing from `docs/adr/README.md` | WARN |
 | links | relative links in README, AGENTS.md, CONTEXT.md and docs/ resolve | FAIL |
+| citation | a released repository (a `v*` tag or `zenodo_concept`): the DOI badge; CITATION.cff whose `doi:` is the concept; a README section on citing it that links CITATION.cff (AntHocNet's "Releases & citing"); for a protocol, a CITATION.cff reference per source, each with a `doi:` or the reason it has none | FAIL |
+| citation | a protocol whose CITATION.cff cites no source; a `v*` tag but no `zenodo_concept` (Zenodo has not archived it yet) | WARN |
 | AI files | outside the org-sync sections of AGENTS.md, CLAUDE.md, CONTEXT.md: paths that do not exist; paths marked planned that exist; with `--online`, issues written as open or blocking that are closed; text an org rule replaced (the script's `CONTRADICTIONS` table names each source); checks called required that are not | WARN |
 
 A repository tunes it in a `[docs]` table of `.github/org-sync.toml`:
@@ -63,6 +65,19 @@ or the next run undoes the edit:
 - **The org sections of AGENTS.md and CLAUDE.md** (between `org-sync`
   markers) come from `swarm-routing/.github` `templates/`.
 - **`## Epics`** comes from `epics.py readme`.
+- **Citing** (the README's Releases & citing section between
+  `<!-- org-sync:begin citing -->` markers, CITATION.cff's `doi:` and
+  `references:`, the DOI badge) comes from `.github/org-sync.toml`:
+  `citation = true`, `zenodo_concept` (read from Zenodo, never typed),
+  `citation_type` and `[[references]]`, the work the repository implements
+  (type, title, authors, year, venue, `doi`, a one-line `role`; a work with no
+  DOI gives its publisher's or institution's `url` and `no_doi`, the reason).
+  Confirm each DOI with the `lit-search` skill
+  (`lit_search.py confirm <DOI>`) and copy title, year and venue from
+  Crossref's output. Then run `org_sync.py apply` and
+  `org_sync.py reseed CITATION.cff` (CITATION.cff is a seed: only a reseed
+  rewrites it). A tagged repository without `zenodo_concept` waits for Zenodo
+  to archive the release; report it, never invent a DOI.
 
 Everything else is the repository's own: the opening paragraph, the layout
 blocks, Quick start, CONTEXT.md and docs/.

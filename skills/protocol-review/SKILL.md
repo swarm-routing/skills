@@ -87,6 +87,12 @@ answer is "not touched":
 - **Rule 2, the other direction.** A dual-licensed script imports no GPL-only
   code; code taken from AntHocNet keeps its licence and records its
   provenance; nothing is copied from ns-3's `src/aodv` or `src/olsr`.
+- **Sources.** A source added to or dropped from `docs/fidelity.md` as the
+  one the protocol implements is also added to or dropped from
+  `[[references]]` in `.github/org-sync.toml` (its DOI confirmed with
+  `lit_search.py confirm`, or a URL and the reason it has none), with
+  `org_sync.py apply` and `reseed CITATION.cff` in the same PR; the
+  `docs-review` script checks the result.
 - **The repository's own rules (10 onwards).** Read them in its AGENTS.md:
   protocol repos require the fidelity sheet before `core/`, pre-registered
   interpretations, written-fresh `core/` code; ns3-tools requires
