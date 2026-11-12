@@ -20,9 +20,13 @@ else
     dir=${XDG_CACHE_HOME:-$HOME/.cache}/swarm-routing/skills
     ref=${SKILLS_TOOLS_REF:-main}
     if [ -d "$dir/.git" ]; then
-        # two commands, so set -e stops on a failed fetch instead of running a stale ref
-        git -C "$dir" fetch -q --depth 1 origin "$ref"
-        git -C "$dir" checkout -q --detach FETCH_HEAD
+        # the audit reads local files only, so it also runs with no network:
+        # a failed refresh keeps the cached checkout, and says so
+        if git -C "$dir" fetch -q --depth 1 origin "$ref" 2>/dev/null; then
+            git -C "$dir" checkout -q --detach FETCH_HEAD
+        else
+            echo "token-audit: could not refresh $dir from GitHub; using the cached copy" >&2
+        fi
     else
         mkdir -p "$(dirname "$dir")"
         git clone -q --depth 1 --branch "$ref" https://github.com/swarm-routing/skills "$dir"

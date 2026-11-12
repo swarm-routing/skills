@@ -68,7 +68,11 @@ ISO_DATE = re.compile(r"\b20\d\d-\d\d-\d\d\b")
 ISSUE = re.compile(r"#\d+\b")
 MD_LINK = re.compile(r"\]\(([^)#\s]+\.md)(?:#[^)]*)?\)")
 MD_CODE = re.compile(r"`([\w./-]+\.md)`")
-FENCE = re.compile(r"^\s*(```|~~~)")
+FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
+SECRET_KEY = re.compile(
+    r"(?i)\b([\w-]*(?:token|secret|password|passwd|api[_-]?key|authorization)[\w-]*\s*[=:]\s*)\S+"
+)
+SECRET_VALUE = re.compile(r"[A-Za-z0-9+_=-]{24,}")
 
 
 def tokens(nbytes, bpt=BYTES_PER_TOKEN):
@@ -80,17 +84,44 @@ def size(text):
 
 
 def read(path):
-    with open(path, encoding="utf-8", errors="replace") as f:
+    # newline="": line endings stay as they are on disk, so sizes are the file's
+    with open(path, encoding="utf-8", errors="replace", newline="") as f:
         return f.read()
+
+
+def inside(repo, rel):
+    """rel is a file that is really in repo: a symlink that leads out of it is not."""
+    root = os.path.realpath(repo)
+    full = os.path.realpath(os.path.join(repo, rel))
+    return os.path.isfile(full) and os.path.commonpath([root, full]) == root
+
+
+class Fences:
+    """Fenced code blocks, line by line. A block closes on a fence of its own
+    character, at least as long as the opening one, with nothing after it."""
+
+    def __init__(self):
+        self.open = None
+
+    def feed(self, line):
+        """True when the line is a fence or inside a block."""
+        m = FENCE.match(line.rstrip("\r\n"))
+        if self.open is None:
+            if m and not (m.group(1)[0] == "`" and "`" in m.group(2)):
+                self.open = (m.group(1)[0], len(m.group(1)))
+                return True
+            return False
+        char, length = self.open
+        if m and m.group(1)[0] == char and len(m.group(1)) >= length and not m.group(2).strip():
+            self.open = None
+        return True
 
 
 def prose_lines(text):
     """The lines outside fenced code blocks (an `@path` in a code block is no import)."""
-    fenced = False
+    fences = Fences()
     for line in text.splitlines():
-        if FENCE.match(line):
-            fenced = not fenced
-        elif not fenced:
+        if not fences.feed(line):
             yield line
 
 
@@ -123,27 +154,27 @@ def loaded_files(repo):
         base = os.path.dirname(rel)
         for target in imports(read(os.path.join(repo, rel))):
             child = os.path.normpath(os.path.join(base, target))
-            if not child.startswith("..") and os.path.isfile(os.path.join(repo, child)):
+            if not child.startswith("..") and inside(repo, child):
                 queue.append((child, f"imported by {rel}", depth + 1))
     return out
 
 
 def sections(text):
     """[{title, bytes, managed: {block: bytes}, dates, issues}] split at `## ` headings."""
-    out, title, lines, fenced = [], "(top)", [], False
+    out, title, lines, fences = [], "(top)", [], Fences()
     block = [None]  # the open org-sync block: it may start before a heading and span several
 
     def flush():
         if not lines:
             return
-        body = "\n".join(lines) + "\n"
+        body = "".join(lines)
         managed = collections.Counter()
         for line in lines:
             begin, end = MARK_BEGIN.search(line), MARK_END.search(line)
             if begin:
                 block[0] = begin.group(1)
             if block[0]:
-                managed[block[0]] += size(line) + 1
+                managed[block[0]] += size(line)
             if end:
                 block[0] = None
         out.append(
@@ -157,10 +188,8 @@ def sections(text):
             }
         )
 
-    for line in text.splitlines():
-        if FENCE.match(line):
-            fenced = not fenced
-        if line.startswith("## ") and not fenced:
+    for line in text.splitlines(keepends=True):
+        if not fences.feed(line) and line.startswith("## "):
             flush()
             title, lines = line.strip(), []
         lines.append(line)
@@ -180,11 +209,18 @@ def skills(repo):
             if not os.path.isfile(path):
                 continue
             text = read(path)
-            m = re.match(r"---\n(.*?)\n---\n?", text, re.S)
-            front = m.group(1) if m else ""
-            listed = "\n".join(
-                line for line in front.splitlines() if re.match(r"(name|description):", line)
-            )
+            m = re.match(r"---\r?\n(.*?)\r?\n---", text, re.S)
+            # name and description, each with its indented continuation lines
+            # (a block scalar, `description: >-`, has its text below the key)
+            kept, keep = [], False
+            for line in (m.group(1) if m else "").splitlines():
+                if re.match(r"(name|description):", line):
+                    keep = True
+                elif line.strip() and not line[0].isspace():
+                    keep = False
+                if keep:
+                    kept.append(line)
+            listed = "\n".join(kept)
             out.append(
                 {
                     "name": name,
@@ -207,7 +243,7 @@ def linked_docs(repo, loaded):
             for base in (os.path.dirname(rel), ""):
                 child = os.path.normpath(os.path.join(base, target))
                 full = os.path.join(repo, child)
-                if not child.startswith("..") and os.path.isfile(full) and child not in have:
+                if not child.startswith("..") and inside(repo, child) and child not in have:
                     found[child] = os.path.getsize(full)
                     break
     return [{"path": p, "bytes": b} for p, b in sorted(found.items(), key=lambda kv: -kv[1])]
@@ -234,6 +270,7 @@ def audit_repo(repo, bpt):
     loaded = sum(f["bytes"] for f in files) + listed
     return {
         "repo": name,
+        "root": os.path.abspath(repo),
         "files": files,
         "skills": sk,
         "skills_listed_bytes": listed,
@@ -251,10 +288,13 @@ def duplicates(audits):
         for f in a["files"]:
             for s in f["sections"]:
                 if s["bytes"] >= 200:
-                    groups[s["sha"]].append((a["repo"], f["path"], s["title"], s["bytes"]))
+                    groups[s["sha"]].append(
+                        (a["root"], f["path"], s["title"], s["bytes"], a["repo"])
+                    )
     out = []
     for members in groups.values():
-        repos = sorted({m[0] for m in members})
+        # two repositories may share a directory name: the path tells them apart
+        repos = [name for _, name in sorted({(m[0], m[4]) for m in members})]
         if len(repos) > 1:
             out.append(
                 {
@@ -275,6 +315,15 @@ def check_budgets(audits, budgets, budget_loaded):
             limit = budgets.get(os.path.basename(f["path"]))
             if limit is not None and f["bytes"] > limit:
                 over.append(f"{a['repo']}: {f['path']} is {f['bytes']:,} bytes, budget {limit:,}")
+        # a named file has its budget whether a session loads it or not
+        loaded = {os.path.basename(f["path"]) for f in a["files"]}
+        for name, limit in sorted(budgets.items()):
+            path = os.path.join(a["root"], name)
+            if name not in loaded and os.path.isfile(path) and os.path.getsize(path) > limit:
+                over.append(
+                    f"{a['repo']}: {name} is {os.path.getsize(path):,} bytes, budget {limit:,} "
+                    "(not loaded at session start)"
+                )
         if budget_loaded is not None and a["loaded_bytes"] > budget_loaded:
             over.append(
                 f"{a['repo']}: loads {a['loaded_bytes']:,} bytes at session start, "
@@ -369,7 +418,9 @@ def cmd_files(a):
             json.dumps(
                 {
                     "bytes_per_token": a.bytes_per_token,
-                    "repositories": audits,
+                    "repositories": [
+                        {k: v for k, v in audit.items() if k != "root"} for audit in audits
+                    ],
                     "duplicates": dups,
                     "over_budget": over,
                 },
@@ -384,14 +435,21 @@ def cmd_files(a):
 # --- transcript -----------------------------------------------------------
 
 
+def redact(text):
+    """A call's input may hold a credential: the value after a key that names
+    one, and any long unbroken run of key-like characters, are not printed."""
+    text = SECRET_KEY.sub(lambda m: m.group(1) + "[redacted]", text)
+    return SECRET_VALUE.sub("[redacted]", text)
+
+
 def summarize_input(value):
     if not isinstance(value, dict):
         return ""
     for key in ("description", "command", "file_path", "pattern", "query", "url", "prompt"):
         if isinstance(value.get(key), str):
-            return " ".join(value[key].split())[:60]
+            return redact(" ".join(value[key].split()))[:60]
     parts = [f"{k}={v}" for k, v in value.items() if isinstance(v, (str, int, float, bool))]
-    return " ".join(parts)[:60]
+    return redact(" ".join(parts))[:60]
 
 
 def result_bytes(content):
@@ -800,6 +858,79 @@ def self_test():
             "a call repeated with the same input is reported",
             t["repeated"] == [{"tool": "Bash", "times": 2, "input": "List files"}],
         )
+    with tempfile.TemporaryDirectory() as tmp:
+
+        def write(rel, text):
+            path = os.path.join(tmp, rel)
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w", encoding="utf-8", newline="") as f:
+                f.write(text)
+
+        outside = os.path.join(tmp, "outside.md")
+        write("outside.md", "not in the repository\n")
+        for name in ("a/repo", "b/repo"):
+            write(f"{name}/CLAUDE.md", "# CLAUDE.md\r\n\r\n@docs/out.md\r\n\r\n## Rules\r\ntext")
+            write(
+                f"{name}/AGENTS.md",
+                "# Not imported\n\n````\n~~~\n## In a code block\n@docs/guide.md\n````\n\n"
+                "## Shared\n" + "The same text in both.\n" * 12,
+            )
+            write(
+                f"{name}/skills/demo/SKILL.md",
+                "---\nname: demo\ndescription: >-\n  Text on the lines\n  below the key.\n"
+                "license: MIT\n---\n\nBody.\n",
+            )
+            os.makedirs(os.path.join(tmp, name, "docs"))
+            os.symlink(outside, os.path.join(tmp, name, "docs", "out.md"))
+        a, b = (audit_repo(os.path.join(tmp, n), BYTES_PER_TOKEN) for n in ("a/repo", "b/repo"))
+        claude = a["files"][0]
+        check(
+            "an import that is a symlink out of the repository is not followed",
+            [f["path"] for f in a["files"]] == ["CLAUDE.md"],
+        )
+        check(
+            "a file with CRLF line endings has its size on disk",
+            claude["bytes"] == os.path.getsize(os.path.join(tmp, "a/repo/CLAUDE.md")),
+        )
+        check(
+            "the sections of a file add up to the file, with no final newline too",
+            sum(s["bytes"] for s in claude["sections"]) == claude["bytes"],
+        )
+        text = read(os.path.join(tmp, "a/repo/AGENTS.md"))
+        check(
+            "a fence closes only on its own character, at least as long",
+            [s["title"] for s in sections(text)] == ["(top)", "## Shared"] and imports(text) == [],
+        )
+        check(
+            "a description written as a block scalar is listed with its text",
+            a["skills"][0]["listed_bytes"]
+            == size("name: demo\ndescription: >-\n  Text on the lines\n  below the key."),
+        )
+        write("a/repo/CLAUDE.md", "# CLAUDE.md\n\n@AGENTS.md\n")
+        write("b/repo/CLAUDE.md", "# CLAUDE.md\n\n@AGENTS.md\n")
+        a, b = (audit_repo(os.path.join(tmp, n), BYTES_PER_TOKEN) for n in ("a/repo", "b/repo"))
+        check(
+            "two repositories with the same directory name are still two",
+            [d["repos"] for d in duplicates([a, b])] == [["repo", "repo"]],
+        )
+        write("a/repo/CLAUDE.md", "# CLAUDE.md\n")
+        a = audit_repo(os.path.join(tmp, "a/repo"), BYTES_PER_TOKEN)
+        check(
+            "a named file has its budget when no session loads it",
+            len(check_budgets([a], {"AGENTS.md": 10}, None)) == 1
+            and check_budgets([a], {"AGENTS.md": 10**6, "MISSING.md": 1}, None) == [],
+        )
+    check(
+        "a credential in a call's input is not printed",
+        summarize_input({"command": "curl -H 'Authorization: Bearer abc' https://x"})
+        == "curl -H 'Authorization: [redacted] abc' https://x"
+        and summarize_input({"command": "export API_KEY=hunter2 && run"})
+        == "export API_KEY=[redacted] && run"
+        and "ghp_"
+        not in summarize_input({"command": "git push ghp_0123456789abcdefghijABCDEFGHIJ"})
+        and summarize_input({"file_path": "/home/user/skills/tools/token-audit/token_audit.py"})
+        == "/home/user/skills/tools/token-audit/token_audit.py",
+    )
     print(f"token_audit self-test: {'FAILED' if failures else 'OK'}")
     return 1 if failures else 0
 

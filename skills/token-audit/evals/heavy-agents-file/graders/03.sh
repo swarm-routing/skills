@@ -9,9 +9,16 @@
 # its outputs directory. Exit 0 pass, 77 cannot grade, else fail.
 set -u
 repo=$1
-[ -f "$repo/AGENTS.md" ] || { echo "no AGENTS.md in $repo"; exit 77; }
+[ -d "$repo" ] || { echo "no repository at $repo"; exit 77; }
+[ -f "$repo/AGENTS.md" ] || { echo "AGENTS.md is gone from $repo"; exit 1; }
 missing=0
-for phrase in "never includes a simulator header" "carries a core unit test" "append-only" "kTraceVersion" "stay bounded" "Papers stay out"; do
+# the rule's name, then what it tells the agent to do: a rule cut down to its
+# name passes the first and fails the second
+for phrase in "never includes a simulator header" "ports" \
+    "carries a core unit test" "core/test" \
+    "append-only" "kTraceVersion" "trailmix.py" \
+    "stay bounded" "core/config.h" \
+    "Papers stay out" "DOI"; do
     grep -qF "$phrase" "$repo/AGENTS.md" || { echo "missing from AGENTS.md: $phrase"; missing=1; }
 done
 [ $missing -eq 0 ] || exit 1

@@ -2,7 +2,7 @@
 name: token-audit
 description: "Measure and cut what an AI session costs in tokens: what it loads before its first tool call (CLAUDE.md, the AGENTS.md it imports, skill listings), which sections are large, stale or repeated in every repository, and, for a finished session, where its tokens actually went (the context of the first request, the tools called most, the largest results). Use it whenever agent files are written, reviewed or refactored (AGENTS.md, CLAUDE.md, CONTEXT.md, a skill), when someone says a session was expensive, slow to start or ran out of context, before attaching many repositories to one session, when deciding what belongs in an always-loaded file and what in a document read on demand, and when work a model repeats by hand should become a script. Use it even if the user only says the agent files feel long or asks why a chat used so many tokens. Script first: token_audit.py prints sizes and counts, so no transcript or file content enters the context."
 license: MIT OR GPL-2.0-only
-compatibility: Needs python3. Reads local files only and sends nothing anywhere. With skills.sh (npx skills add) the wrapper clones swarm-routing/skills once to find tools/token-audit/token_audit.py, which needs git and network access to github.com; SKILLS_TOOLS_DIR=<checkout> avoids it.
+compatibility: Needs python3. Reads local files only and sends nothing anywhere. With skills.sh (npx skills add) the wrapper clones swarm-routing/skills to find tools/token-audit/token_audit.py (git and network access to github.com the first time; later runs refresh the clone and fall back to it when offline); SKILLS_TOOLS_DIR=<checkout> avoids it.
 metadata:
   author: swarm-routing
   repository: https://github.com/swarm-routing/skills

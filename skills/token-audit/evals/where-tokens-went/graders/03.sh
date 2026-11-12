@@ -13,5 +13,7 @@ for f in "$2/report.md" "$1/report.md"; do
 done
 [ -n "$report" ] || { echo "no report.md in the outputs or the repository"; exit 77; }
 grep -q "issue_read" "$report" || { echo "report.md does not name issue_read"; exit 1; }
-grep -Eq "(^|[^0-9])72([^0-9]|$)" "$report" || { echo "report.md does not give 72 calls"; exit 1; }
+# next to the name, with no other number between: 72 given for another tool does not pass
+grep -Eq "issue_read[^0-9]*72([^0-9]|$)|(^|[^0-9])72[^0-9]*issue_read" "$report" ||
+    { echo "report.md does not give 72 calls for issue_read"; exit 1; }
 echo "report.md names issue_read with 72 calls"

@@ -10,11 +10,25 @@
 set -u
 repo=$1
 [ -d "$repo" ] || { echo "no repository at $repo"; exit 77; }
-file=$(grep -rlF "seedpair.py" "$repo/docs" --include="*.md" 2>/dev/null | head -n 1)
-[ -n "$file" ] || { echo "no file under docs/ holds the catalogue (seedpair.py)"; exit 1; }
-for tool in trailmix.py tablefuzz.py capwatch.py bisect-run.sh; do
-    grep -qF "$tool" "$file" || { echo "$file lost the entry for $tool"; exit 1; }
-done
-name=$(basename "$file")
-grep -qF "$name" "$repo/AGENTS.md" || { echo "AGENTS.md does not name $name"; exit 1; }
-echo "the catalogue is in docs/$name and AGENTS.md points to it"
+[ -f "$repo/AGENTS.md" ] || { echo "AGENTS.md is gone from $repo"; exit 1; }
+# every Markdown file under docs/ is a candidate: the first that holds all the
+# entries and is named in AGENTS.md passes
+why="no file under docs/ holds the catalogue (seedpair.py)"
+while IFS= read -r file; do
+    [ -n "$file" ] || continue
+    lost=
+    for tool in trailmix.py tablefuzz.py capwatch.py bisect-run.sh; do
+        grep -qF "$tool" "$file" || { lost=$tool; break; }
+    done
+    name=$(basename "$file")
+    if [ -n "$lost" ]; then
+        why="$file has no entry for $lost"
+    elif ! grep -qF "$name" "$repo/AGENTS.md"; then
+        why="AGENTS.md does not name $name"
+    else
+        echo "the catalogue is in docs/$name and AGENTS.md points to it"
+        exit 0
+    fi
+done <<<"$(grep -rlF "seedpair.py" "$repo/docs" --include="*.md" 2>/dev/null)"
+echo "$why"
+exit 1
