@@ -28,7 +28,7 @@ T="$SKILL/scripts/org-tool"    # T fidelity|lit-search|zenodo|org-sync ...
 ```
 
 `ORG_TOOLS_DIR=<checkout of swarm-routing/.github>` points the wrapper at a
-local checkout instead of the cached clone.
+local checkout instead of the cached snapshot.
 
 ## The rules the scripts enforce, and why
 

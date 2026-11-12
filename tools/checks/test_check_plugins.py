@@ -131,4 +131,32 @@ def orphan():
 
 
 orphan()
+
+broken(
+    "skills/lit-search/scripts/lit-search",
+    "flock -w 600 9",
+    "flock -w 60 9",
+    "lit-search: cached-checkout block differs from",
+)
+broken(
+    "skills/org-repo/scripts/org-sync",
+    "exec python3 -I",
+    'git -C "$dir" fetch -q origin main\nexec python3 -I',
+    "org-sync: fetches or caches outside the cached-checkout block",
+)
+
+
+def no_block():
+    d = tempfile.mkdtemp()
+    for sub in (".claude-plugin", "skills"):
+        shutil.copytree(os.path.join(ROOT, sub), os.path.join(d, sub))
+    p = os.path.join(d, "skills/fidelity-sheet/scripts/fidelity")
+    text = open(p).read()
+    open(p, "w").write(cp.BLOCK.sub("", text))
+    errs = cp.check(d)
+    assert any("fidelity: calls cached_checkout but carries no" in e for e in errs), errs
+    print("ok    a wrapper calling cached_checkout without the block is rejected")
+
+
+no_block()
 print("check-plugins self-test: OK")
