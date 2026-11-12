@@ -21,7 +21,7 @@ Two paths, set once; you work from the protocol's checkout:
 ```bash
 SKILL="${CLAUDE_PLUGIN_ROOT}/skills/fidelity-sheet"   # as the Claude Code plugin
 # installed with skills.sh (npx skills add): SKILL=<the directory this SKILL.md is in>
-PAPERS="$HOME/papers"   # a checkout of the private library the maintainer keeps: the papers and the pdf-extract skill
+PAPERS=<checkout>   # a checkout of the private library the maintainer keeps: the papers and the pdf-extract skill
 SCRATCH="$(mktemp -d)"   # extracted paper text (step 4); outside every repository
 ```
 
@@ -53,8 +53,8 @@ A **Source** cell is one of:
 ## 1. Find the paper
 
 The primary source is in the private library the maintainer keeps
-(`$PAPERS/AntHocNet/library/<protocol>/`), searched with that library's
-`pdf-extract` skill. If the paper is only listed in `library/MANUAL-DOWNLOADS.md`, it has not
+(`$PAPERS`; its own README says where each paper is filed), searched with
+that library's `pdf-extract` skill. If that library lists the paper only as still to download, it has not
 been downloaded: say so and stop. Downloading a paywalled paper is a human step,
 and a sheet written from an abstract or from memory is worse than no sheet,
 because it looks authoritative.
@@ -112,7 +112,7 @@ version.
 for the structure instead (`pdfx.py grep <pdf> '^(Table|Fig\.|[0-9]+(\.[0-9]+)*) '`)
 and check each section number against the text you cite.
 
-(the PDF is under `$PAPERS/AntHocNet/library/<protocol>/`). `pdfx.py text` caches the extracted text
+(the PDF found in step 1). `pdfx.py text` caches the extracted text
 next to the PDF; to keep the papers checkout clean, extract once with
 `pdfx.py text <pdf> --out "$SCRATCH/<key>.txt"` and grep that file, or copy
 the PDF to a scratch directory first. For each

@@ -39,7 +39,7 @@ description = "The swarm-routing org's agent skills: one Claude Code plugin (swa
 homepage = ""
 topics = ["claude-code", "claude-code-plugin", "agent-skills", "ai-agents", "automation", "swarm-intelligence"]
 ruleset = "tooling"
-required_checks = ["plugins", "python / python", "headers / licence", "check / org-sync", "title / title"]
+required_checks = ["plugins", "python / python", "headers / licence", "check / org-sync", "title / title", "review / coderabbit"]
 # Merge through a merge queue (swarm-routing/.github#130); every workflow behind a required
 # check also runs on merge_group.
 merge_queue = true
