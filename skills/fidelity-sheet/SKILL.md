@@ -26,7 +26,7 @@ SCRATCH="$(mktemp -d)"   # extracted paper text (step 4); outside every reposito
 ```
 
 `$SKILL/scripts/fidelity` runs `swarm-routing/.github` `tools/fidelity/fidelity.py`
-from a cached clone. Inside a `.github` checkout,
+from a cached snapshot. Inside a `.github` checkout,
 `python3 tools/fidelity/fidelity.py` is the same; `ORG_TOOLS_DIR=<checkout>`
 points the wrapper at a local one.
 

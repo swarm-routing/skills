@@ -9,7 +9,10 @@ directory, executable scripts, body under 500 lines), and every eval grader
 (skills/<name>/evals/<case>/graders/: an .md with a `type` that `claude plugin
 eval` knows, or an executable .sh script grader with a `# grader:` line, run by
 tools/evals/grade.py). Every skill directory under skills/ must belong to a
-listed plugin. One line per problem; exit 1 if any. Stdlib only.
+listed plugin. Every script under skills/*/scripts/ that fetches a repository
+does it through the `cached-checkout` block, and the block is the same in all
+of them (a skill installs alone, so each wrapper carries its own copy;
+tools/checks/test_wrapper_cache.py tests the block). One line per problem; exit 1 if any. Stdlib only.
 
 Usage: check-plugins.py [REPO_DIR]
 """
@@ -32,6 +35,9 @@ MAX_LINES = 500
 # The grader types `claude plugin eval` accepts in graders/*.md; a script
 # grader is a .sh instead, which it ignores (tools/evals/grade.py runs it).
 GRADER_TYPES = {"regex", "tool_order", "tool_used", "file_exists", "llm", "baseline"}
+# The fetch block every wrapper carries, between these marker lines.
+BLOCK = re.compile(r"^# >>> cached-checkout\b.*?^# <<< cached-checkout$", re.S | re.M)
+FETCHES = re.compile(r"\bgit\b[^\n]*\b(clone|fetch)\b|XDG_CACHE_HOME")
 
 
 def scalar(raw):
@@ -94,6 +100,33 @@ def check_graders(root, skill_dir):
                     errs.append(f"{rel}: no `# grader: <criterion>` line")
             else:
                 errs.append(f"{rel}: a grader is an .md (LLM-judged) or an .sh (script)")
+    return errs
+
+
+def check_wrappers(root):
+    """Problems with the cached-checkout block in skills/*/scripts/*."""
+    errs, blocks = [], {}
+    top = os.path.join(root, "skills")
+    for s in sorted(os.listdir(top)) if os.path.isdir(top) else []:
+        sdir = os.path.join(top, s, "scripts")
+        for name in sorted(os.listdir(sdir)) if os.path.isdir(sdir) else []:
+            rel = f"skills/{s}/scripts/{name}"
+            with open(os.path.join(sdir, name), encoding="utf-8") as f:
+                text = f.read()
+            found = BLOCK.findall(text)
+            if len(found) > 1:
+                errs.append(f"{rel}: more than one cached-checkout block")
+            if found:
+                blocks[rel] = found[0]
+            if FETCHES.search(BLOCK.sub("", text)):
+                errs.append(f"{rel}: fetches or caches outside the cached-checkout block")
+    if blocks:
+        first, ref = next(iter(blocks.items()))
+        for rel, block in blocks.items():
+            if block != ref:
+                errs.append(
+                    f"{rel}: cached-checkout block differs from {first}'s; keep the copies identical"
+                )
     return errs
 
 
@@ -188,6 +221,7 @@ def check(root):
                 if not os.access(sp, os.X_OK):
                     errs.append(f"{os.path.relpath(sp, root)}: not executable")
             errs.extend(check_graders(root, os.path.join(sdir, s)))
+    errs.extend(check_wrappers(root))
     top = os.path.join(root, "skills")
     for s in sorted(os.listdir(top)) if os.path.isdir(top) else []:
         if os.path.normpath(os.path.join(top, s)) not in seen:

@@ -131,4 +131,17 @@ def orphan():
 
 
 orphan()
+
+broken(
+    "skills/lit-search/scripts/lit-search",
+    "flock -w 600 9",
+    "flock -w 60 9",
+    "lit-search: cached-checkout block differs from",
+)
+broken(
+    "skills/org-repo/scripts/org-sync",
+    "exec python3 -I",
+    'git -C "$dir" fetch -q origin main\nexec python3 -I',
+    "org-sync: fetches or caches outside the cached-checkout block",
+)
 print("check-plugins self-test: OK")

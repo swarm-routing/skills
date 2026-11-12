@@ -12,7 +12,7 @@ metadata:
 
 Every action is a `tools/org-sync` command from `swarm-routing/.github`; this
 skill only orders them and says where judgement is needed. `scripts/org-sync`
-(next to this file) runs it from a cached clone; inside a checkout of
+(next to this file) runs it from a cached snapshot; inside a checkout of
 `swarm-routing/.github`, `python3 tools/org-sync/org_sync.py` is the same.
 
 Read the command output only. Do not open the managed files to "check": the

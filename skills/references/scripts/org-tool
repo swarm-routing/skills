@@ -2,8 +2,8 @@
 # Copyright (c) 2026 Daniel Joppi (https://github.com/swarm-routing)
 # SPDX-License-Identifier: MIT OR GPL-2.0-only
 #
-# Thin wrapper: runs one of swarm-routing/.github's tools from a cached shallow
-# clone of the org repo. All the logic is in the tool; this only finds it (org
+# Thin wrapper: runs one of swarm-routing/.github's tools from a cached snapshot
+# of the org repo. All the logic is in the tool; this only finds it (org
 # rule 9: the skill works because the scripts do).
 #   org-tool fidelity|lit-search|zenodo|org-sync ARGS...
 #   ORG_TOOLS_DIR  use this checkout of swarm-routing/.github instead
@@ -17,16 +17,74 @@ case "${1:-}" in
     *) echo "usage: org-tool fidelity|lit-search|zenodo|org-sync ARGS..." >&2; exit 2 ;;
 esac
 shift
-dir=${ORG_TOOLS_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/swarm-routing/dotgithub}
-ref=${ORG_TOOLS_REF:-main}
-if [ -z "${ORG_TOOLS_DIR:-}" ]; then
-    if [ -d "$dir/.git" ]; then
-        # two commands, so set -e stops on a failed fetch instead of running a stale ref
-        git -C "$dir" fetch -q --depth 1 origin "$ref"
-        git -C "$dir" checkout -q --detach FETCH_HEAD
-    else
-        mkdir -p "$(dirname "$dir")"
-        git clone -q --depth 1 --branch "$ref" https://github.com/swarm-routing/.github "$dir"
+# >>> cached-checkout (identical in every wrapper; tools/checks/check-plugins.py checks it)
+# cached_checkout REPO REF [offline-ok]: print a directory holding swarm-routing/REPO at
+# REF, as an immutable snapshot of the fetched commit. Each ref has its own cache dir,
+# updated under a lock (flock, or a mkdir lock where flock is missing); a snapshot is
+# extracted to a temporary dir and renamed into place, never changed afterwards, so an
+# update by another session never changes the files under a running tool. Snapshots
+# unused for 7 days are removed. With offline-ok, a failed fetch falls back to the
+# snapshot this ref last used. SWARM_ROUTING_GIT replaces https://github.com/swarm-routing.
+# Call it as dir=$(cached_checkout ...): the lock ends with that subshell.
+cached_checkout() {
+    local repo=$1 ref=$2 offline=${3:-} key cache rc
+    key=$(printf '%s' "$ref" | tr -c 'A-Za-z0-9._-' '_')
+    case $key in .*) key=_$key ;; esac
+    cache=${XDG_CACHE_HOME:-$HOME/.cache}/swarm-routing/checkouts/${repo#.}/$key
+    mkdir -p "$cache" || return 1
+    if command -v flock >/dev/null 2>&1; then
+        exec 9>"$cache/lock" || return 1
+        if ! flock -w 600 9; then
+            echo "cached_checkout: no lock on $cache in 600 s" >&2
+            return 1
+        fi
+        cached_checkout_locked "$repo" "$ref" "$offline" "$cache"
+        return
     fi
+    for _ in $(seq 600); do
+        if mkdir "$cache/lock.d" 2>/dev/null; then
+            rc=0
+            cached_checkout_locked "$repo" "$ref" "$offline" "$cache" || rc=$?
+            rmdir "$cache/lock.d"
+            return "$rc"
+        fi
+        sleep 1
+    done
+    echo "cached_checkout: no lock on $cache in 600 s (remove $cache/lock.d if stale)" >&2
+    return 1
+}
+cached_checkout_locked() {
+    local repo=$1 ref=$2 offline=$3 cache=$4 url git sha tmp
+    url=${SWARM_ROUTING_GIT:-https://github.com/swarm-routing}/$repo
+    git=$cache/repo.git
+    [ -d "$git" ] || git init -q --bare "$git" || return 1
+    if git -C "$git" fetch -q --depth 1 "$url" "$ref" 2>"$cache/fetch.err"; then
+        sha=$(git -C "$git" rev-parse 'FETCH_HEAD^{commit}') || return 1
+    elif [ -n "$offline" ] && [ -s "$cache/current" ]; then
+        sha=$(cat "$cache/current")
+        echo "could not refresh $repo@$ref from $url; using the cached $sha" >&2
+    else
+        cat "$cache/fetch.err" >&2
+        return 1
+    fi
+    if [ ! -d "$cache/$sha" ]; then
+        tmp=$(mktemp -d "$cache/.tmp.XXXXXX") || return 1
+        if ! git -C "$git" archive "$sha" | tar -x -C "$tmp"; then
+            rm -rf "$tmp"
+            return 1
+        fi
+        mv "$tmp" "$cache/$sha" || return 1
+    fi
+    printf '%s\n' "$sha" >"$cache/current"
+    touch "$cache/$sha"
+    find "$cache" -mindepth 1 -maxdepth 1 -type d -mtime +7 ! -name "$sha" ! -name repo.git \
+        ! -name lock.d -exec rm -rf {} + 2>/dev/null || true
+    printf '%s\n' "$cache/$sha"
+}
+# <<< cached-checkout
+if [ -n "${ORG_TOOLS_DIR:-}" ]; then
+    dir=$ORG_TOOLS_DIR
+else
+    dir=$(cached_checkout .github "${ORG_TOOLS_REF:-main}")
 fi
 exec python3 -I "$dir/$py" "$@"

@@ -20,9 +20,11 @@ the `ns3-` prefix.
 .claude-plugin/marketplace.json  the marketplace: one plugin, `swarm-routing`, source ./ (version equals plugin.json's)
 .claude-plugin/plugin.json       the plugin manifest; Claude Code loads skills/ from the plugin root
 skills/<skill>/SKILL.md          the procedure (Agent Skills spec: name = directory, 1-64 chars, description <= 1024, < 500 lines)
-skills/<skill>/scripts/          thin wrappers only (org rule 9)
+skills/<skill>/scripts/          thin wrappers only (org rule 9); one that fetches a repository carries the same
+                                 cached-checkout block (a snapshot per ref and commit, updated under a lock)
 skills/<skill>/evals/            the skill's test cases (skill-creator / `claude plugin eval` layout); graders/NN.md judged by a model, graders/NN.sh script graders
 tools/checks/check-plugins.py              validates all of the above (+ test_check_plugins.py)
+tools/checks/test_wrapper_cache.py         runs the wrappers concurrently on local repos with two refs (the cached-checkout block)
 tools/evals/grade.py                       runs the script graders on an eval workspace, merges them into grading.json (+ test_grade.py)
 tools/token-audit/token_audit.py           what a session loads from the agent files, and where a finished session's tokens went: the `token-audit` skill's script (+ test_token_audit.py)
 .github/org-sync.toml                      this repo's org-sync config (kind = "skills")
@@ -32,7 +34,7 @@ tools/token-audit/token_audit.py           what a session loads from the agent f
 
 ```bash
 make help    # the org's standard target names: build, test, lint, format, check, clean, shell, ci
-make test    # check-plugins.py + its self-test, grade.py --self-test, token_audit.py --self-test
+make test    # check-plugins.py + its self-test, test_wrapper_cache.py, grade.py --self-test, token_audit.py --self-test
 ORG_TOOLS_DIR=/path/to/swarm-routing/.github python3 tools/evals/grade.py <skill>-workspace/iteration-N [--write]
 make check   # what CI gates on: lint, test, licence headers, org-sync check
 ORG_SYNC_DIR=/path/to/swarm-routing/.github skills/org-repo/scripts/org-sync plan .
