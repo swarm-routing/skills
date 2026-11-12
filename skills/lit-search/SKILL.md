@@ -101,9 +101,9 @@ the report series), and the report says the record is not in a registry.
 - **With the private library the maintainer keeps checked out**: hand
   each kept paper to its `lit-source` skill, which verifies the citation,
   finds legitimate open copies and files it; pass `--library` with that
-  library's README.md and MANUAL-DOWNLOADS.md so the lines say what is
-  already there. Nothing is added to the library without the maintainer's
-  go-ahead, unless the task says so.
+  library's two Markdown indexes (what is filed, what is still to download)
+  so the lines say what is already there. Nothing is added to the library
+  without the maintainer's go-ahead, unless the task says so.
 - **Otherwise** report the candidates as a table:
 
   | Paper (Crossref fields) | DOI | Cited | Why it matters (which issue) | Status |
@@ -118,5 +118,5 @@ the report series), and the report says the record is not in a registry.
 
 Only legitimate routes to a paper: the publisher's open access, an author's
 or institution's repository, arXiv. Never a shadow library, never a mirror of
-a paywalled paper. Nothing from the private papers library (files, extracted
+a paywalled paper. Nothing from the private library (files, extracted
 text, paths) goes into a public repository, issue or PR.

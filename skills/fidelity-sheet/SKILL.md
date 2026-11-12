@@ -54,7 +54,7 @@ A **Source** cell is one of:
 
 The primary source is in the private library the maintainer keeps
 (`$PAPERS/AntHocNet/library/<protocol>/`), searched with that library's
-`pdf-extract` skill. If the paper is only listed in `library/MANUAL-DOWNLOADS.md`, it has not
+`pdf-extract` skill. If that library lists the paper only as still to download, it has not
 been downloaded: say so and stop. Downloading a paywalled paper is a human step,
 and a sheet written from an abstract or from memory is worse than no sheet,
 because it looks authoritative.
