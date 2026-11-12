@@ -110,7 +110,11 @@ work is both followed and compared against, `implemented` wins.
 "$T" org-sync apply .         # CITATION.cff references: and the README's citing section
 ```
 
-Never edit a generated section by hand: the next run undoes it. If a fidelity
+The bib takes over `CITATION.cff` and the README's citing list once it holds
+an entry; from then on org-sync warns that the repository's `[[references]]`
+in `.github/org-sync.toml` is redundant: remove that table in the same PR, so
+the bib is the only source. Never edit a generated section by hand: the next
+run undoes it. If a fidelity
 row's prose names a work the bib does not hold, add the entry; if a source is
 no longer cited, drop its entry or give it a role that explains why it stays.
 Reword every private-store line the check printed.
