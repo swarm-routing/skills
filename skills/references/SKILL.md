@@ -90,7 +90,7 @@ inputs, not references; leave them out.
 "$T" fidelity bib entry DOI --key G02 --role implemented   # a BibTeX entry from Crossref's record
 "$T" lit-search confirm DOI                                # Crossref vs Semantic Scholar and OpenAlex, field by field
 "$T" lit-search confirm --title "exact title" --year 2007  # a work without a DOI: find one, or confirm it has none
-"$T" zenodo bibtex REPO --key AHN --role tool              # an org release: its concept record as @software
+"$T" zenodo bibtex REPO --role tool                        # an org release: its concept record as @software, keyed from CONTRIBUTING's table
 ```
 
 Paste the printed entry into `docs/references.bib` as it is. Run `confirm`
@@ -124,8 +124,9 @@ Two cases need care:
 An entry may carry a `note`: one line, in the repository's words, saying
 why the work is cited (org-sync renders it as the role line; without it the
 role's generic sentence is shown). Neither script writes it; add it after
-pasting. Org releases take the keys `docs/tools.md` uses (`ns3tools`) or the
-repository name (`AntHocNet`), the same in every repository. A repository that
+pasting. Keys are one per work across the org: use the key CONTRIBUTING's
+"References" key table gives the work (`zenodo bibtex` fills it in for an
+org release); a work not in the table takes its fidelity key. A repository that
 cites nothing keeps the seed header and may add a `%` line saying why.
 
 Keep the entries sorted by key. Give each the narrowest true role; when a
