@@ -117,6 +117,13 @@ Two cases need care:
   work without a DOI (its locators are the dissertation's), and name the
   other work's DOI in the PR so a reviewer sees it was ruled out.
 
+An entry may carry a `note`: one line, in the repository's words, saying
+why the work is cited (org-sync renders it as the role line; without it the
+role's generic sentence is shown). Neither script writes it; add it after
+pasting. Org releases take the keys `docs/tools.md` uses (`ns3tools`) or the
+repository name (`AntHocNet`), the same in every repository. A repository that
+cites nothing keeps the seed header and may add a `%` line saying why.
+
 Keep the entries sorted by key. Give each the narrowest true role; when a
 work is both followed and compared against, `implemented` wins.
 
@@ -148,7 +155,10 @@ README were not regenerated and that `org_sync.py apply` is the remaining step.
 Never edit a generated section by hand: the next run undoes it. If a fidelity
 row's prose names a work the bib does not hold, add the entry; if a source is
 no longer cited, drop its entry or give it a role that explains why it stays.
-Reword every private-store line the check printed.
+Reword every private-store line the check printed, then grep for what the
+check cannot see: paths into the store (a `$PAPERS/...` variable, a
+`<repo>/library/...` path, a home-directory default) and words for it
+("papers repo", "the library"); reword those too.
 
 ## 4. Verify and hand over
 
