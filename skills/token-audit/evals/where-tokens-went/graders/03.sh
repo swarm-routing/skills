@@ -2,7 +2,7 @@
 # Copyright (c) 2026 Daniel Joppi (https://github.com/swarm-routing)
 # SPDX-License-Identifier: MIT OR GPL-2.0-only
 #
-# grader: report.md names issue_read as the most-called tool, with its 72 calls.
+# grader: report.md names issue_read with its 72 calls.
 #
 # Script grader (tools/evals/grade.py): $1 is the run's edited repository, $2
 # its outputs directory. Exit 0 pass, 77 cannot grade, else fail.
