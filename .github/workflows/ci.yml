@@ -50,5 +50,5 @@ jobs:
     uses: swarm-routing/.github/.github/workflows/reusable-python-ci.yml@main
     with:
       paths: tools
-      tests: tools/checks/test_check_plugins.py tools/evals/test_grade.py
+      tests: tools/checks/test_check_plugins.py tools/evals/test_grade.py tools/token-audit/test_token_audit.py
       source: tools

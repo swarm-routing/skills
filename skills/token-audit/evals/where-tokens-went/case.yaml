@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: where-tokens-went
+expected_outcome: |
+  The agent runs token_audit.py transcript on session.jsonl and does not read the transcript itself into context. report.md states the measured figures: 40 requests (the transcript writes one line per content block, so counting lines over-counts), a first request of 61,250 tokens of context, a largest context of 217,262 tokens. It names mcp__github__issue_read as the tool called most (72 calls) and proposes a script or a data file read once in place of the per-issue calls, points at the 30,000-byte Read of docs/roadmap.md as a result that a range or a search would have avoided, and notes the git status call repeated four times with identical input. It says its figures are measured from the transcript.
+context:
+  scaffold_script: place-files.sh
