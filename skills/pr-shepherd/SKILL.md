@@ -20,7 +20,7 @@ SKILL="$CLAUDE_PLUGIN_ROOT/skills/pr-shepherd"   # as the Claude Code plugin
 "$SKILL"/scripts/pr-status list --repos .github,skills       # the open PRs and their findings
 "$SKILL"/scripts/pr-status threads skills#30                 # one PR's unresolved threads
 "$SKILL"/scripts/pr-status wait ARA#12 ns3-swarm-core#20 --timeout 900   # until no check is pending
-"$SKILL"/scripts/pr-status merge skills#30 skills#31        # update when behind, wait for green, merge in order
+"$SKILL"/scripts/pr-status merge skills#30 skills#31        # wait for green, merge in order
 ```
 
 Inside a `swarm-routing/.github` checkout, `python3 -I
@@ -85,8 +85,8 @@ ARA#12 3f2a9c1 ci=fail(failure=1,success=4) failed=lint merge=unstable threads=2
 - `merge=` is GitHub's mergeable_state. `unknown` means it has not been
   computed yet: read it again later. `behind` means `main` moved on; the
   rulesets no longer require an up-to-date branch (swarm-routing/.github#205),
-  but `merge` still updates one (step 5), and a merge queue rebuilds it on
-  `main` itself. `unstable` means a check that is not required is red or
+  so `merge` merges it as it is (step 5) unless you pass `--update`, and a
+  merge queue rebuilds it on `main` itself. `unstable` means a check that is not required is red or
   pending: it is mergeable.
   `dirty` means a conflict: merge `origin/main` into the branch, never rebase
   or force-push pushed history.
@@ -182,9 +182,13 @@ the release.
 (repositories run independently). For each PR it:
 
 - skips a PR that is already merged or closed;
-- updates the branch (`PUT pulls/<n>/update-branch`, a merge of `main`,
-  never a force-push) only when GitHub reports it `behind`, then waits for
-  the new head SHA and that head's checks;
+- merges a PR GitHub reports `behind` as it is: it updates the branch
+  first (`PUT pulls/<n>/update-branch`, a merge of `main`, never a
+  force-push) only where the ruleset requires an up-to-date branch, or with
+  `--update` when `main` changed what the PR touches (a template, a
+  workflow, a required check), then waits for the new head SHA and that
+  head's checks; a behind `bot/release` PR stops with `behind: dispatch the
+  release bump again`;
 - waits until every check on the head is complete, counting a check the
   ruleset requires but that has not reported as pending;
 - squash-merges with `sha=<head>` and the title `<PR title> (#n)`, so a
