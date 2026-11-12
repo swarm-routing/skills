@@ -186,15 +186,19 @@ the release.
   first (`PUT pulls/<n>/update-branch`, a merge of `main`, never a
   force-push) only where the ruleset requires an up-to-date branch, or with
   `--update` when `main` changed what the PR touches (a template, a
-  workflow, a required check), then waits for the new head SHA and that
-  head's checks; a behind `bot/release` PR stops with `behind: dispatch the
+  workflow, a required check; with it, an outdated PR GitHub reports `clean`
+  is found through `compare/<base>...<head>`), then waits for the new head
+  SHA and that head's checks; a behind `bot/release` PR stops with `behind: dispatch the
   release bump again`;
 - waits until every check on the head is complete, counting a check the
   ruleset requires but that has not reported as pending;
 - squash-merges with `sha=<head>` and the title `<PR title> (#n)`, so a
   commit pushed in between stops the merge;
 - moves on to that repository's next PR only after the merge, because the
-  merge has just put the next one behind.
+  merge has just put the next one behind. When an earlier PR in the call
+  changes what a later one touches (a template, a workflow, a required
+  check), pass `--update`, or run the later PR in a call of its own after
+  deciding, so it is updated and merges only after CI on the new head.
 
 It prints one line per PR per change of state. It stops a PR, and does not
 run the later PRs of that repository, on `failing: <checks>`, `open threads:
