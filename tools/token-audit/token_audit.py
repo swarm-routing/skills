@@ -536,7 +536,7 @@ def audit_transcript(path, roots=None):
     repeated = collections.Counter()
     base = transcript_root(path, transcript_roots() if roots is None else roots)
     full = os.path.realpath(os.path.join(base, path))
-    if os.path.commonpath([base, full]) != base:
+    if not full.startswith(base + os.sep):
         raise ValueError(f"{path}: not inside {base}")
     with open(full, encoding="utf-8", errors="replace") as f:
         for line in f:
