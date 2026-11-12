@@ -103,14 +103,18 @@ record page before settling for a `url`. A work that has no DOI gets a `url`
 to the institution's or publisher's page, never to a private copy. If nothing confirms a work, do
 not add it: name it in the PR as unconfirmed, and reword every place the
 sheet cites its key (`[R05] §3`) to name the work in prose instead, since
-`bib check` fails on a cited key the bib lacks.
+`bib check` fails on a cited key the bib lacks. A row whose Source rests on that work
+alone gets Source `unknown` (the sheet's check accepts only a `[KEY]`
+locator, `repo choice` or `unknown` there) and names the work in its Status.
 
 Two cases need care:
 
 - **A Crossref record that is wrong or thin** (an author missing, diacritics
-  dropped): the publisher's page decides. Correct that one field by hand,
+  dropped, given and family names swapped, words run together, no year): the publisher's page decides. Correct that one field by hand,
   and say in the PR which field, what Crossref had and which page settled
-  it. Without the publisher's page, keep Crossref's value and say so.
+  it. Without the publisher's page, an error two other
+  records agree on (`lit-search confirm` prints them) may be corrected from
+  them, said in the PR; otherwise keep Crossref's value and say so.
 - **A work with no DOI whose title matches another work** (a dissertation
   and the later book chapter with its title): `bib check --online` keeps
   warning that the title has a DOI. Keep the url when the sheet cites the
