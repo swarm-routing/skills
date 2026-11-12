@@ -437,9 +437,16 @@ def cmd_files(a):
 
 def redact(text):
     """A call's input may hold a credential: the value after a key that names
-    one, and any long unbroken run of key-like characters, are not printed."""
+    one, and any long unbroken run that looks like a key, are not printed."""
+
+    def run(m):
+        # a key mixes cases and digits, or is long hex; a kebab-case name or a UUID is neither
+        v = m.group(0)
+        mixed = re.search(r"[a-z]", v) and re.search(r"[A-Z]", v) and re.search(r"\d", v)
+        return "[redacted]" if mixed or re.fullmatch(r"[0-9a-fA-F]{32,}", v) else v
+
     text = SECRET_KEY.sub(lambda m: m.group(1) + "[redacted]", text)
-    return SECRET_VALUE.sub("[redacted]", text)
+    return SECRET_VALUE.sub(run, text)
 
 
 def summarize_input(value):
@@ -929,7 +936,18 @@ def self_test():
         and "ghp_"
         not in summarize_input({"command": "git push ghp_0123456789abcdefghijABCDEFGHIJ"})
         and summarize_input({"file_path": "/home/user/skills/tools/token-audit/token_audit.py"})
-        == "/home/user/skills/tools/token-audit/token_audit.py",
+        == "/home/user/skills/tools/token-audit/token_audit.py"
+        and summarize_input(
+            {
+                "file_path": "/tmp/c2d8a7ce-2fd7-5e19-b61c-a5ef15fae6ec/a-long-kebab-case-directory-name"
+            }
+        )
+        == "/tmp/c2d8a7ce-2fd7-5e19-b61c-a5ef15fae6ec/a-long-kebab-case-",
+    )
+    check(
+        "long hex is taken for a key",
+        summarize_input({"command": "use 0123456789abcdef0123456789abcdef now"})
+        == "use [redacted] now",
     )
     print(f"token_audit self-test: {'FAILED' if failures else 'OK'}")
     return 1 if failures else 0
