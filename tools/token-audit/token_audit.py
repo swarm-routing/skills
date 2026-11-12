@@ -513,8 +513,8 @@ def transcript_roots(extra=()):
     return [os.getcwd(), os.path.join(os.path.expanduser("~"), ".claude"), *extra]
 
 
-def transcript_file(path, roots):
-    """The resolved path of a transcript: a .jsonl file under one of the roots."""
+def transcript_root(path, roots):
+    """The allowed directory a transcript is under (a .jsonl file), or exit."""
     for root in roots:
         base = os.path.realpath(root)
         full = os.path.realpath(os.path.join(base, path))
@@ -523,7 +523,7 @@ def transcript_file(path, roots):
             and full.endswith(".jsonl")
             and os.path.isfile(full)
         ):
-            return full
+            return base
     sys.exit(
         f"token_audit: {path}: not a .jsonl file under the current directory or ~/.claude "
         "(--root DIR names another place)"
@@ -534,7 +534,10 @@ def audit_transcript(path, roots=None):
     usage, order = {}, []
     calls, results = {}, []
     repeated = collections.Counter()
-    full = transcript_file(path, transcript_roots() if roots is None else roots)
+    base = transcript_root(path, transcript_roots() if roots is None else roots)
+    full = os.path.realpath(os.path.join(base, path))
+    if os.path.commonpath([base, full]) != base:
+        raise ValueError(f"{path}: not inside {base}")
     with open(full, encoding="utf-8", errors="replace") as f:
         for line in f:
             try:
@@ -1025,7 +1028,7 @@ def self_test():
             refused = True
         check("a path that leads out of the repository is not read", refused)
         try:
-            transcript_file(os.path.join(tmp, "notes.txt"), [tmp])
+            transcript_root(os.path.join(tmp, "notes.txt"), [tmp])
             refused = False
         except SystemExit:
             refused = True
@@ -1033,13 +1036,13 @@ def self_test():
         with open(os.path.join(tmp, "log.jsonl"), "w", encoding="utf-8") as f:
             f.write("{}\n")
         try:
-            transcript_file(os.path.join(tmp, "log.jsonl"), [os.path.join(tmp, "repo")])
+            transcript_root(os.path.join(tmp, "log.jsonl"), [os.path.join(tmp, "repo")])
             refused = False
         except SystemExit:
             refused = True
         check(
             "a transcript outside the allowed directories is refused, inside one it is read",
-            refused and transcript_file("log.jsonl", [tmp]).endswith("log.jsonl"),
+            refused and transcript_root("log.jsonl", [tmp]) == os.path.realpath(tmp),
         )
     check(
         "long hex is taken for a key",
