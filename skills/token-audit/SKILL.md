@@ -81,7 +81,8 @@ a pointer; a rule that goes is named in the summary with the reason.
 For a session that felt expensive, slow or that ran out of room, run
 `transcript` on its JSONL file (Claude Code keeps one per session under
 `~/.claude/projects/<project>/`; a subagent's transcript is its own file, and
-several files can be given at once). Never open the transcript itself: it is
+several files can be given at once; the script reads a `.jsonl` file under the
+current directory or `~/.claude`, and `--root DIR` names another place). Never open the transcript itself: it is
 the whole session, and reading it costs what the session cost. The script
 prints sizes, counts and a 60-character summary of each call's input.
 

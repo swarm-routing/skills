@@ -5,7 +5,7 @@
 
     token_audit.py files [REPO ...] [--budget NAME=BYTES ...] [--budget-loaded BYTES]
                          [--bytes-per-token F] [--top N] [--json]
-    token_audit.py transcript FILE ... [--min-calls K] [--top N] [--json]
+    token_audit.py transcript FILE ... [--root DIR ...] [--min-calls K] [--top N] [--json]
     token_audit.py --self-test
 
 `files` measures what a session reads before its first tool call, for each
@@ -42,6 +42,9 @@ many bytes of results came back, the largest results, and the calls repeated
 with identical input. A tool called at least --min-calls times (default 20)
 is listed as a candidate for a script or a data file: a model that reads the
 same kind of thing a hundred times is doing a loop a program should do.
+A transcript is a .jsonl file under the current directory or under ~/.claude
+(where Claude Code keeps them); --root DIR names another place. Any other
+path is refused.
 
 Only sizes, counts and a 60-character summary of a call's input are printed;
 no file or tool-result content is. Stdlib only.
@@ -504,19 +507,35 @@ def result_bytes(content):
     return total
 
 
-def transcript_file(path):
-    """The resolved path of a transcript: a .jsonl file, nothing else is opened."""
-    full = os.path.realpath(path)
-    if not full.endswith(".jsonl") or not os.path.isfile(full):
-        sys.exit(f"token_audit: {path}: not a .jsonl transcript file")
-    return full
+def transcript_roots(extra=()):
+    """Where a transcript may be: under the current directory, under Claude
+    Code's own directory, or under a directory named with --root."""
+    return [os.getcwd(), os.path.join(os.path.expanduser("~"), ".claude"), *extra]
 
 
-def audit_transcript(path):
+def transcript_file(path, roots):
+    """The resolved path of a transcript: a .jsonl file under one of the roots."""
+    for root in roots:
+        base = os.path.realpath(root)
+        full = os.path.realpath(os.path.join(base, path))
+        if (
+            os.path.commonpath([base, full]) == base
+            and full.endswith(".jsonl")
+            and os.path.isfile(full)
+        ):
+            return full
+    sys.exit(
+        f"token_audit: {path}: not a .jsonl file under the current directory or ~/.claude "
+        "(--root DIR names another place)"
+    )
+
+
+def audit_transcript(path, roots=None):
     usage, order = {}, []
     calls, results = {}, []
     repeated = collections.Counter()
-    with open(transcript_file(path), encoding="utf-8", errors="replace") as f:
+    full = transcript_file(path, transcript_roots() if roots is None else roots)
+    with open(full, encoding="utf-8", errors="replace") as f:
         for line in f:
             try:
                 msg = json.loads(line).get("message")
@@ -623,7 +642,7 @@ def print_transcript(t, top, min_calls):
 def cmd_transcript(a):
     audits = []
     for path in a.files:
-        audits.append(audit_transcript(path))
+        audits.append(audit_transcript(path, transcript_roots(a.root or [])))
     if a.json:
         print(json.dumps(audits, indent=1))
         return
@@ -878,7 +897,7 @@ def self_test():
         log = os.path.join(tmp, "session.jsonl")
         with open(log, "w", encoding="utf-8") as f:
             f.write("\n".join(json.dumps(line) for line in lines) + "\nnot json\n")
-        t = audit_transcript(log)
+        t = audit_transcript(log, [tmp])
         check("a message written on two lines is one request", t["requests"] == 2)
         check("the first request's context is its three input counts", t["first_context"] == 1010)
         check("the largest context is found", t["largest_context"] == 1220)
@@ -1006,11 +1025,22 @@ def self_test():
             refused = True
         check("a path that leads out of the repository is not read", refused)
         try:
-            transcript_file(os.path.join(tmp, "notes.txt"))
+            transcript_file(os.path.join(tmp, "notes.txt"), [tmp])
             refused = False
         except SystemExit:
             refused = True
         check("a transcript must be a .jsonl file", refused)
+        with open(os.path.join(tmp, "log.jsonl"), "w", encoding="utf-8") as f:
+            f.write("{}\n")
+        try:
+            transcript_file(os.path.join(tmp, "log.jsonl"), [os.path.join(tmp, "repo")])
+            refused = False
+        except SystemExit:
+            refused = True
+        check(
+            "a transcript outside the allowed directories is refused, inside one it is read",
+            refused and transcript_file("log.jsonl", [tmp]).endswith("log.jsonl"),
+        )
     check(
         "long hex is taken for a key",
         summarize_input({"command": "use 0123456789abcdef0123456789abcdef now"})
@@ -1033,6 +1063,7 @@ def main(argv=None):
     f.add_argument("--json", action="store_true")
     t = sub.add_parser("transcript", help="where a finished session's tokens went")
     t.add_argument("files", nargs="+", metavar="FILE")
+    t.add_argument("--root", action="append", metavar="DIR")
     t.add_argument("--min-calls", type=int, default=20)
     t.add_argument("--top", type=int, default=8)
     t.add_argument("--json", action="store_true")
