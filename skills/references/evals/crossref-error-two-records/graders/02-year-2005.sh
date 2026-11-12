@@ -9,9 +9,9 @@
 set -u
 bib="$1/docs/references.bib"
 [ -f "$bib" ] || { echo "no docs/references.bib"; exit 1; }
-entry=$(awk '/^@[a-z]+\{WF05,/{p=1} p{print} p&&/^\}/{exit}' "$bib")
+entry=$(awk '/^@[a-zA-Z]+\{WF05,/{p=1} p{print} p&&/^\}/{exit}' "$bib")
 [ -n "$entry" ] || { echo "no WF05 entry"; exit 1; }
-grep -Eq 'year[[:space:]]*=[[:space:]]*[{"]?2005' <<<"$entry" || { echo "WF05 has no year 2005"; exit 1; }
+grep -Eiq '^[[:space:]]*year[[:space:]]*=[[:space:]]*(\{2005\}|"2005"|2005[[:space:]]*(,|$))' <<<"$entry" || { echo "WF05 has no year 2005"; exit 1; }
 grep -Eiq 'doi[[:space:]]*=[[:space:]]*[{"]10\.1109/sis\.2005\.1501641[}"]' <<<"$entry" ||
     { echo "WF05 lost its DOI"; exit 1; }
 echo "WF05: year 2005, DOI kept"

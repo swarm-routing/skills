@@ -9,10 +9,10 @@
 set -u
 bib="$1/docs/references.bib"
 [ -f "$bib" ] || { echo "no docs/references.bib"; exit 1; }
-entry=$(awk '/^@[a-z]+\{PG460,/{p=1} p{print} p&&/^\}/{exit}' "$bib")
+entry=$(awk '/^@[a-zA-Z]+\{PG460,/{p=1} p{print} p&&/^\}/{exit}' "$bib")
 [ -n "$entry" ] || { echo "no PG460 entry"; exit 1; }
 grep -Eiq 'doi[[:space:]]*=[[:space:]]*[{"]10\.17877/de290r-14312[}"]' <<<"$entry" ||
     { echo "PG460 has no doi 10.17877/DE290R-14312"; exit 1; }
-grep -Eq 'keywords[[:space:]]*=[[:space:]]*[{"][^}"]*implemented' <<<"$entry" ||
+grep -Eiq 'keywords[[:space:]]*=[[:space:]]*[{"][^}"]*implemented' <<<"$entry" ||
     { echo "PG460 lost role implemented"; exit 1; }
 echo "PG460: DataCite DOI, role implemented"
