@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: report-without-change
+expected_outcome: |
+  The answer names W07 (implemented) as the work the implementation follows and DDG04 as compared, cites DDG04 by its https://doi.org/10.1007/978-3-540-30217-9_47 link and W07 by its repository url, mentions that DDG04's entry lacks its DOI in the bib, and changes no file.
+context:
+  scaffold_script: place-files.sh

@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: tooling-no-paper
+expected_outcome: |
+  docs/references.bib exists and holds the org releases the runs are produced with (ns3-tools and AntHocNet) as @software entries with role tool, each printed by zenodo bibtex (concept DOIs read from Zenodo, not typed). It does not list the repository's own DOI 10.5281/zenodo.24145189. No paper is invented. fidelity bib check passes. The fixture has no .github/org-sync.toml, so the response says CITATION.cff was not regenerated and names org_sync.py apply as the remaining step.
+context:
+  scaffold_script: place-files.sh
