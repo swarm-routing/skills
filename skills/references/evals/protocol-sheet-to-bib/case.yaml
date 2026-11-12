@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: protocol-sheet-to-bib
+expected_outcome: |
+  docs/references.bib holds G02 and GKB03, and R05 when a script confirms it, under those keys, each with fields from Crossref (or, for a work with no DOI, a url to its institution's or publisher's page found by lit-search confirm --title); a work nothing confirms (R05 or GKB03 may be) is left out and named in the response as unconfirmed, never written from memory. Each entry has a keywords role: G02 implemented, R05 restates, GKB03 restates or background with a stated reason. G02 carries doi 10.1109/ICPPW.2002.1039715 read from a script, not typed. The Sources table is regenerated from the bib, every reference with a DOI shown as its https://doi.org/ link. Every line naming the private library ("in the library", MANUAL-DOWNLOADS.md) is gone from docs/fidelity.md. fidelity bib check passes.
+context:
+  scaffold_script: place-files.sh
