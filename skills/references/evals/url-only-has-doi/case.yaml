@@ -1,6 +1,6 @@
 schema_version: "1.1"
 name: url-only-has-doi
 expected_outcome: |
-  DDG04 gains doi 10.1007/978-3-540-30217-9_47 (found by a script: bib check --online, lit-search confirm or bib entry) and its fields come from Crossref; the publisher url is dropped or kept only beside the doi. W07, a master's thesis with no DOI, keeps its university repository url and the response says a DOI was looked for and none exists. fidelity bib check passes.
+  DDG04, which has neither doi nor url, gains doi 10.1007/978-3-540-30217-9_47 found by a title lookup (lit-search confirm --title or bib check --online), then its entry from bib entry and its fields come from Crossref; W07, a master's thesis with no DOI, keeps its university repository url and the response says a DOI was looked for and none exists. fidelity bib check passes.
 context:
   scaffold_script: place-files.sh

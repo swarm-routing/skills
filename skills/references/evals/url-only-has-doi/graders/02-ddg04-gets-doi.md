@@ -4,4 +4,4 @@ focus: trace
 weight: 1
 ---
 
-DDG04 in docs/references.bib has doi = {10.1007/978-3-540-30217-9_47}, and the transcript shows a script found or confirmed it.
+DDG04 in docs/references.bib has doi = {10.1007/978-3-540-30217-9_47} (any letter case), and the transcript shows a title lookup (lit-search confirm --title or bib check --online) that produced it before it was written.
