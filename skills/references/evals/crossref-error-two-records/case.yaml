@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: crossref-error-two-records
+expected_outcome: |
+  WF05 is Crossref's record of https://doi.org/10.1109/sis.2005.1501641, which has no year and runs two words of the title together ("Thewisdom"). lit-search confirm shows Semantic Scholar and OpenAlex both give 2005, so the entry gains year = {2005}, and the response says Crossref had none and that the two records agree (the publisher's page, if it could be read, settles it the same way). The title: only Semantic Scholar reads "The wisdom" (OpenAlex copies Crossref's text), so the entry either keeps Crossref's title and says so, or corrects it from Semantic Scholar and says which record it came from and that OpenAlex repeats Crossref's error; either way the response names the discrepancy. The doi, authors, booktitle and pages stay Crossref's. fidelity bib check passes.
+context:
+  scaffold_script: place-files.sh

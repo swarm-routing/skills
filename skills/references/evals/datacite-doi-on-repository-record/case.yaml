@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: datacite-doi-on-repository-record
+expected_outcome: |
+  PG460 is a TU Dortmund report cited by its Eldorado handle (https://hdl.handle.net/2003/22405). Crossref has no record of it (lit-search confirm --title finds only other works), but the repository's own record (the Eldorado item page or its OAI-PMH record) lists the DataCite DOI 10.17877/DE290R-14312, and api.datacite.org resolves it to the same work (Farooq and Wedde, 2006). The entry gains doi = {10.17877/DE290R-14312} (any letter case), found by those lookups and not typed from memory; its fields agree with the DataCite record (fidelity bib entry writes them once it falls back to DataCite, swarm-routing/.github#336); it keeps role implemented. The response says where the DOI was found. fidelity bib check passes.
+context:
+  scaffold_script: place-files.sh
