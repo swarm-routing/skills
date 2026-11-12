@@ -40,6 +40,9 @@ local checkout instead of the cached clone.
   look for a DOI before accepting it (step 2).
 - **Keys are the fidelity keys** (`G02`, `R05`, `DDG04`), so `[G02] §3.2` in
   the sheet, in a code comment and in the bib is one work.
+  Where the repository already has another bib (AntHocNet's `paper/paper.bib`)
+  or its sheet cites numbers, reuse the keys that file already uses: one key
+  per work across every file, and entries both files carry stay identical.
 - **Each entry has a role** in `keywords`: `implemented` (what the code
   follows), `restates` (a later description of the same algorithm),
   `compared` (a protocol or result the repository compares against),
@@ -94,8 +97,10 @@ Paste the printed entry into `docs/references.bib` as it is. Run `confirm`
 when `bib entry` or the sheet disagree with each other: a `differ` in year or
 pages is settled on the publisher's page (online-first year against issue
 year is the usual cause), never by picking the convenient value; say which
-you used in the PR. A work that has no DOI gets a `url` to the institution's
-or publisher's page, never to a private copy. If nothing confirms a work, do
+you used in the PR. A work that seems to have no DOI may still have a DataCite one
+(university repositories, technical reports): look at the repository's own
+record page before settling for a `url`. A work that has no DOI gets a `url`
+to the institution's or publisher's page, never to a private copy. If nothing confirms a work, do
 not add it: name it in the PR as unconfirmed, and reword every place the
 sheet cites its key (`[R05] §3`) to name the work in prose instead, since
 `bib check` fails on a cited key the bib lacks.
@@ -133,7 +138,11 @@ refresh PR.
 The bib takes over `CITATION.cff` and the README's citing list once it holds
 an entry; from then on org-sync warns that the repository's `[[references]]`
 in `.github/org-sync.toml` is redundant: remove that table in the same PR, so
-the bib is the only source. A repository with no `.github/org-sync.toml` is not on the templates yet:
+the bib is the only source. A repository without `citation = true` in its org-sync config keeps its own
+README citing section and `CITATION.cff`: org-sync renders neither, so
+update only `CITATION.cff`'s `references:` (the org's references tooling
+writes that block alone; see CONTRIBUTING "References") and leave the rest.
+A repository with no `.github/org-sync.toml` is not on the templates yet:
 do not run `org-sync init` for this task; say that `CITATION.cff` and the
 README were not regenerated and that `org_sync.py apply` is the remaining step.
 Never edit a generated section by hand: the next run undoes it. If a fidelity
