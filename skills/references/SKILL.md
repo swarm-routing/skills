@@ -39,9 +39,11 @@ local checkout instead of the cached clone.
   arXiv preprint without a DataCite record). When an entry has only a `url`,
   look for a DOI before accepting it (step 2).
 - **Keys are the fidelity keys** (`G02`, `R05`, `DDG04`), so `[G02] §3.2` in
-  the sheet, in a code comment and in the bib is one work.
-  Where the repository already has another bib (AntHocNet's `paper/paper.bib`)
-  or its sheet cites numbers, reuse the keys that file already uses: one key
+  the sheet, in a code comment and in the bib is one work. A work in
+  CONTRIBUTING's "References" key table takes the table's key in every
+  file; where another bib in the repository (AntHocNet's `paper/paper.bib`)
+  uses a different key for it, rename it there too. Otherwise reuse the key
+  that other bib already uses, or the sheet's when it cites numbers: one key
   per work across every file, and entries both files carry stay identical.
 - **Each entry has a role** in `keywords`: `implemented` (what the code
   follows), `restates` (a later description of the same algorithm),
