@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Copyright (c) 2026 Daniel Joppi (https://github.com/swarm-routing)
+# SPDX-License-Identifier: MIT OR GPL-2.0-only
+#
+# Thin wrapper: runs swarm-routing/skills tools/token-audit/token_audit.py. All
+# the logic is in token_audit.py; this only finds it (org rule 9: the skill
+# works because the script does). As the Claude Code plugin, or in a checkout
+# of the repository, the script is three directories up; installed alone
+# (skills.sh), it comes from a cached shallow clone of the repository.
+#   SKILLS_TOOLS_DIR  use this checkout of swarm-routing/skills instead
+#   SKILLS_TOOLS_REF  branch or tag to fetch (default main)
+set -euo pipefail
+here=$(cd "$(dirname "$0")" && pwd)
+script=tools/token-audit/token_audit.py
+if [ -n "${SKILLS_TOOLS_DIR:-}" ]; then
+    dir=$SKILLS_TOOLS_DIR
+elif [ -f "$here/../../../$script" ]; then
+    dir=$here/../../..
+else
+    dir=${XDG_CACHE_HOME:-$HOME/.cache}/swarm-routing/skills
+    ref=${SKILLS_TOOLS_REF:-main}
+    if [ -d "$dir/.git" ]; then
+        # the audit reads local files only, so it also runs with no network:
+        # a failed refresh keeps the cached checkout, and says so
+        if git -C "$dir" fetch -q --depth 1 origin "$ref" 2>/dev/null; then
+            git -C "$dir" checkout -q --detach FETCH_HEAD
+        else
+            echo "token-audit: could not refresh $dir from GitHub; using the cached copy" >&2
+        fi
+    else
+        mkdir -p "$(dirname "$dir")"
+        git clone -q --depth 1 --branch "$ref" https://github.com/swarm-routing/skills "$dir"
+    fi
+fi
+exec python3 -I "$dir/$script" "$@"

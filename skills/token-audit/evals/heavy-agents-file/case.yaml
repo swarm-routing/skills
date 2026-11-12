@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: heavy-agents-file
+expected_outcome: |
+  The agent measures what a session loads with token_audit.py files (not by eye), finds the Tools catalogue and the History section as the large on-demand text and the dated Status paragraph as status, and cuts AGENTS.md under 5,000 bytes: the catalogue and the history move to documents under docs/ with a line in AGENTS.md that says when to read each, the dated status sentence leaves AGENTS.md, the five repository rules (4-8) stay word for word in AGENTS.md, and the org-managed block between the org-sync markers is not edited. It re-runs the audit with a budget, and summary.md gives the before and after sizes from the script, calling the token figures estimates.
+context:
+  scaffold_script: place-files.sh

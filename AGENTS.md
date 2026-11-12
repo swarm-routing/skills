@@ -24,6 +24,7 @@ skills/<skill>/scripts/          thin wrappers only (org rule 9)
 skills/<skill>/evals/            the skill's test cases (skill-creator / `claude plugin eval` layout); graders/NN.md judged by a model, graders/NN.sh script graders
 tools/checks/check-plugins.py              validates all of the above (+ test_check_plugins.py)
 tools/evals/grade.py                       runs the script graders on an eval workspace, merges them into grading.json (+ test_grade.py)
+tools/token-audit/token_audit.py           what a session loads from the agent files, and where a finished session's tokens went: the `token-audit` skill's script (+ test_token_audit.py)
 .github/org-sync.toml                      this repo's org-sync config (kind = "skills")
 ```
 
@@ -31,7 +32,7 @@ tools/evals/grade.py                       runs the script graders on an eval wo
 
 ```bash
 make help    # the org's standard target names: build, test, lint, format, check, clean, shell, ci
-make test    # check-plugins.py + its self-test, grade.py --self-test
+make test    # check-plugins.py + its self-test, grade.py --self-test, token_audit.py --self-test
 ORG_TOOLS_DIR=/path/to/swarm-routing/.github python3 tools/evals/grade.py <skill>-workspace/iteration-N [--write]
 make check   # what CI gates on: lint, test, licence headers, org-sync check
 ORG_SYNC_DIR=/path/to/swarm-routing/.github skills/org-repo/scripts/org-sync plan .
@@ -250,5 +251,6 @@ here is undone by the next `org_sync.py apply`).
 | The org templates the `org-repo` skill applies | `swarm-routing/.github` `templates/`, `tools/org-sync/` |
 | The script-first model | AntHocNet ADR-0014, its `.claude/skills/benchmark-results` |
 | Grade an eval run: what a script can check, by script | `tools/evals/grade.py` (its docstring: the `graders/NN.sh` contract, `--write`); README "Add a skill" |
+| Measure what a session loads, or where a finished session's tokens went | `tools/token-audit/token_audit.py` (its docstring); the `token-audit` skill |
 | Record an architecture decision | [`docs/adr/`](docs/adr/) (`0000-template.md`) |
 | Pick up open work | this repo's issues — highest open `priority:P*` first; newest open `handoff` issue for work in flight |
