@@ -118,8 +118,11 @@ def check_wrappers(root):
                 errs.append(f"{rel}: more than one cached-checkout block")
             if found:
                 blocks[rel] = found[0]
-            if FETCHES.search(BLOCK.sub("", text)):
+            rest = BLOCK.sub("", text)
+            if FETCHES.search(rest):
                 errs.append(f"{rel}: fetches or caches outside the cached-checkout block")
+            if "cached_checkout" in rest and not found:
+                errs.append(f"{rel}: calls cached_checkout but carries no cached-checkout block")
     if blocks:
         first, ref = next(iter(blocks.items()))
         for rel, block in blocks.items():

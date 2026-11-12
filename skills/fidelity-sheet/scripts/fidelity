@@ -11,16 +11,22 @@ set -euo pipefail
 # >>> cached-checkout (identical in every wrapper; tools/checks/check-plugins.py checks it)
 # cached_checkout REPO REF [offline-ok]: print a directory holding swarm-routing/REPO at
 # REF, as an immutable snapshot of the fetched commit. Each ref has its own cache dir,
-# updated under a lock (flock, or a mkdir lock where flock is missing); a snapshot is
+# updated under a lock (flock, or where flock is missing a mkdir lock that
+# records its pid, so a lock left by a killed run is taken over); a snapshot is
 # extracted to a temporary dir and renamed into place, never changed afterwards, so an
 # update by another session never changes the files under a running tool. Snapshots
 # unused for 7 days are removed. With offline-ok, a failed fetch falls back to the
 # snapshot this ref last used. SWARM_ROUTING_GIT replaces https://github.com/swarm-routing.
 # Call it as dir=$(cached_checkout ...): the lock ends with that subshell.
 cached_checkout() {
-    local repo=$1 ref=$2 offline=${3:-} key cache rc
-    key=$(printf '%s' "$ref" | tr -c 'A-Za-z0-9._-' '_')
-    case $key in .*) key=_$key ;; esac
+    local repo=$1 ref=$2 offline=${3:-} key cache rc pid
+    # a ref of letters, digits, dots and hyphens is its own dir name; any other is
+    # _ and its bytes in hex, so two refs never share a dir
+    if printf '%s' "$ref" | grep -Eq '^[A-Za-z0-9][A-Za-z0-9.-]*$'; then
+        key=$ref
+    else
+        key=_$(printf '%s' "$ref" | od -An -tx1 | tr -d ' \n')
+    fi
     cache=${XDG_CACHE_HOME:-$HOME/.cache}/swarm-routing/checkouts/${repo#.}/$key
     mkdir -p "$cache" || return 1
     if command -v flock >/dev/null 2>&1; then
@@ -34,14 +40,25 @@ cached_checkout() {
     fi
     for _ in $(seq 600); do
         if mkdir "$cache/lock.d" 2>/dev/null; then
+            # this subshell's pid, so a waiter can tell a lock left by a killed run
+            sh -c 'echo "$PPID"' >"$cache/lock.d/pid"
+            trap 'rm -rf "$cache/lock.d"; exit 1' HUP INT TERM
             rc=0
             cached_checkout_locked "$repo" "$ref" "$offline" "$cache" || rc=$?
-            rmdir "$cache/lock.d"
+            rm -rf "$cache/lock.d"
+            trap - HUP INT TERM
             return "$rc"
+        fi
+        pid=$(cat "$cache/lock.d/pid" 2>/dev/null) || pid=
+        if [ -n "$pid" ] && ! kill -0 "$pid" 2>/dev/null &&
+            [ "$(cat "$cache/lock.d/pid" 2>/dev/null)" = "$pid" ]; then
+            echo "cached_checkout: removing the lock left by process $pid" >&2
+            rm -rf "$cache/lock.d"
+            continue
         fi
         sleep 1
     done
-    echo "cached_checkout: no lock on $cache in 600 s (remove $cache/lock.d if stale)" >&2
+    echo "cached_checkout: no lock on $cache in 600 s" >&2
     return 1
 }
 cached_checkout_locked() {

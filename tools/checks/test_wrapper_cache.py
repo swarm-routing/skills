@@ -12,6 +12,9 @@ Cases:
   - a tool started on `main` keeps reading the commit it started from while a
     second wrapper fetches a newer `main` and runs it, and a third runs `other`;
   - the snapshot is not a git checkout and lives in a per-ref directory;
+  - refs that differ only in a character a directory name cannot hold
+    (rel/v1, rel_v1) get two directories;
+  - without flock, a lock left by a killed run (its pid gone) is taken over;
   - token-audit installed alone (skills.sh layout) falls back to its last
     snapshot when the fetch fails; an org-tools wrapper fails instead.
 """
@@ -70,7 +73,7 @@ def commit(work, files, msg):
 
 def remote(base, name, tools):
     """A bare repo base/name holding each tool beside a data.txt: "A" on
-    branch main, "OTHER" on branch other."""
+    branch main, "OTHER" on branch other, "SLASH" on rel/v1, "UNDER" on rel_v1."""
     work = os.path.join(base, "work-" + name)
     git(base, "init", "-q", "-b", "main", work)
 
@@ -80,6 +83,9 @@ def remote(base, name, tools):
     commit(work, {**{t: TOOL for t in tools}, **data("A")}, "A")
     git(work, "checkout", "-qb", "other")
     commit(work, data("OTHER"), "other")
+    for branch, text in (("rel/v1", "SLASH"), ("rel_v1", "UNDER")):
+        git(work, "checkout", "-qb", branch, "main")
+        commit(work, data(text), text)
     git(work, "checkout", "-q", "main")
     bare = os.path.join(base, "remote", name)
     git(base, "clone", "-q", "--bare", work, bare)
@@ -106,9 +112,9 @@ def run_all(cmds, env):
     return [(p.wait(), *p.communicate()) for p in procs]
 
 
-def no_flock_path(base):
+def no_flock_path(base, name="bin-noflock"):
     """A PATH with every command the wrappers use, and no flock."""
-    d = os.path.join(base, "bin-noflock")
+    d = os.path.join(base, name)
     os.makedirs(d)
     for cmd in (
         "git",
@@ -120,6 +126,10 @@ def no_flock_path(base):
         "cat",
         "tr",
         "seq",
+        "grep",
+        "od",
+        "sh",
+        "kill",
         "sleep",
         "rm",
         "rmdir",
@@ -216,6 +226,41 @@ def main():
             and os.path.basename(os.path.dirname(snap)) == "main"
             and not os.path.exists(os.path.join(snap, ".git")),
             f"each commit is its own snapshot under the ref's dir, not a git checkout: {snap}",
+        )
+
+        # Refs a sanitised name would merge stay apart.
+        env = env_for(base, os.path.join(base, "cache-keys"))
+        res = run_all([([W["fidelity"]], {"ORG_TOOLS_REF": r}) for r in ("rel/v1", "rel_v1")], env)
+        outs = [o.split()[0] if o else e.strip() for _, o, e in res]
+        dirs = sorted(os.listdir(os.path.join(base, "cache-keys/swarm-routing/checkouts/github")))
+        check(
+            outs == ["SLASH", "UNDER"] and len(dirs) == 2,
+            f"rel/v1 and rel_v1 run their own commits from two dirs: {outs} {dirs}",
+        )
+
+        # Without flock, a lock whose process is gone is taken over.
+        cache = os.path.join(base, "cache-stale")
+        dead = subprocess.Popen(["true"])
+        dead.wait()
+        lock = os.path.join(cache, "swarm-routing/checkouts/github/main/lock.d")
+        os.makedirs(lock)
+        with open(os.path.join(lock, "pid"), "w") as f:
+            f.write(f"{dead.pid}\n")
+        t0 = time.time()
+        r = subprocess.run(
+            [W["fidelity"]],
+            env=env_for(base, cache, no_flock_path(base, "bin-stale")),
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        check(
+            r.returncode == 0
+            and r.stdout.startswith("B ")
+            and "removing the lock left by process" in r.stderr
+            and not os.path.exists(lock)
+            and time.time() - t0 < 60,
+            f"without flock, a lock left by a killed run is taken over: {r.stderr.strip()!r}",
         )
 
         # token-audit installed alone: offline falls back to the last snapshot.

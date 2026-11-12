@@ -144,4 +144,19 @@ broken(
     'git -C "$dir" fetch -q origin main\nexec python3 -I',
     "org-sync: fetches or caches outside the cached-checkout block",
 )
+
+
+def no_block():
+    d = tempfile.mkdtemp()
+    for sub in (".claude-plugin", "skills"):
+        shutil.copytree(os.path.join(ROOT, sub), os.path.join(d, sub))
+    p = os.path.join(d, "skills/fidelity-sheet/scripts/fidelity")
+    text = open(p).read()
+    open(p, "w").write(cp.BLOCK.sub("", text))
+    errs = cp.check(d)
+    assert any("fidelity: calls cached_checkout but carries no" in e for e in errs), errs
+    print("ok    a wrapper calling cached_checkout without the block is rejected")
+
+
+no_block()
 print("check-plugins self-test: OK")
