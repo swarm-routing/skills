@@ -259,8 +259,9 @@ def audit_repo(repo, bpt):
             {
                 "path": rel,
                 "why": why,
-                "bytes": size(text),
-                "tokens": tokens(size(text), bpt),
+                # the file's size on disk: decoding replaces an invalid byte by three
+                "bytes": os.path.getsize(os.path.join(repo, rel)),
+                "tokens": tokens(os.path.getsize(os.path.join(repo, rel)), bpt),
                 "managed_bytes": sum(sum(s["managed"].values()) for s in secs),
                 "sections": secs,
             }
@@ -279,6 +280,15 @@ def audit_repo(repo, bpt):
         "managed_bytes": sum(f["managed_bytes"] for f in files),
         "on_demand": linked_docs(repo, [(f["path"], f["why"]) for f in files]),
     }
+
+
+def label_repos(audits):
+    """Repositories that share a directory name are shown as parent/name."""
+    names = collections.Counter(a["repo"] for a in audits)
+    for a in audits:
+        if names[a["repo"]] > 1:
+            parent = os.path.basename(os.path.dirname(a["root"]))
+            a["repo"] = f"{parent}/{a['repo']}" if parent else a["root"]
 
 
 def duplicates(audits):
@@ -316,10 +326,14 @@ def check_budgets(audits, budgets, budget_loaded):
             if limit is not None and f["bytes"] > limit:
                 over.append(f"{a['repo']}: {f['path']} is {f['bytes']:,} bytes, budget {limit:,}")
         # a named file has its budget whether a session loads it or not
-        loaded = {os.path.basename(f["path"]) for f in a["files"]}
+        loaded = {os.path.normpath(f["path"]) for f in a["files"]}
         for name, limit in sorted(budgets.items()):
             path = os.path.join(a["root"], name)
-            if name not in loaded and os.path.isfile(path) and os.path.getsize(path) > limit:
+            if (
+                os.path.normpath(name) not in loaded
+                and os.path.isfile(path)
+                and os.path.getsize(path) > limit
+            ):
                 over.append(
                     f"{a['repo']}: {name} is {os.path.getsize(path):,} bytes, budget {limit:,} "
                     "(not loaded at session start)"
@@ -411,6 +425,7 @@ def cmd_files(a):
         if not os.path.isdir(repo):
             sys.exit(f"token_audit: {repo}: not a directory")
     audits = [audit_repo(repo, a.bytes_per_token) for repo in repos]
+    label_repos(audits)
     dups = duplicates(audits) if len(audits) > 1 else []
     over = check_budgets(audits, budgets, a.budget_loaded)
     if a.json:
@@ -916,10 +931,22 @@ def self_test():
         write("a/repo/CLAUDE.md", "# CLAUDE.md\n\n@AGENTS.md\n")
         write("b/repo/CLAUDE.md", "# CLAUDE.md\n\n@AGENTS.md\n")
         a, b = (audit_repo(os.path.join(tmp, n), BYTES_PER_TOKEN) for n in ("a/repo", "b/repo"))
+        label_repos([a, b])
         check(
-            "two repositories with the same directory name are still two",
-            [d["repos"] for d in duplicates([a, b])] == [["repo", "repo"]],
+            "two repositories with the same directory name are two, shown as parent/name",
+            [d["repos"] for d in duplicates([a, b])] == [["a/repo", "b/repo"]],
         )
+        write("b/repo/docs/AGENTS.md", "small\n")
+        write("b/repo/CLAUDE.md", "# CLAUDE.md\n\n@docs/AGENTS.md\n")
+        b = audit_repo(os.path.join(tmp, "b/repo"), BYTES_PER_TOKEN)
+        check(
+            "a loaded docs/AGENTS.md does not stand in for the root AGENTS.md's budget",
+            len(check_budgets([b], {"AGENTS.md": 10}, None)) == 1,
+        )
+        with open(os.path.join(tmp, "b/repo/CLAUDE.md"), "wb") as f:
+            f.write(b"\xff\r\n")
+        b = audit_repo(os.path.join(tmp, "b/repo"), BYTES_PER_TOKEN)
+        check("a file with an invalid byte has its size on disk", b["files"][0]["bytes"] == 3)
         write("a/repo/CLAUDE.md", "# CLAUDE.md\n")
         a = audit_repo(os.path.join(tmp, "a/repo"), BYTES_PER_TOKEN)
         check(
@@ -939,10 +966,10 @@ def self_test():
         == "/home/user/skills/tools/token-audit/token_audit.py"
         and summarize_input(
             {
-                "file_path": "/tmp/c2d8a7ce-2fd7-5e19-b61c-a5ef15fae6ec/a-long-kebab-case-directory-name"
+                "file_path": "/work/c2d8a7ce-2fd7-5e19-b61c-a5ef15fae6ec/a-long-kebab-case-directory-name"
             }
         )
-        == "/tmp/c2d8a7ce-2fd7-5e19-b61c-a5ef15fae6ec/a-long-kebab-case-",
+        == "/work/c2d8a7ce-2fd7-5e19-b61c-a5ef15fae6ec/a-long-kebab-case-",
     )
     check(
         "long hex is taken for a key",

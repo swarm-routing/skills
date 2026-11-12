@@ -11,15 +11,20 @@ set -u
 repo=$1
 [ -d "$repo" ] || { echo "no repository at $repo"; exit 77; }
 [ -f "$repo/AGENTS.md" ] || { echo "AGENTS.md is gone from $repo"; exit 1; }
+# the rule's name, then what it tells the agent to do, as a pattern on the text
+# with its line breaks removed: a rule cut down to its name passes the first
+# and fails the second
+text=$(tr '\n' ' ' <"$repo/AGENTS.md" | tr -s ' ')
 missing=0
-# the rule's name, then what it tells the agent to do: a rule cut down to its
-# name passes the first and fails the second
-for phrase in "never includes a simulator header" "ports" \
-    "carries a core unit test" "core/test" \
-    "append-only" "kTraceVersion" "trailmix.py" \
-    "stay bounded" "core/config.h" \
-    "Papers stay out" "DOI"; do
-    grep -qF "$phrase" "$repo/AGENTS.md" || { echo "missing from AGENTS.md: $phrase"; missing=1; }
-done
+while IFS='|' read -r name pattern; do
+    grep -qF "$name" <<<"$text" || { echo "missing from AGENTS.md: $name"; missing=1; continue; }
+    grep -Eq "$pattern" <<<"$text" || { echo "rule kept by name only: $name (no match for: $pattern)"; missing=1; }
+done <<'RULES'
+never includes a simulator header|injected ports
+carries a core unit test|core/test/
+append-only|bumps? .?kTraceVersion.? and updates? .?tools/trailmix\.py
+stay bounded|caps? in .?core/config\.h
+Papers stay out|Cite by DOI
+RULES
 [ $missing -eq 0 ] || exit 1
 echo "rules 4-8 are all in AGENTS.md"
