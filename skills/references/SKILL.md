@@ -100,15 +100,35 @@ not add it: name it in the PR as unconfirmed, and reword every place the
 sheet cites its key (`[R05] §3`) to name the work in prose instead, since
 `bib check` fails on a cited key the bib lacks.
 
+Two cases need care:
+
+- **A Crossref record that is wrong or thin** (an author missing, diacritics
+  dropped): the publisher's page decides. Correct that one field by hand,
+  and say in the PR which field, what Crossref had and which page settled
+  it. Without the publisher's page, keep Crossref's value and say so.
+- **A work with no DOI whose title matches another work** (a dissertation
+  and the later book chapter with its title): `bib check --online` keeps
+  warning that the title has a DOI. Keep the url when the sheet cites the
+  work without a DOI (its locators are the dissertation's), and name the
+  other work's DOI in the PR so a reviewer sees it was ruled out.
+
 Keep the entries sorted by key. Give each the narrowest true role; when a
 work is both followed and compared against, `implemented` wins.
 
 ## 3. Regenerate
 
 ```bash
-"$T" fidelity bib sources .   # the Sources table in docs/fidelity.md, between its markers
-"$T" org-sync apply .         # CITATION.cff references: and the README's citing section
+"$T" fidelity bib sources .                 # the Sources table in docs/fidelity.md, between its markers
+"$T" org-sync apply .                       # the README's citing section
+"$T" org-sync reseed CITATION.cff .         # CITATION.cff is a seed: apply never rewrites it
 ```
+
+A sheet whose Sources table has no `<!-- fidelity:sources:begin -->` /
+`<!-- fidelity:sources:end -->` markers gets them around the existing table
+(the table is the bib's from then on). `org-sync apply` also rewrites any
+other template drift the repository carries; keep only the citing changes
+in this PR (`git checkout` the rest) and leave the drift to org-bot's
+refresh PR.
 
 The bib takes over `CITATION.cff` and the README's citing list once it holds
 an entry; from then on org-sync warns that the repository's `[[references]]`
