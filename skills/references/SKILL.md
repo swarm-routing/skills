@@ -48,9 +48,9 @@ local checkout instead of the cached clone.
   (`implemented`, `tool`, `dataset`).
 - **Never the repository's own DOI**: that is `CITATION.cff`'s own `doi`;
   listing it again makes the repository cite itself.
-- **Never the private paper library.** The org keeps papers in a private
-  repository; a public file never names it, points into it, or says a paper
-  is "in the library". Say what was read and cite it by its DOI link.
+- **Never the private paper store.** The org keeps paper copies in a private
+  repository; a public file never names it, points into it, or says where a
+  copy is kept. Say what was read and cite it by its DOI link.
 - **A repository that used no paper** still has the file: it lists the org
   releases it builds on (`tool`), or stays empty with the header that says
   so.
@@ -96,7 +96,9 @@ pages is settled on the publisher's page (online-first year against issue
 year is the usual cause), never by picking the convenient value; say which
 you used in the PR. A work that has no DOI gets a `url` to the institution's
 or publisher's page, never to a private copy. If nothing confirms a work, do
-not add it: name it in the PR as unconfirmed.
+not add it: name it in the PR as unconfirmed, and reword every place the
+sheet cites its key (`[R05] §3`) to name the work in prose instead, since
+`bib check` fails on a cited key the bib lacks.
 
 Keep the entries sorted by key. Give each the narrowest true role; when a
 work is both followed and compared against, `implemented` wins.
@@ -111,7 +113,7 @@ work is both followed and compared against, `implemented` wins.
 Never edit a generated section by hand: the next run undoes it. If a fidelity
 row's prose names a work the bib does not hold, add the entry; if a source is
 no longer cited, drop its entry or give it a role that explains why it stays.
-Reword every private-library line the check printed.
+Reword every private-store line the check printed.
 
 ## 4. Verify and hand over
 
