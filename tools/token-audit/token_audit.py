@@ -969,7 +969,7 @@ def self_test():
                 "file_path": "/work/c2d8a7ce-2fd7-5e19-b61c-a5ef15fae6ec/a-long-kebab-case-directory-name"
             }
         )
-        == "/work/c2d8a7ce-2fd7-5e19-b61c-a5ef15fae6ec/a-long-kebab-case-",
+        == "/work/c2d8a7ce-2fd7-5e19-b61c-a5ef15fae6ec/a-long-kebab-case",
     )
     check(
         "long hex is taken for a key",
