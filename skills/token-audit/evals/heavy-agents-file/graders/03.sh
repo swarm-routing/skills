@@ -9,8 +9,8 @@
 # its outputs directory. Exit 0 pass, 77 cannot grade, else fail.
 set -u
 repo=$1
-[ -d "$repo" ] || { echo "no repository at $repo"; exit 77; }
-[ -f "$repo/AGENTS.md" ] || { echo "AGENTS.md is gone from $repo"; exit 1; }
+[[ -d "$repo" ]] || { echo "no repository at $repo"; exit 77; }
+[[ -f "$repo/AGENTS.md" ]] || { echo "AGENTS.md is gone from $repo"; exit 1; }
 # the rule's name, then what it tells the agent to do, as a pattern on the text
 # with its line breaks removed: a rule cut down to its name passes the first
 # and fails the second
@@ -26,5 +26,5 @@ append-only|bumps? .?kTraceVersion.? and updates? .?tools/trailmix\.py
 stay bounded|caps? in .?core/config\.h
 Papers stay out|Cite by DOI
 RULES
-[ $missing -eq 0 ] || exit 1
+[[ $missing -eq 0 ]] || exit 1
 echo "rules 4-8 are all in AGENTS.md"

@@ -9,7 +9,7 @@
 # its outputs directory. Exit 0 pass, 77 cannot grade, else fail.
 set -u
 repo=$1
-[ -f "$repo/AGENTS.md" ] || { echo "no AGENTS.md in $repo"; exit 77; }
+[[ -f "$repo/AGENTS.md" ]] || { echo "no AGENTS.md in $repo"; exit 77; }
 hits=$(awk '/org-sync:begin/{f=1} !f{print} /org-sync:end/{f=0}' "$repo/AGENTS.md" | grep -nE "20[0-9]{2}-[0-9]{2}-[0-9]{2}")
-[ -z "$hits" ] || { echo "dated text left in AGENTS.md:"; echo "$hits"; exit 1; }
+[[ -z "$hits" ]] || { echo "dated text left in AGENTS.md:"; echo "$hits"; exit 1; }
 echo "no ISO date in AGENTS.md outside the managed block"

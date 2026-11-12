@@ -9,9 +9,9 @@
 set -u
 report=
 for f in "$2/report.md" "$1/report.md"; do
-    [ -f "$f" ] && { report=$f; break; }
+    [[ -f "$f" ]] && { report=$f; break; }
 done
-[ -n "$report" ] || { echo "no report.md in the outputs or the repository"; exit 77; }
+[[ -n "$report" ]] || { echo "no report.md in the outputs or the repository"; exit 77; }
 # next to "first", "start" or "request 1", with no other number between: 61,250 given as the largest context does not pass
 grep -Eiq "(first|start)[^0-9]*61[,. ]?250([^0-9]|$)|request 1[^0-9]+61[,. ]?250([^0-9]|$)|(^|[^0-9])61[,. ]?250( tokens)? (on|at|in|for) (the )?(first request|request 1([^0-9]|$))" "$report" ||
     { echo "report.md does not give 61,250 for the first request"; exit 1; }

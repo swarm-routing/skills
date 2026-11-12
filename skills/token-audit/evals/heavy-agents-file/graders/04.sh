@@ -9,19 +9,19 @@
 # its outputs directory. Exit 0 pass, 77 cannot grade, else fail.
 set -u
 repo=$1
-[ -d "$repo" ] || { echo "no repository at $repo"; exit 77; }
-[ -f "$repo/AGENTS.md" ] || { echo "AGENTS.md is gone from $repo"; exit 1; }
+[[ -d "$repo" ]] || { echo "no repository at $repo"; exit 77; }
+[[ -f "$repo/AGENTS.md" ]] || { echo "AGENTS.md is gone from $repo"; exit 1; }
 # every Markdown file under docs/ is a candidate: the first that holds all the
 # entries and is named in AGENTS.md passes
 why="no file under docs/ holds the catalogue (seedpair.py)"
 while IFS= read -r file; do
-    [ -n "$file" ] || continue
+    [[ -n "$file" ]] || continue
     lost=
     for tool in trailmix.py tablefuzz.py capwatch.py bisect-run.sh; do
         grep -qF "$tool" "$file" || { lost=$tool; break; }
     done
     name=$(basename "$file")
-    if [ -n "$lost" ]; then
+    if [[ -n "$lost" ]]; then
         why="$file has no entry for $lost"
     elif ! grep -qF "$name" "$repo/AGENTS.md"; then
         why="AGENTS.md does not name $name"

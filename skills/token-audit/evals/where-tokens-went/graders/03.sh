@@ -9,9 +9,9 @@
 set -u
 report=
 for f in "$2/report.md" "$1/report.md"; do
-    [ -f "$f" ] && { report=$f; break; }
+    [[ -f "$f" ]] && { report=$f; break; }
 done
-[ -n "$report" ] || { echo "no report.md in the outputs or the repository"; exit 77; }
+[[ -n "$report" ]] || { echo "no report.md in the outputs or the repository"; exit 77; }
 grep -q "issue_read" "$report" || { echo "report.md does not name issue_read"; exit 1; }
 # next to the name, with no other number between: 72 given for another tool does not pass
 grep -Eq "issue_read[^0-9]*72([^0-9]|$)|(^|[^0-9])72[^0-9]*issue_read" "$report" ||

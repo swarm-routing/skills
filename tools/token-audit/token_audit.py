@@ -68,10 +68,8 @@ ISO_DATE = re.compile(r"\b20\d\d-\d\d-\d\d\b")
 ISSUE = re.compile(r"#\d+\b")
 MD_LINK = re.compile(r"\]\(([^)#\s]+\.md)(?:#[^)]*)?\)")
 MD_CODE = re.compile(r"`([\w./-]+\.md)`")
-FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
-SECRET_KEY = re.compile(
-    r"(?i)\b([\w-]*(?:token|secret|password|passwd|api[_-]?key|authorization)[\w-]*\s*[=:]\s*)\S+"
-)
+FENCE = re.compile(r" {0,3}(`{3,}|~{3,})")
+SECRET_WORDS = ("token", "secret", "password", "passwd", "apikey", "authorization")
 SECRET_VALUE = re.compile(r"[A-Za-z0-9+_=-]{24,}")
 
 
@@ -83,9 +81,14 @@ def size(text):
     return len(text.encode("utf-8"))
 
 
-def read(path):
+def read(repo, rel):
+    """The text of a file of the repository; a path that leads out of it is refused."""
+    root = os.path.realpath(repo)
+    full = os.path.realpath(os.path.join(root, rel))
+    if os.path.commonpath([root, full]) != root:
+        raise ValueError(f"{rel}: not inside {repo}")
     # newline="": line endings stay as they are on disk, so sizes are the file's
-    with open(path, encoding="utf-8", errors="replace", newline="") as f:
+    with open(full, encoding="utf-8", errors="replace", newline="") as f:
         return f.read()
 
 
@@ -105,14 +108,16 @@ class Fences:
 
     def feed(self, line):
         """True when the line is a fence or inside a block."""
-        m = FENCE.match(line.rstrip("\r\n"))
+        line = line.rstrip("\r\n")
+        m = FENCE.match(line)
+        rest = line[m.end() :] if m else ""
         if self.open is None:
-            if m and not (m.group(1)[0] == "`" and "`" in m.group(2)):
+            if m and not (m.group(1)[0] == "`" and "`" in rest):
                 self.open = (m.group(1)[0], len(m.group(1)))
                 return True
             return False
         char, length = self.open
-        if m and m.group(1)[0] == char and len(m.group(1)) >= length and not m.group(2).strip():
+        if m and m.group(1)[0] == char and len(m.group(1)) >= length and not rest.strip():
             self.open = None
         return True
 
@@ -136,12 +141,8 @@ def imports(text):
 
 def loaded_files(repo):
     """[(path relative to repo, why it is loaded)] in the order a session reads them."""
-    entries = [
-        p
-        for p in ("CLAUDE.md", os.path.join(".claude", "CLAUDE.md"))
-        if os.path.isfile(os.path.join(repo, p))
-    ]
-    if not entries and os.path.isfile(os.path.join(repo, "AGENTS.md")):
+    entries = [p for p in ("CLAUDE.md", os.path.join(".claude", "CLAUDE.md")) if inside(repo, p)]
+    if not entries and inside(repo, "AGENTS.md"):
         return [("AGENTS.md", "entry (no CLAUDE.md)")]
     out, queue = [], [(p, "entry", 0) for p in entries]
     while queue:
@@ -152,7 +153,7 @@ def loaded_files(repo):
         if depth >= IMPORT_DEPTH:
             continue
         base = os.path.dirname(rel)
-        for target in imports(read(os.path.join(repo, rel))):
+        for target in imports(read(repo, rel)):
             child = os.path.normpath(os.path.join(base, target))
             if not child.startswith("..") and inside(repo, child):
                 queue.append((child, f"imported by {rel}", depth + 1))
@@ -205,10 +206,10 @@ def skills(repo):
         if not os.path.isdir(top):
             continue
         for name in sorted(os.listdir(top)):
-            path = os.path.join(top, name, "SKILL.md")
-            if not os.path.isfile(path):
+            rel = os.path.join(root, name, "SKILL.md")
+            if not inside(repo, rel):
                 continue
-            text = read(path)
+            text = read(repo, rel)
             m = re.match(r"---\r?\n(.*?)\r?\n---", text, re.S)
             # name and description, each with its indented continuation lines
             # (a block scalar, `description: >-`, has its text below the key)
@@ -236,7 +237,7 @@ def linked_docs(repo, loaded):
     """Markdown files the loaded files point at: read only when a session opens them."""
     have, found = {rel for rel, _ in loaded}, {}
     for rel, _ in loaded:
-        text = read(os.path.join(repo, rel))
+        text = read(repo, rel)
         for target in MD_LINK.findall(text) + MD_CODE.findall(text):
             if "://" in target:
                 continue
@@ -253,7 +254,7 @@ def audit_repo(repo, bpt):
     name = os.path.basename(os.path.abspath(repo)) or repo
     files = []
     for rel, why in loaded_files(repo):
-        text = read(os.path.join(repo, rel))
+        text = read(repo, rel)
         secs = sections(text)
         files.append(
             {
@@ -460,7 +461,24 @@ def redact(text):
         mixed = re.search(r"[a-z]", v) and re.search(r"[A-Z]", v) and re.search(r"\d", v)
         return "[redacted]" if mixed or re.fullmatch(r"[0-9a-fA-F]{32,}", v) else v
 
-    text = SECRET_KEY.sub(lambda m: m.group(1) + "[redacted]", text)
+    out, pending = [], False
+    for part in re.split(r"(\s+)", text):
+        if not part.strip():
+            out.append(part)
+            continue
+        if pending:  # the value of `Authorization: <value>`, a word of its own
+            out.append("[redacted]")
+            pending = False
+            continue
+        cut = min((part.find(c) for c in "=:" if c in part), default=-1)
+        key = part[:cut].lower().replace("_", "").replace("-", "") if cut >= 0 else ""
+        if any(word in key for word in SECRET_WORDS):
+            if part[cut + 1 :]:
+                part = part[: cut + 1] + "[redacted]"
+            else:
+                pending = True
+        out.append(part)
+    text = "".join(out)
     return SECRET_VALUE.sub(run, text)
 
 
@@ -486,11 +504,19 @@ def result_bytes(content):
     return total
 
 
+def transcript_file(path):
+    """The resolved path of a transcript: a .jsonl file, nothing else is opened."""
+    full = os.path.realpath(path)
+    if not full.endswith(".jsonl") or not os.path.isfile(full):
+        sys.exit(f"token_audit: {path}: not a .jsonl transcript file")
+    return full
+
+
 def audit_transcript(path):
     usage, order = {}, []
     calls, results = {}, []
     repeated = collections.Counter()
-    with open(path, encoding="utf-8", errors="replace") as f:
+    with open(transcript_file(path), encoding="utf-8", errors="replace") as f:
         for line in f:
             try:
                 msg = json.loads(line).get("message")
@@ -597,12 +623,10 @@ def print_transcript(t, top, min_calls):
 def cmd_transcript(a):
     audits = []
     for path in a.files:
-        if not os.path.isfile(path):
-            sys.exit(f"token_audit: {path}: no such file")
         audits.append(audit_transcript(path))
     if a.json:
         print(json.dumps(audits, indent=1))
-        return 0
+        return
     for t in audits:
         print_transcript(t, a.top, a.min_calls)
     if len(audits) > 1:
@@ -620,7 +644,6 @@ def cmd_transcript(a):
             f" tokens ({s['cache_read_input_tokens']:,} from cache); output: "
             f"{s['output_tokens']:,}"
         )
-    return 0
 
 
 # --- self-test ------------------------------------------------------------
@@ -918,7 +941,7 @@ def self_test():
             "the sections of a file add up to the file, with no final newline too",
             sum(s["bytes"] for s in claude["sections"]) == claude["bytes"],
         )
-        text = read(os.path.join(tmp, "a/repo/AGENTS.md"))
+        text = read(tmp, "a/repo/AGENTS.md")
         check(
             "a fence closes only on its own character, at least as long",
             [s["title"] for s in sections(text)] == ["(top)", "## Shared"] and imports(text) == [],
@@ -971,6 +994,23 @@ def self_test():
         )
         == "/work/c2d8a7ce-2fd7-5e19-b61c-a5ef15fae6ec/a-long-kebab-case",
     )
+    with tempfile.TemporaryDirectory() as tmp:
+        os.makedirs(os.path.join(tmp, "repo"))
+        for name in ("notes.txt", "repo/CLAUDE.md"):
+            with open(os.path.join(tmp, name), "w", encoding="utf-8") as f:
+                f.write("text\n")
+        try:
+            read(os.path.join(tmp, "repo"), "../notes.txt")
+            refused = False
+        except ValueError:
+            refused = True
+        check("a path that leads out of the repository is not read", refused)
+        try:
+            transcript_file(os.path.join(tmp, "notes.txt"))
+            refused = False
+        except SystemExit:
+            refused = True
+        check("a transcript must be a .jsonl file", refused)
     check(
         "long hex is taken for a key",
         summarize_input({"command": "use 0123456789abcdef0123456789abcdef now"})
@@ -1004,7 +1044,8 @@ def main(argv=None):
             ap.error("--bytes-per-token must be positive")
         return cmd_files(a)
     if a.cmd == "transcript":
-        return cmd_transcript(a)
+        cmd_transcript(a)
+        return 0
     ap.print_usage(sys.stderr)
     return 2
 

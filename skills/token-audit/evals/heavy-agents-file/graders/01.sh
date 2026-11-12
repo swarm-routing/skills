@@ -9,10 +9,10 @@
 # its outputs directory. Exit 0 pass, 77 cannot grade, else fail.
 set -u
 repo=$1
-[ -d "$repo" ] || { echo "no repository at $repo"; exit 77; }
-[ -f "$repo/AGENTS.md" ] || { echo "AGENTS.md is gone from $repo"; exit 1; }
+[[ -d "$repo" ]] || { echo "no repository at $repo"; exit 77; }
+[[ -f "$repo/AGENTS.md" ]] || { echo "AGENTS.md is gone from $repo"; exit 1; }
 audit=$(cd "$(dirname "$0")/../../../scripts" && pwd)/token-audit
 out=$("$audit" files "$repo" --budget AGENTS.md=5000 2>&1); code=$?
 grep -q "loaded at session start" <<<"$out" || { echo "token-audit gave no result: $(tail -n 2 <<<"$out")"; exit 77; }
-[ $code -eq 0 ] || { grep "OVER BUDGET" <<<"$out"; exit 1; }
+[[ $code -eq 0 ]] || { grep "OVER BUDGET" <<<"$out"; exit 1; }
 echo "AGENTS.md is $(wc -c <"$repo/AGENTS.md") bytes, within 5,000"

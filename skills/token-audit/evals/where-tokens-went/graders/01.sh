@@ -10,8 +10,8 @@
 set -u
 report=
 for f in "$2/report.md" "$1/report.md"; do
-    [ -f "$f" ] && { report=$f; break; }
+    [[ -f "$f" ]] && { report=$f; break; }
 done
-[ -n "$report" ] || { echo "no report.md in the outputs or the repository"; exit 77; }
+[[ -n "$report" ]] || { echo "no report.md in the outputs or the repository"; exit 77; }
 grep -Eiq "(^|[^0-9])40([^0-9,]|$).{0,40}request|request.{0,40}(^|[^0-9])40([^0-9,]|$)" "$report" || { echo "report.md does not say 40 requests"; exit 1; }
 echo "report.md says 40 requests"
