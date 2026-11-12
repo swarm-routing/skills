@@ -42,7 +42,8 @@ local checkout instead of the cached clone.
   the sheet, in a code comment and in the bib is one work. A work in
   CONTRIBUTING's "References" key table takes the table's key in every
   file; where another bib in the repository (AntHocNet's `paper/paper.bib`)
-  uses a different key for it, rename it there too. Otherwise reuse the key
+  uses a different key for it, rename it there and in every `[KEY]` and
+  `\cite{}` that uses the old key (`git grep` it). Otherwise reuse the key
   that other bib already uses, or the sheet's when it cites numbers: one key
   per work across every file, and entries both files carry stay identical.
 - **Each entry has a role** in `keywords`: `implemented` (what the code
