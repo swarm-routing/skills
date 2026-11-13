@@ -27,6 +27,7 @@ tools/checks/check-plugins.py              validates all of the above (+ test_ch
 tools/checks/test_wrapper_cache.py         runs the wrappers concurrently on local repos with two refs (the cached-checkout block)
 tools/evals/grade.py                       runs the script graders on an eval workspace, merges them into grading.json (+ test_grade.py)
 tools/token-audit/token_audit.py           what a session loads from the agent files, and where a finished session's tokens went: the `token-audit` skill's script (+ test_token_audit.py)
+tools/tracker-responses/responses.py      how many issues of a label the project acknowledged (OpenSSF Best Practices' report_responses, enhancement_responses): the `bestpractices` skill's tracker count (+ test_responses.py)
 .github/org-sync.toml                      this repo's org-sync config (kind = "skills")
 ```
 
@@ -34,7 +35,7 @@ tools/token-audit/token_audit.py           what a session loads from the agent f
 
 ```bash
 make help    # the org's standard target names: build, test, lint, format, check, clean, shell, ci
-make test    # check-plugins.py + its self-test, test_wrapper_cache.py, grade.py --self-test, token_audit.py --self-test
+make test    # check-plugins.py + its self-test, test_wrapper_cache.py, grade.py --self-test, token_audit.py --self-test, responses.py --self-test
 ORG_TOOLS_DIR=/path/to/swarm-routing/.github python3 tools/evals/grade.py <skill>-workspace/iteration-N [--write]
 make check   # what CI gates on: lint, test, licence headers, org-sync check
 ORG_SYNC_DIR=/path/to/swarm-routing/.github skills/org-repo/scripts/org-sync plan .

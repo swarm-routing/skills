@@ -1,4 +1,4 @@
 schema_version: "1.1"
 name: report-responses-criterion
 expected_outcome: |
-  The agent maps the text to report_responses, counts AntHocNet's bug-labelled issues created 2-12 months ago through the REST issues endpoint with manual page= pagination (pull requests excluded), and reports the numbers it measured (43 of 43 on 2026-11-13, all filed by the maintainer) with how a response was counted. It returns one status (Met) and one justification with a full https URL to the issue query, labelled as a draft for the maintainer to submit, with no number that the count did not produce.
+  The agent maps the text to report_responses and counts AntHocNet's bug-labelled issues created 2-12 months ago with the skill's responses script (explicit page= pagination, pull requests excluded, each issue classified by who acted on it). It reports the numbers the count printed (on 2026-11-13: 43 of 43 acknowledged, all filed by the project) and how an acknowledgement was counted, and returns one status (Met if the count supports it) and one justification with the full https issue-search URL, labelled a draft for the maintainer to submit; no number the count did not produce.

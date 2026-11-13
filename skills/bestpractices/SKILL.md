@@ -2,7 +2,7 @@
 name: bestpractices
 description: "OpenSSF Best Practices badge (bestpractices.dev) for a repository: register it, propose its passing-level answers from the repository's evidence, keep them current, and answer one criterion pasted from the form. Use whenever someone mentions the OpenSSF / CII Best Practices badge, bestpractices.dev, a project id there, .bestpractices.json, `bestpractices_project`, the weekly `[bestpractices]` drift issue, or pastes a criterion (\"The project MUST ...\", a `<criterion>_justification` field) and wants a justification. Script first: bestpractices.py derives the answers, the registration and proposal links and the drift report; nothing logs in or submits, the maintainer reviews and saves on the site."
 license: MIT OR GPL-2.0-only
-compatibility: Needs git, python3 3.11+, gh (authenticated, for tracker counts) and network access to github.com (scripts/bestpractices clones swarm-routing/.github tools/bestpractices) and to www.bestpractices.dev (public read-only JSON).
+compatibility: Needs git, python3 3.11+, gh (authenticated, for tracker counts) and network access to github.com (scripts/bestpractices clones swarm-routing/.github tools/bestpractices; scripts/responses runs this repository's tools/tracker-responses) and to www.bestpractices.dev (public read-only JSON).
 metadata:
   author: swarm-routing
   repository: https://github.com/swarm-routing/skills
@@ -33,6 +33,7 @@ BP="$SKILL/scripts/bestpractices"
 "$BP" answers REPO_DIR [--slug OWNER/NAME] [--write]       # derive the answers; --write: .bestpractices.json
 "$BP" register OWNER/NAME --dir REPO_DIR [--answers FILE]  # registered? id + proposal links, else registration URL
 "$BP" check --repos NAME[=ID][,...]                          # drift, read-only (never --issues by hand)
+"$SKILL/scripts/responses" OWNER/NAME --label bug|enhancement  # tracker counts for the response criteria
 ```
 
 Inside a `swarm-routing/.github` checkout, `python3 -I
@@ -50,9 +51,9 @@ points the wrapper at a local one.
   reports). List them for the maintainer to answer on the site.
 - **Response history is counted, not guessed.** `report_responses`,
   `enhancement_responses` and `vulnerability_report_response` depend on the
-  tracker's history. The script leaves them `?`; if asked, count them with
-  the recipe in section 4 and give the maintainer the numbers and a draft
-  justification to submit themselves.
+  tracker's history. bestpractices.py leaves them `?`; if asked, count them
+  with `responses` (section 4) and give the maintainer the numbers and a
+  draft justification to submit themselves.
 - **Licence of the answers.** bestpractices.dev releases submitted data under
   CDLA-Permissive-2.0 (https://cdla.dev/permissive-2-0/). Write nothing in a
   justification that cannot be published under it (no private repository
@@ -70,9 +71,14 @@ points the wrapper at a local one.
 ## 1. Register a repository
 
 ```bash
-git -C REPO_DIR fetch -q origin && git -C REPO_DIR checkout -q origin/main   # evidence is main, not a stale branch
+git clone -q https://github.com/swarm-routing/NAME REPO_DIR   # a clean checkout of main
 "$BP" register swarm-routing/NAME --dir REPO_DIR
 ```
+
+The answers are read from the working tree but cite `blob/main` URLs, so the
+checkout must be exactly `main`: a fresh clone, or `git fetch origin && git
+checkout origin/main` with `git status --porcelain` empty. With local edits,
+stop and use a fresh clone instead.
 
 - **Not registered:** it prints a registration URL pre-filled with the
   answers the repository shows (`?` left out). Give it to the maintainer to
@@ -147,25 +153,26 @@ paste-ready status and justification.
    `origin/main` (`git grep -n PATTERN origin/main -- .`, `git show
    origin/main:PATH`), never a local branch that may be stale. Prefer what
    CI enforces (a workflow, a required check) over what a doc promises.
-3. Tracker numbers come from the REST API with **manual `page=` pagination**
-   (the proxy rejects `gh api --paginate`'s next links). Example, bug
-   reports filed 2-12 months ago and how many got a response (a comment or a
-   close):
+3. Tracker numbers come from `responses` (this repository's
+   `tools/tracker-responses/responses.py`), never from a guess or from
+   `gh api --paginate` (the proxy rejects its next links; the script asks for
+   each `page=` itself):
 
    ```bash
-   repo=swarm-routing/NAME; label=bug; since=$(date -u -d '12 months ago' +%FT%TZ); until=$(date -u -d '2 months ago' +%FT%TZ)
-   for page in $(seq 1 20); do
-     out=$(gh api "repos/$repo/issues?state=all&labels=$label&since=$since&per_page=100&page=$page") || break
-     [ "$(jq length <<<"$out")" -eq 0 ] && break
-     jq -c --arg s "$since" --arg u "$until" '.[] | select(.pull_request|not)
-       | select(.created_at >= $s and .created_at <= $u)
-       | {n: .number, responded: (.comments > 0 or .state == "closed"), by: .user.login}' <<<"$out"
-   done | jq -s '{total: length, responded: map(select(.responded)) | length, authors: (map(.by) | unique)}'
+   "$SKILL/scripts/responses" swarm-routing/NAME --label bug           # report_responses
+   "$SKILL/scripts/responses" swarm-routing/NAME --label enhancement   # enhancement_responses
    ```
 
-   (`since` filters by update time, so the `created_at` select is what
-   counts.) Quote the numbers and say how a response was counted; if every
-   report came from the maintainer, say that too.
+   It counts the issues (not PRs) created 2-12 months ago and classifies each
+   by GitHub's `author_association`: acknowledged (filed by the project, a
+   project comment, or closed by the project), unanswered (only the reporter
+   acted) or unverified (closed by someone whose role it cannot see), and
+   prints the reporters and the issue-search URL. Exit 2 means a request
+   failed and nothing was counted: say so, do not report a number. Quote the
+   breakdown as printed (if every report was filed by the project, the
+   justification says so), and look at each unverified issue before counting
+   it. `vulnerability_report_response` depends on private reports: the
+   maintainer reads the repository's security advisories.
 4. Write the justification: one or two sentences, every claim backed by a
    full https URL, nothing that cannot be published under
    CDLA-Permissive-2.0. Output exactly:
