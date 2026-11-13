@@ -2,7 +2,7 @@
 name: pr-shepherd
 description: "Take open pull requests across the swarm-routing repositories from review to merge: see each PR's CI, mergeable state and unresolved review threads in one compact view, verify every finding (CodeRabbit or human) against the code, fix it with a test or decline it with a reason, reply on and resolve each thread, re-run the checks, and merge only when CI is green, no thread is open and the user asked for the merge, in dependency order. Use whenever asked to babysit, shepherd, land, get green or merge PRs, to handle or answer review comments or CodeRabbit findings, or to wait for CI on org PRs. Script first: pr_status.py gives one line per PR and per unresolved finding, so raw review bodies stay out of context."
 license: MIT OR GPL-2.0-only
-compatibility: Needs git, python3, the gh CLI logged in (or GH_TOKEN) and network access to github.com (scripts/pr-status clones swarm-routing/.github tools/pr-status). Replying and resolving use the GitHub MCP tools; updating and merging use pr-status merge, or auto-merge where the repository has a merge queue.
+compatibility: Needs git, python3, the gh CLI logged in (or GH_TOKEN) and network access to github.com (scripts/pr-status clones swarm-routing/.github tools/pr-status). Replying and resolving use the GitHub MCP tools; merging uses auto-merge where the repository has a merge queue (every public org repository), and pr-status merge where it has none.
 metadata:
   author: swarm-routing
   repository: https://github.com/swarm-routing/skills
@@ -20,13 +20,15 @@ SKILL="$CLAUDE_PLUGIN_ROOT/skills/pr-shepherd"   # as the Claude Code plugin
 "$SKILL"/scripts/pr-status list --repos .github,skills       # the open PRs and their findings
 "$SKILL"/scripts/pr-status threads skills#30                 # one PR's unresolved threads
 "$SKILL"/scripts/pr-status wait ARA#12 ns3-swarm-core#20 --timeout 900   # until no check is pending
-"$SKILL"/scripts/pr-status merge skills#30 skills#31        # wait for green, merge in order
+"$SKILL"/scripts/pr-status wait skills#30 --merged --timeout 3600      # auto-merge is on: until it merged, or needs a hand
+"$SKILL"/scripts/pr-status queued skills#30                  # merged, in the merge queue, or neither
 ```
 
 Inside a `swarm-routing/.github` checkout, `python3 -I
 tools/pr-status/pr_status.py` is the same; `ORG_TOOLS_DIR=<checkout>` points
-the wrapper at a local one. Every command takes `--json`. `list`, `threads`
-and `wait` only read (`gh api` GET); `merge` writes only `update-branch` and
+the wrapper at a local one. Every command but `gate` takes `--json`. `list`,
+`threads`, `wait`, `gate` and `queued` only read (`gh api` GET); `merge`
+(step 5, only where there is no merge queue) writes only `update-branch` and
 the squash merge. The org-wide API is unavailable, so name the repositories
 with `--repos` (default: the org's public ones).
 
@@ -149,29 +151,98 @@ A new review round may add threads: start again from step 1.
 
 Merge only PRs the user asked you to merge, and never a draft.
 
-**A repository with a merge queue** (its ruleset has a `merge_queue` rule;
-`gh api repos/<owner>/<repo>/rules/branches/main -q '.[].type'`; on
-2026-11-11: .github, skills, ns3-swarm-core, BeeAdHoc, HOPNET, benchmarks,
-swarm-routing.github.io, ns3-containers and AntHocNet, with ARA, Termite and
-ns3-tools to follow) refuses a direct merge with HTTP 405 "Changes must be
-made through the merge queue". There, enter the queue by enabling
-auto-merge with the squash method once the required checks are green and no
-thread is open: a GitHub tool's auto-merge call (MCP
-`enable_pr_auto_merge`), `gh pr merge --auto --squash`, or the PR page. Do
-not update the branch first; the queue tests the PR on `main` and the PRs
-ahead of it, and merges it. Follow it with `wait` or `list` until the PR is
-merged, or report it dequeued (a check failed in the merge group: back to
-step 2). `pr-status merge` does not enter a queue yet, and it waits on or
-stops at checks no ruleset requires (swarm-routing/.github#196), so do not
-use it there.
+First ask the ruleset how the repository merges; it decides, not a list:
+
+```bash
+gh api repos/<owner>/<repo>/rules/branches/main -q '.[].type'                      # `merge_queue` in the output: a queue
+gh api repos/<owner>/<repo>/rules/branches/main \
+  -q '.[] | select(.type=="required_status_checks") | .parameters.required_status_checks[].context'   # the required checks
+```
+
+### With a merge queue (the normal case: every public org repository)
+
+A direct merge is refused with HTTP 405 "Changes must be made through the
+merge queue", and `pr-status merge` does not enter a queue: do not use
+either. The way in is **auto-merge with the squash method**: a GitHub tool's
+auto-merge call (MCP `enable_pr_auto_merge`), `gh pr merge --auto --squash`,
+or the PR page. Do not update the branch first: the queue tests the PR on
+`main` plus the PRs ahead of it, and merges it.
+
+**When to enable it.** The review gate is the required check
+`review / coderabbit`. It passes once CodeRabbit has reviewed the PR, once it
+says it will not, for a draft, or 30 minutes after the PR opened (then with
+one comment on the PR). Where the required checks list it, auto-merge may be
+enabled at once: the merge waits for the gate and for every other required
+check, and the ruleset holds it while a review thread is unresolved. The
+threads the review opens are still yours (steps 2 and 3). Where the required
+checks do not list it, auto-merge would not wait for CodeRabbit, so wait
+first, then work any new thread, then enable it:
+
+```bash
+"$SKILL"/scripts/pr-status wait <REPO#N> --review --timeout 1800   # CI, then CodeRabbit's review
+```
+
+It adds `review: CodeRabbit reviewed`, or `warning: no CodeRabbit review yet
+...` once `--review-timeout` seconds (default 1800) have passed since the PR
+opened: CodeRabbit is absent, down or out of quota. Go on, and say in the
+report that the PR merged without its review. (`pr-status gate <REPO#N>` is
+that wait alone, the command behind the `review / coderabbit` check: one
+line, `reviewed`, `declined: <reason>`, `draft` or `timeout: ...`.)
+
+**Then follow the queue**, do not guess from `list`:
+
+```bash
+"$SKILL"/scripts/pr-status wait <REPO#N> … --merged --timeout 3600
+```
+
+One line per PR. Exit 0: every PR printed `merged`. Exit 2: `timeout: not
+merged after <N>s`, nothing is wrong yet; read `queued` (below) and wait
+again. Exit 1: the first PR that needs a hand printed `stopped: <reason>`,
+and the others were not waited for:
+
+| `stopped:` | What it means | Next |
+|---|---|---|
+| `closed unmerged` | someone closed the PR | report it; nothing to merge |
+| `N unresolved thread(s), first: …` | a review thread holds the merge | steps 2 and 3, then `wait --merged` again |
+| `required check failed: <names>` | a required check is red on the head | step 4: fix it in the code (step 2) or report it |
+| `auto-merge off (never enabled, or dropped from the merge queue)` | nothing will merge this PR as it stands | read `queued` |
+
+```bash
+"$SKILL"/scripts/pr-status queued <REPO#N> …
+```
+
+- `merged <sha7>`: done.
+- `queued: gh-readonly-queue/main/pr-<n>-<sha7> <workflow>=<state> …`: in
+  the queue, with each workflow's state on the merge group. Wait again.
+- `not queued: queue run failed (gh-readonly-queue/… <workflow>=failure), …`:
+  a check failed on the merge group and GitHub took the PR out of the queue.
+  The PR's own head can be all green: it fails on today's `main` with the PRs
+  ahead of it. Read that workflow's failed run on the queue branch, merge
+  `origin/main` into the PR's branch (never a rebase or force-push),
+  reproduce the failure and go back to step 2. When the new head's checks
+  are green and the user's request to merge still stands, enable auto-merge
+  again and follow it. A failure that is also on `main`, or an
+  infrastructure flake, is reported to the user, not worked around: say
+  which run failed, and re-enter the queue only if the user says so.
+- `not queued: open, auto-merge squash by <login>`: auto-merge is on and
+  waits for a required check or an open thread; `list` shows which.
+- `not queued: open, auto-merge none (REST shows none for a queued PR too)`:
+  with no queue run for this head, auto-merge was never enabled, or a push
+  after queueing took the PR out. Enable it if the user asked for the merge.
+  `none` alone never means the PR left the queue: GitHub's REST API reports
+  it for a queued PR too, which is why `wait --merged` and `queued` read the
+  queue's runs.
 
 **A behind `bot/release` PR** (the release bump) is never updated or
 queued as it is: dispatch the release `bump` again, so the version and
 changelog are rebuilt on the new `main`, and only when the user asked for
 the release.
 
-**Everywhere else**, let the script do the whole loop; do not run
-`update-branch` or a merge by hand:
+### Without a merge queue
+
+Only where the ruleset has no `merge_queue` rule (a private repository, or
+one outside the org's profiles). Let the script do the whole loop; do not
+run `update-branch` or a merge by hand:
 
 ```bash
 "$SKILL"/scripts/pr-status merge <REPO#N> … --dry-run   # what it would do now, writes nothing
@@ -179,35 +250,26 @@ the release.
 ```
 
 `merge` takes the PRs **one at a time per repository, in the order given**
-(repositories run independently). For each PR it:
-
-- skips a PR that is already merged or closed;
-- merges a PR GitHub reports `behind` as it is: it updates the branch
-  first (`PUT pulls/<n>/update-branch`, a merge of `main`, never a
-  force-push) only where the ruleset requires an up-to-date branch, or with
-  `--update` when `main` changed what the PR touches (a template, a
-  workflow, a required check; with it, an outdated PR GitHub reports `clean`
-  is found through `compare/<base>...<head>`), then waits for the new head
-  SHA and that head's checks; a behind `bot/release` PR stops with `behind: dispatch the
-  release bump again`;
-- waits until every check on the head is complete, counting a check the
-  ruleset requires but that has not reported as pending;
-- squash-merges with `sha=<head>` and the title `<PR title> (#n)`, so a
-  commit pushed in between stops the merge;
-- moves on to that repository's next PR only after the merge, because the
-  merge has just put the next one behind. When an earlier PR in the call
-  changes what a later one touches (a template, a workflow, a required
-  check), pass `--update`, or run the later PR in a call of its own after
-  deciding, so it is updated and merges only after CI on the new head.
+(repositories run independently). For each PR it skips one already merged
+or closed; merges a `behind` PR as it is, updating the branch first
+(a merge of `main`, never a force-push) only where the ruleset requires an
+up-to-date branch or with `--update` (you judged that `main` changed what
+the PR touches: a template, a workflow, a required check); waits until every
+check on the head is complete, a required check that has not reported
+counting as pending; waits for CodeRabbit's review (at most
+`--review-timeout` seconds after the PR opened, then `warning: ...; going on
+without it`); squash-merges pinned to the head SHA with the title
+`<PR title> (#n)`; and only then starts that repository's next PR.
 
 It prints one line per PR per change of state. It stops a PR, and does not
 run the later PRs of that repository, on `failing: <checks>`, `open threads:
-N` (with the thread lines), `conflict`, `draft` or `refused: <message>`; it
-never reruns a check or resolves a thread. Exit 0 means every PR merged, 1 a
-stop, 2 a timeout. Act on a stop as in steps 2–4: a failing check or an open
-thread goes back to step 2; a `conflict` means merging `origin/main` into the
-branch, never a rebase or force-push; a `refused` is final (Ground rules).
-Then run `merge` again for what is left.
+N` (with the thread lines), `conflict`, `draft`, `behind: dispatch the
+release bump again` or `refused: <message>`; it never reruns a check or
+resolves a thread. Exit 0 means every PR merged, 1 a stop, 2 a timeout. Act
+on a stop as in steps 2–4: a failing check or an open thread goes back to
+step 2; a `conflict` means merging `origin/main` into the branch, never a
+rebase or force-push; a `refused` is final (Ground rules). Then run `merge`
+again for what is left.
 
 If `merge` stops only on `failing:` or pending checks that the ruleset does
 not require (a report-only `codecov/patch`, or `dco` on agent commits;
@@ -216,12 +278,12 @@ open, squash-merge that PR pinned to its head, as `merge` would:
 `gh api -X PUT repos/<owner>/<repo>/pulls/<n>/merge -f merge_method=squash
 -f sha=<head> -f commit_title="<PR title> (#<n>)"`. A refusal is final.
 
-**Dependency order across repositories is yours.** `merge` orders PRs only
-within one repository. A library goes before its consumer
+**Dependency order across repositories is yours.** A queue, like `merge`, orders
+PRs only within one repository. A library goes before its consumer
 (`ns3-swarm-core` before ARA or BeeAdHoc, a `.github` tool before the skill
-that calls it, a template change before the org-bot PRs it causes): run
-`merge` on the library's PR first, and on the consumer's only after that has
-merged and the consumer's CI has run again against the new `main`.
+that calls it, a template change before the org-bot PRs it causes): land the
+library's PR first (`wait --merged` printed `merged`), and enable auto-merge
+on the consumer's only after its CI has run again against the new `main`.
 
 After a `templates/` change in `.github` merges, org-bot opens its refresh
 PRs in the other repositories (titles ending `(org-bot)`). Wait for them with

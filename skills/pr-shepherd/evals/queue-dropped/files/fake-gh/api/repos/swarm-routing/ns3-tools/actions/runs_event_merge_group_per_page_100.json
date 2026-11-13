@@ -1,0 +1,27 @@
+{
+ "total_count": 2,
+ "workflow_runs": [
+  {
+   "id": 9201,
+   "name": "python",
+   "workflow_id": 11,
+   "event": "merge_group",
+   "head_branch": "gh-readonly-queue/main/pr-57-41c0ffee9b8a7d6c5e4f3a2b1c0d9e8f7a6b5c4d",
+   "status": "completed",
+   "conclusion": "failure",
+   "created_at": "2026-11-12T10:15:40Z",
+   "html_url": "https://github.com/swarm-routing/ns3-tools/actions/runs/9201"
+  },
+  {
+   "id": 9202,
+   "name": "ns3",
+   "workflow_id": 12,
+   "event": "merge_group",
+   "head_branch": "gh-readonly-queue/main/pr-57-41c0ffee9b8a7d6c5e4f3a2b1c0d9e8f7a6b5c4d",
+   "status": "completed",
+   "conclusion": "success",
+   "created_at": "2026-11-12T10:15:41Z",
+   "html_url": "https://github.com/swarm-routing/ns3-tools/actions/runs/9202"
+  }
+ ]
+}
