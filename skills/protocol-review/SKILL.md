@@ -87,15 +87,21 @@ answer is "not touched":
 - **Rule 2, the other direction.** A dual-licensed script imports no GPL-only
   code; code taken from AntHocNet keeps its licence and records its
   provenance; nothing is copied from ns-3's `src/aodv` or `src/olsr`.
-- **Sources.** A source added to or dropped from `docs/fidelity.md` as the
-  one the protocol implements is also added to or dropped from
-  `[[references]]` in `.github/org-sync.toml` (its DOI confirmed with
-  `lit_search.py confirm`, or a URL and the reason it has none), with
-  `org_sync.py apply` and the CITATION.cff update (a reseed, unless
-  `org_sync.py seeds` shows hand-added fields; then by hand) in the same PR.
-  The `docs-review` script checks that each configured work reached
-  CITATION.cff with a DOI or its reason; whether the list matches the
-  sources `docs/fidelity.md` relies on is yours to judge.
+- **Sources.** `docs/references.bib` is the repository's one bibliography.
+  A source added to or dropped from `docs/fidelity.md` as the one the
+  protocol implements is also added to or dropped from the bib (role
+  `implemented`; the entry is the output of `fidelity.py bib entry <DOI>
+  --key K --role implemented`, never typed, and a work with no DOI gives its
+  publisher's or institution's `url`), and the same PR regenerates what is
+  rendered from it: `fidelity.py bib sources .` (the sheet's Sources table),
+  `org_sync.py apply` (the README's citing list) and the CITATION.cff update
+  (`org_sync.py reseed CITATION.cff`, unless `org_sync.py seeds` shows
+  hand-added fields). `fidelity.py bib check .` (in `swarm-routing/.github`
+  `tools/fidelity/`) is the mechanical part: every `[KEY]` the sheet cites
+  is an entry, each entry has a `doi` or `url` and a role, and the Sources
+  table is the bib's; a finding there is blocking. Whether the entries are
+  the works the code really follows is yours to judge. The `references`
+  skill is the whole procedure.
 - **The repository's own rules (10 onwards).** Read them in its AGENTS.md:
   protocol repos require the fidelity sheet before `core/`, pre-registered
   interpretations, written-fresh `core/` code; ns3-tools requires

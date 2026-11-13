@@ -36,12 +36,23 @@ Four required sections, each a Markdown table (`fidelity.py skeleton` writes the
 
 | Section | Columns |
 |---|---|
-| `## Sources` | Key · Citation · Access (`open`, `browser`, `institution`, `author`, `in hand`) |
+| `## Sources` | Key · Citation · Link, generated from `docs/references.bib` (below); a sheet not yet on the bib has Key · Citation · Access (`open`, `browser`, `institution`, `author`, `in hand`) |
 | `## Mechanisms` | Mechanism · Source · Implementation · Status |
 | `## Parameters` | Parameter · Value · Source · Notes |
 | `## Anchor candidate` | Trend · Scenario · Metric · Comparators · Source |
 
 Optional: `## Differences from <arm>` (Paper · Arm · Difference), and any prose.
+
+**The Sources table is the bib's.** `docs/references.bib` is the repository's
+one bibliography (swarm-routing/.github#307), and the sheet's keys are its
+entry keys: `[G02] §3.2` in a row and `G02` in the bib are one work. The
+table sits between `<!-- fidelity:sources:begin -->` and
+`<!-- fidelity:sources:end -->` and is rewritten from the bib by
+`fidelity bib sources .`; never edit a row of it, and never type a citation,
+a DOI or a year: `fidelity bib entry` prints the entry from Crossref's
+record. The `references` skill is the whole procedure for the bib (roles, a
+work with no DOI, a wrong Crossref record, CITATION.cff); this skill needs
+only the three commands in step 3.
 
 A **Source** cell is one of:
 - `[KEY] §3.1`, `[KEY] Table 4.1`, `[KEY] Fig. 2`, `[KEY] Listing 13.17`, `[KEY] Alg. 2`, `[KEY] eq. 4.3`, `[KEY] p. 84`, `[KEY] ch. 13` (several joined by `;`, or by `,` after one key). Prefer the narrowest: a page or listing over a whole chapter;
@@ -83,14 +94,39 @@ exists to prevent.
 
 ## 3. Start the file
 
-If the repo has no `docs/fidelity.md`:
+If the repo has no `docs/fidelity.md`, start it, then let the bib fill its
+Sources table:
 
 ```bash
-"$SKILL"/scripts/fidelity skeleton --protocol ARA --key G02 \
-  --citation "M. Güneş, U. Sorges, I. Bouazizi, ARA – The Ant-Colony Based Routing Algorithm for MANETs, ICPP Workshops (IWAHN) 2002, pp. 79–85, DOI 10.1109/ICPPW.2002.1039715" > docs/fidelity.md
+"$SKILL"/scripts/fidelity skeleton --protocol ARA > docs/fidelity.md
+"$SKILL"/scripts/fidelity bib entry <DOI> --key G02 --role implemented   # Crossref's record as a BibTeX entry
+"$SKILL"/scripts/fidelity bib sources .                                  # the Sources table, from the bib
 ```
 
-The key is short and stable (first author's initial + year).
+1. The key is short and stable (first author's initial + year). If
+   `docs/references.bib` already holds the work, use its key and skip
+   `bib entry`.
+2. Take the DOI from the paper's own first page or its publisher's page,
+   never from memory. Paste the entry `bib entry` prints into
+   `docs/references.bib` as it is (keep the file's header; entries sorted by
+   key). It exits 1 when Crossref has no record, or cannot be reached: do
+   not write the entry by hand; keep the skeleton's placeholder row and say
+   in the PR that the source's entry is missing and why. A work with no DOI (a thesis, a technical report) gets a `url` to
+   its institution's or publisher's page: the `references` skill has that
+   case.
+3. In `docs/fidelity.md`, replace the skeleton's placeholder Sources table
+   (the header and its `P1` row) with the two marker lines
+   `<!-- fidelity:sources:begin -->` and `<!-- fidelity:sources:end -->`,
+   then run `bib sources .`: it writes Key · Citation · Link between them
+   and says `Sources table rewritten`.
+
+A second source (a later paper restating the algorithm, the thesis behind
+it) is another `bib entry` with its own key and role (`restates`,
+`compared`), then `bib sources .` again.
+
+For a sheet that already exists and still has a hand-written Key ·
+Citation · Access table, do not convert it in passing: say so in the PR and
+leave the move to the bib to the `references` skill.
 
 ## 4. Read the paper by grepping it
 
@@ -156,7 +192,13 @@ ships as an infeasibility verdict, not as numbers.
 "$SKILL"/scripts/fidelity check docs/fidelity.md      # must end "fidelity check: ok"
 "$SKILL"/scripts/fidelity verify docs/fidelity.md --text G02="$SCRATCH/g02.txt"   # one --text per source key
 "$SKILL"/scripts/fidelity row docs/fidelity.md --protocol ARA
+"$SKILL"/scripts/fidelity bib check .                 # must print "fidelity bib check: ok"
 ```
+
+`bib check` is the sheet against `docs/references.bib`: every `[KEY]` the
+sheet cites is an entry, each entry has a `doi` or `url` and a role, and the
+Sources table is the bib's. Fix a finding in the bib and run `bib sources .`
+again, never in the table.
 
 `$SCRATCH` holds each source's text from step 4 (`pdfx.py text --out`);
 add one `--text KEY=PATH` per key in `## Sources` that you have the text of.
