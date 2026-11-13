@@ -31,7 +31,7 @@ SKILL="${CLAUDE_PLUGIN_ROOT}/skills/bestpractices"   # as the Claude Code plugin
 # installed with skills.sh (npx skills add): SKILL=<the directory this SKILL.md is in>
 BP="$SKILL/scripts/bestpractices"
 "$BP" answers REPO_DIR [--slug OWNER/NAME] [--write]       # derive the answers; --write: .bestpractices.json
-"$BP" register OWNER/NAME --dir REPO_DIR [--answers FILE]  # registered? id + proposal links, else registration URL
+"$BP" register OWNER/NAME --dir REPO_DIR [--answers FILE]  # registered? id + proposal links, else where to register
 "$BP" check --repos NAME[=ID][,...]                          # drift, read-only (never --issues by hand)
 "$SKILL/scripts/responses" OWNER/NAME --label bug|enhancement  # tracker counts for the response criteria
 ```
@@ -80,9 +80,11 @@ checkout must be exactly `main`: a fresh clone, or `git fetch origin && git
 checkout origin/main` with `git status --porcelain` empty. With local edits,
 stop and use a fresh clone instead.
 
-- **Not registered:** it prints a registration URL pre-filled with the
-  answers the repository shows (`?` left out). Give it to the maintainer to
-  open, log in and save; the site then shows the new project id.
+- **Not registered:** it says where to register:
+  https://www.bestpractices.dev/en/projects/new with the repository's URL
+  (the site has no pre-filled registration form). The maintainer adds it
+  there, logged in; then run `register` again for the id and the proposal
+  links.
 - **Registered:** it prints the project id, the line
   `bestpractices_project = "<id>"` and the proposal links (next section).
   If `.github/org-sync.toml` lacks the line, open a PR adding it (top-level
@@ -97,7 +99,10 @@ stop and use a fresh clone instead.
 
 Review the derived file before it goes anywhere: each `Met` names evidence
 that really says what the justification claims (open the URL's file on
-`main`), and each `?` is either owner-only or truly without evidence. Where
+`main`), and each `?` is either owner-only, one the tool leaves to the
+maintainer on purpose (`test_most`, `tests_are_added`: coverage measured is
+not coverage of most code, a written test policy is not proof it was
+followed), or truly without evidence. Where
 the repository does show evidence the script missed, fix the evidence or say
 so; do not hand-promote a `?` to `Met` without a URL.
 
