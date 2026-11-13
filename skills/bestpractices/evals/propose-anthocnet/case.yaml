@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: propose-anthocnet
+expected_outcome: |
+  The agent runs bestpractices.py register swarm-routing/AntHocNet with a checkout of AntHocNet's main (and answers to see the counts), confirms project 16656 from the site's public JSON, and hands over the proposal links (https://www.bestpractices.dev/en/projects/16656/passing/edit?...) as a numbered list, each under about 6000 characters, telling the maintainer to open each logged in, review and click Save; nothing is submitted by the agent. Owner-only criteria (know_secure_design, know_common_errors, vulnerabilities_fixed_60_days, vulnerabilities_critical_fixed, no_leaked_credentials, static_analysis_fixed) are absent from the links and listed for the maintainer. It points out the missing bestpractices_project = "16656" line in AntHocNet's .github/org-sync.toml (a PR) and mentions .bestpractices.json (answers --write, then "Save (and continue)" with the robot) as the durable route.
