@@ -77,15 +77,20 @@ Then find what the repository cites outside the sheet, since those are the
 references a protocol's bib most often misses:
 
 ```bash
-git grep -nE 'doi\.org/10\.|\b10\.[0-9]{4,}/' -- ':!*.bib' ':!docs/references.bib'
-git grep -nE '\[[A-Z][A-Za-z]*[0-9]{2}[a-z]?\]' -- '*.md' '*.h' '*.cc' '*.py'
+"$T" fidelity bib scan .             # read-only: every DOI and [KEY] cited outside the bib, then the bib
 ```
 
-Check `README.md`, `docs/`, `CITATION.cff`, code comments, test fixtures
-(a fixture derived from a published dataset cites the dataset) and the
-org releases the repository builds on (a pinned `core/`, a harness, an
-image). DOIs under `skills/*/evals/` or test fixtures of a lookup tool are test
-inputs, not references; leave them out.
+It prints each DOI (as its doi.org link) and each `[KEY]` cited in the
+repository's prose and in code and YAML comments once, with its first place,
+how many more there are, and whether the bib holds it (`in the bib as [KEY]`,
+`NOT in the bib`, or the repository's own DOI); then every bib entry as key,
+role and link, `(no doi)` on a url-only one. It skips `skills/*/evals/` and
+lookup tools' test fixtures: test inputs, not references. Read every
+`NOT in the bib` line: a work the code or a doc relies on needs an entry;
+a survey a doc merely mentions, or another release of the repository itself,
+may stay out. Also check the org releases the repository builds on (a pinned
+`core/`, a harness, an image) and test fixtures derived from a published
+dataset (they cite the dataset), which no scan can see.
 
 ## 2. Confirm each work and write its entry
 
@@ -166,7 +171,8 @@ no longer cited, drop its entry or give it a role that explains why it stays.
 Reword every private-store line the check printed, then grep for what the
 check cannot see: paths into the store (a `$PAPERS/...` variable, a
 `<repo>/library/...` path, a home-directory default) and words for it
-("papers repo", "the library"); reword those too.
+(the private repository's name followed by "repo", "the library"); reword
+those too.
 
 ## 4. Verify and hand over
 
@@ -183,6 +189,6 @@ reworded.
 
 ## Reporting without changing anything
 
-Asked only which papers a repository follows, or how to cite it: run step 1,
-read `docs/references.bib`, and answer with the DOI links and roles. Name
-anything the check printed, but make no change.
+Asked only which papers a repository follows, or how to cite it: run step 1
+and answer from `bib scan`'s list of entries, with their DOI links and roles.
+Name anything the check or the scan printed, but make no change.
