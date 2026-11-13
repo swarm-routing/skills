@@ -217,9 +217,15 @@ and the others were not waited for:
 - `not queued: queue run failed (gh-readonly-queue/… <workflow>=failure), …`:
   a check failed on the merge group and GitHub took the PR out of the queue.
   The PR's own head can be all green: it fails on today's `main` with the PRs
-  ahead of it. Read that workflow's failed run on the queue branch, merge
-  `origin/main` into the PR's branch (never a rebase or force-push),
-  reproduce the failure and go back to step 2. When the new head's checks
+  ahead of it. Read that workflow's failed run on the queue branch first:
+  it is the state that failed. Then, on a branch you or the maintainer
+  pushed, merge `origin/main` into the PR's branch (never a rebase or
+  force-push), reproduce the failure and go back to step 2. If it does not
+  reproduce there, say so: `origin/main` holds only the PRs that merged, and
+  one still ahead in the queue may be the cause; do not call it the PR's
+  fault or a flake. Never push to an outside contributor's PR: report the
+  failed run and ask the author for the update. A `bot/release` PR is not
+  updated either (below). When the new head's checks
   are green and the user's request to merge still stands, enable auto-merge
   again and follow it. A failure that is also on `main`, or an
   infrastructure flake, is reported to the user, not worked around: say

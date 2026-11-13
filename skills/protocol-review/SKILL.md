@@ -93,10 +93,13 @@ answer is "not touched":
   `implemented`; the entry is the output of `fidelity.py bib entry <DOI>
   --key K --role implemented`, never typed, and a work with no DOI gives its
   publisher's or institution's `url`), and the same PR regenerates what is
-  rendered from it: `fidelity.py bib sources .` (the sheet's Sources table),
-  `org_sync.py apply` (the README's citing list) and the CITATION.cff update
+  rendered from it: `fidelity.py bib sources .` (the sheet's Sources table)
+  and, where `.github/org-sync.toml` has `citation = true`, `org_sync.py
+  apply` (the README's citing list) and the CITATION.cff update
   (`org_sync.py reseed CITATION.cff`, unless `org_sync.py seeds` shows
-  hand-added fields). `fidelity.py bib check .` (in `swarm-routing/.github`
+  hand-added fields). Without `citation = true` org-sync renders neither:
+  expect only CITATION.cff's `references:` block to change (the
+  `references` skill has that case), not the README. `fidelity.py bib check .` (in `swarm-routing/.github`
   `tools/fidelity/`) is the mechanical part: every `[KEY]` the sheet cites
   is an entry, each entry has a `doi` or `url` and a role, and the Sources
   table is the bib's; a finding there is blocking. Whether the entries are

@@ -99,7 +99,9 @@ Sources table:
 
 ```bash
 "$SKILL"/scripts/fidelity skeleton --protocol ARA > docs/fidelity.md
-"$SKILL"/scripts/fidelity bib entry <DOI> --key G02 --role implemented   # Crossref's record as a BibTeX entry
+DOI=...   # the source's DOI, from its first page (2)
+"$SKILL"/scripts/fidelity bib entry "$DOI" --key G02 --role implemented   # prints Crossref's record as a BibTeX entry
+# paste the entry into docs/references.bib (2) and put the markers in the sheet (3), then:
 "$SKILL"/scripts/fidelity bib sources .                                  # the Sources table, from the bib
 ```
 
@@ -198,7 +200,13 @@ ships as an infeasibility verdict, not as numbers.
 `bib check` is the sheet against `docs/references.bib`: every `[KEY]` the
 sheet cites is an entry, each entry has a `doi` or `url` and a role, and the
 Sources table is the bib's. Fix a finding in the bib and run `bib sources .`
-again, never in the table.
+again, never in the table. Two sheets from step 3 cannot print `ok` yet: one
+that kept the skeleton's placeholder row because Crossref had no record, and
+an existing one with a hand-written table. `bib check` then exits 1 with
+`no Sources markers` (and each cited key the bib lacks). That finding is
+true and stays: copy it into the PR with what is missing, and leave it to
+the `references` skill. Do not add markers around a hand-written table or
+type an entry to make the check pass.
 
 `$SCRATCH` holds each source's text from step 4 (`pdfx.py text --out`);
 add one `--text KEY=PATH` per key in `## Sources` that you have the text of.

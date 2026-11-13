@@ -76,8 +76,12 @@ or the next run undoes the edit:
   the bib, never in the README or CITATION.cff: that is the `references`
   skill's job (each entry printed by `fidelity.py bib entry <DOI> --key K
   --role R` from Crossref's record, never typed; `fidelity.py bib check .`
-  lists what is wrong). Then run `org_sync.py apply` and
-  `org_sync.py reseed CITATION.cff`. CITATION.cff is a seed and a reseed
+  lists what is wrong). Then, in a repository with `citation = true`, run
+  `org_sync.py apply` and `org_sync.py reseed CITATION.cff`; without it
+  org-sync renders neither the citing section nor CITATION.cff (`reseed`
+  answers "not a seed"), so do not run them: only CITATION.cff's
+  `references:` block is updated, as the `references` skill describes, and
+  the report says the repository has no `citation = true`. CITATION.cff is a seed and a reseed
   rewrites the whole file: run `org_sync.py seeds` first, and when it says
   the file differs by more than the template's own change (fields added by
   hand, a dataset's message), say so in the report and leave the file to the

@@ -76,8 +76,16 @@ A repository's GitHub settings (description, topics, the ruleset profile,
 required checks, the merge queue, security features) are declared in the
 `[settings]` table of its own `.github/org-sync.toml`; org-sync ignores that
 table. `swarm-routing/.github` `tools/repo-settings/repo_settings.py` reads
-it: `repo_settings.py plan <repo>` lists the differences between the live
-repository and its declaration and writes nothing.
+it: its `plan` lists the differences between the live repository and its
+declaration and writes nothing. `scripts/org-sync` does not run that tool;
+run it from a checkout of `swarm-routing/.github` (needs `gh` logged in, or
+`GH_TOKEN`), with the repository's name in place of `ARA`:
+
+```bash
+python3 -I tools/repo-settings/repo_settings.py plan ARA
+```
+
+Without such a checkout, say in the PR that `plan` was not run.
 
 - A setting that should change is a change to `[settings]` in a reviewed PR
   (a ruleset profile or the Actions allowlist: a PR to `templates/rulesets/`
@@ -117,9 +125,11 @@ Every public repository releases and is archived on Zenodo
 - The `release` badge appears once a workflow calls `reusable-release.yml`.
 - `docs/references.bib` is seeded in every repository (a commented header,
   no entry): it is the repository's one bibliography. Once it holds an
-  entry, `CITATION.cff`'s `references:` and the README's Releases & citing
-  list are rendered from it (its `implemented`, `tool` and `dataset`
-  entries), not from the config. Never type an entry: filling and checking
+  entry and `citation = true` is set, `CITATION.cff`'s `references:` and the
+  README's Releases & citing list are rendered from it (its `implemented`,
+  `tool` and `dataset` entries), not from the config. Without
+  `citation = true` org-sync renders neither; the repository keeps its own
+  README citing section and `CITATION.cff`. Never type an entry: filling and checking
   the bib is the `references` skill (`fidelity.py bib entry <DOI> --key K
   --role R` in `swarm-routing/.github` prints one from Crossref's record).
 - After the first release is archived, read the concept record from Zenodo
