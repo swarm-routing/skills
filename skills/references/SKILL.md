@@ -98,6 +98,7 @@ dataset (they cite the dataset), which no scan can see.
 "$T" fidelity bib entry DOI --key G02 --role implemented   # a BibTeX entry from Crossref's record
 "$T" lit-search confirm DOI                                # Crossref vs Semantic Scholar and OpenAlex, field by field
 "$T" lit-search confirm --title "exact title" --year 2007  # a work without a DOI: find one, or confirm it has none
+"$T" fidelity bib entry --url URL --key W07 --role implemented   # a work with no DOI: from its repository's record
 "$T" zenodo bibtex REPO --role tool                        # an org release: its concept record as @software, keyed from CONTRIBUTING's table
 ```
 
@@ -106,9 +107,17 @@ when `bib entry` or the sheet disagree with each other: a `differ` in year or
 pages is settled on the publisher's page (online-first year against issue
 year is the usual cause), never by picking the convenient value; say which
 you used in the PR. A work that seems to have no DOI may still have a DataCite one
-(university repositories, technical reports): look at the repository's own
-record page before settling for a `url`. A work that has no DOI gets a `url`
-to the institution's or publisher's page, never to a private copy. If nothing confirms a work, do
+(university repositories, technical reports): `bib entry --url` on the
+repository's landing page refuses when the page names one and prints the
+`bib entry DOI` command to run instead. A work that has no DOI takes its entry
+from `bib entry --url` on its institution's or publisher's landing page (a
+handle such as `https://hdl.handle.net/1993/20935` is best): the page's
+`citation_*` tags and the repository's OAI-PMH record give the fields, the
+handle's url and no `doi`; paste it as it is, never a copy's url. A field the
+record lacks stays out (a thesis whose record names no degree is `@misc`, with
+no `school`): do not add it by hand, say in the PR what the record lacks. When
+it refuses (no title, author or year in the record), the work is unconfirmed,
+as below. If nothing confirms a work, do
 not add it: name it in the PR as unconfirmed, and reword every place the
 sheet cites its key (`[R05] §3`) to name the work in prose instead, since
 `bib check` fails on a cited key the bib lacks. A row whose Source rests on that work

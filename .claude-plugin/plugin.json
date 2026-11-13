@@ -1,6 +1,6 @@
 {
   "name": "swarm-routing",
-  "version": "0.23.0",
+  "version": "0.24.0",
   "description": "Skills for building and maintaining the swarm-routing ns-3 protocols (AntHocNet, ARA, BeeAdHoc, Termite, HOPNET) and their org: org-repo (templates via tools/org-sync), fidelity-sheet (a protocol's paper-fidelity sheet via tools/fidelity), protocol-review (the golden rules on a diff via tools/protocol-review), docs-review (README, AI files and docs/ to the org standard via tools/docs-review), pr-shepherd (open PRs from review to merge via tools/pr-status), lit-search (find new papers and confirm references from free sources via tools/lit-search), references (a repository's docs/references.bib, DOI links first, via tools/fidelity, tools/lit-search and tools/zenodo) and token-audit (what a session loads from the agent files and where a finished session's tokens went, via this repository's tools/token-audit); ns-3-specific skills carry the ns3- prefix.",
   "author": {
     "name": "Daniel Joppi",
