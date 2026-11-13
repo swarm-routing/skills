@@ -29,7 +29,7 @@ so the script does the work and the skill says when and in what order.
 | [`references`](skills/references/SKILL.md) | review and set up a repository's `docs/references.bib`: what it cites, each work confirmed from Crossref or Zenodo, DOI links first, the fidelity Sources table and `CITATION.cff` references regenerated and checked (swarm-routing/.github#307) | `tools/fidelity/fidelity.py`, `tools/lit-search/lit_search.py`, `tools/zenodo/zenodo.py` |
 | [`token-audit`](skills/token-audit/SKILL.md) | measure and cut what a session costs in tokens: what it loads before its first tool call (agent files by section, org-managed and repeated text, a budget as a gate; estimates), and where a finished session's tokens went (the first request's context, calls and result bytes per tool, candidates for a script; measured) | this repository's `tools/token-audit/token_audit.py` |
 
-Planned ([epic #9](https://github.com/swarm-routing/skills/issues/9)): the ns-3-specific `ns3-new-module` and `ns3-anchor-run`.
+Planned ([epic #9](https://github.com/swarm-routing/skills/issues/9)): the ns-3-specific `ns3-new-module` (#12), `ns3-anchor-run` (#13) and `ns3-campaign` (#42); `release` (#43); `repo-settings` (#44).
 
 ## Install
 
