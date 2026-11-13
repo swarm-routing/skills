@@ -191,4 +191,7 @@ reworded.
 
 Asked only which papers a repository follows, or how to cite it: run step 1
 and answer from `bib scan`'s list of entries, with their DOI links and roles.
-Name anything the check or the scan printed, but make no change.
+The list has no titles, authors or years; when the answer needs them (a
+url-only entry, a formatted citation), read that entry alone:
+`git grep -n -A10 '{KEY,' -- docs/references.bib`. Name anything the check or
+the scan printed, but make no change.
