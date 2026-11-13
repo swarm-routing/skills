@@ -1,0 +1,40 @@
+{
+ "total_count": 7,
+ "check_runs": [
+  {
+   "name": "python / python",
+   "status": "completed",
+   "conclusion": "success"
+  },
+  {
+   "name": "ci / ns-latest debug",
+   "status": "completed",
+   "conclusion": "success"
+  },
+  {
+   "name": "ci / ns-latest sanitized",
+   "status": "completed",
+   "conclusion": "success"
+  },
+  {
+   "name": "headers / licence",
+   "status": "completed",
+   "conclusion": "success"
+  },
+  {
+   "name": "check / org-sync",
+   "status": "completed",
+   "conclusion": "success"
+  },
+  {
+   "name": "title / title",
+   "status": "completed",
+   "conclusion": "success"
+  },
+  {
+   "name": "review / coderabbit",
+   "status": "completed",
+   "conclusion": "success"
+  }
+ ]
+}

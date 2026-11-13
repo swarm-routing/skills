@@ -67,20 +67,27 @@ or the next run undoes the edit:
 - **`## Epics`** comes from `epics.py readme`.
 - **Citing** (the README's Releases & citing section between
   `<!-- org-sync:begin citing -->` markers, CITATION.cff's `doi:` and
-  `references:`, the DOI badge) comes from `.github/org-sync.toml`:
-  `citation = true`, `zenodo_concept` (read from Zenodo, never typed),
-  `citation_type` and `[[references]]`, the work the repository implements
-  (type, title, authors, year, venue, `doi`, a one-line `role`; a work with no
-  DOI gives its publisher's or institution's `url` and `no_doi`, the reason).
-  Confirm each DOI with the `lit-search` skill
-  (`lit_search.py confirm <DOI>`) and copy title, year and venue from
-  Crossref's output. Then run `org_sync.py apply` and
-  `org_sync.py reseed CITATION.cff`. CITATION.cff is a seed and a reseed
+  `references:`, the DOI badge) comes from two places. The repository's own
+  record is in `.github/org-sync.toml`: `citation = true`, `zenodo_concept`
+  (read from Zenodo, never typed) and `citation_type`. The works it relies
+  on are the entries of `docs/references.bib` (its `implemented`, `tool` and
+  `dataset` entries reach CITATION.cff's `references:` and the citing list).
+  A work that is missing, stale or shown without its DOI link is fixed in
+  the bib, never in the README or CITATION.cff: that is the `references`
+  skill's job (each entry printed by `fidelity.py bib entry <DOI> --key K
+  --role R` from Crossref's record, never typed; `fidelity.py bib check .`
+  lists what is wrong). Then, in a repository with `citation = true`, run
+  `org_sync.py apply` and `org_sync.py reseed CITATION.cff`; without it
+  org-sync renders neither the citing section nor CITATION.cff (`reseed`
+  answers "not a seed"), so do not run them: only CITATION.cff's
+  `references:` block is updated, as the `references` skill describes, and
+  the report says the repository has no `citation = true`. CITATION.cff is a seed and a reseed
   rewrites the whole file: run `org_sync.py seeds` first, and when it says
   the file differs by more than the template's own change (fields added by
-  hand, a dataset's message), add the `references:` entries by hand instead
-  and keep the rest. A tagged repository without `zenodo_concept` waits for Zenodo
-  to archive the release; report it, never invent a DOI.
+  hand, a dataset's message), say so in the report and leave the file to the
+  `references` skill instead of reseeding over those fields. A tagged
+  repository without `zenodo_concept` waits for Zenodo to archive the
+  release; report it, never invent a DOI.
 
 Everything else is the repository's own: the opening paragraph, the layout
 blocks, Quick start, CONTEXT.md and docs/.

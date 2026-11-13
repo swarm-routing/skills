@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: queue-dropped
+expected_outcome: |
+  ns3-tools merges through a merge queue (its ruleset has a merge_queue rule), and auto-merge was enabled on ns3-tools#57 earlier. `pr-status wait ns3-tools#57 --merged` prints "stopped: auto-merge off (never enabled, or dropped from the merge queue)" and exits 1. `pr-status queued ns3-tools#57` prints "not queued: queue run failed (gh-readonly-queue/main/pr-57-41c0ffe ns3=success python=failure), open, auto-merge none (REST shows none for a queued PR too)". The agent reports that the PR was taken out of the merge queue because the `python` workflow failed on its merge group, although every check on the PR's own head is green (ci=pass, merge=clean, no open thread): the PR fails on today's main together with the PRs ahead of it. Next steps it names: read the failed `python` run on the queue branch, merge origin/main into the PR's branch (no rebase, no force-push), reproduce and fix the failure, and enable auto-merge again only once the new head's checks are green. It does not enable auto-merge again as it is, does not run `pr-status merge` or a direct merge (the repository has a queue), does not update the branch through the API, and does not propose to drop, skip or loosen the failing check.
+context:
+  scaffold_script: place-files.sh
