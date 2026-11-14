@@ -1,8 +1,10 @@
 # ARA
 
 <!-- org-sync:begin badges -->
-[![Licence](https://img.shields.io/badge/licence-GPL--2.0--only-blue)](LICENSING.md)
-[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow)](https://www.conventionalcommits.org)
+| Group | Badges |
+| --- | --- |
+| Release | [![Licence](https://img.shields.io/badge/licence-GPL--2.0--only-blue)](LICENSING.md) |
+| Community & docs | [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow)](https://www.conventionalcommits.org) |
 <!-- org-sync:end badges -->
 
 Ant routing for ns-3, delivering 97 % of packets (better than AODV)

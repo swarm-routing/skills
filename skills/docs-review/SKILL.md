@@ -1,6 +1,6 @@
 ---
 name: docs-review
-description: "Bring a swarm-routing repository's README, AI files (AGENTS.md, CLAUDE.md, CONTEXT.md) and docs/ to the org documentation standard, which is AntHocNet's: the org-sync badge row, a short explanation of the project, its page on the Colony Arena site, the ns-3 image for ns-3 repos, a layout that matches the tree, Epics, licence and how-to-work-here sections, a released repository's DOI and citing section with the papers it implements, a docs/ map with no orphan pages and no broken links, and no claim the repository cannot back. Use whenever a README or docs page is written or reviewed in an org repository, a repository is set up or its status changes, someone asks for badges, citation or DOI references, the game or site link, the container link or a docs cleanup, before a docs PR, or when handoff lessons or a `[docs] AI files` issue should be folded back into AGENTS.md and CLAUDE.md. Script first: check_docs.py does the mechanical checks; you judge the prose."
+description: "Bring a swarm-routing repository's README, AI files (AGENTS.md, CLAUDE.md, CONTEXT.md) and docs/ to the org documentation standard, which is AntHocNet's: the org-sync badge table, grouped by purpose, a short explanation of the project, its page on the Colony Arena site, the ns-3 image for ns-3 repos, a layout that matches the tree, Epics, licence and how-to-work-here sections, a released repository's DOI and citing section with the papers it implements, a docs/ map with no orphan pages and no broken links, and no claim the repository cannot back. Use whenever a README or docs page is written or reviewed in an org repository, a repository is set up or its status changes, someone asks for badges, citation or DOI references, the game or site link, the container link or a docs cleanup, before a docs PR, or when handoff lessons or a `[docs] AI files` issue should be folded back into AGENTS.md and CLAUDE.md. Script first: check_docs.py does the mechanical checks; you judge the prose."
 license: MIT OR GPL-2.0-only
 compatibility: Needs python3 and network access to github.com (scripts/check-docs clones swarm-routing/.github tools/docs-review); step 4 and --online also need the GitHub CLI, logged in (gh auth login) or with GH_TOKEN set.
 metadata:
@@ -32,7 +32,8 @@ on a FAIL:
 
 | Where | Checked | Level |
 |---|---|---|
-| README | `# Title` first; the org-sync badge row | FAIL |
+| README | `# Title` first; the badges are org-sync's table: `\| Group \| Badges \|`, one row per group in order (Build, Quality, Release, Trust, Stack, Community & docs) | FAIL |
+| README | a badge outside that table (written by hand) | WARN |
 | README | an explanation (a paragraph of 2+ sentences) near the top | WARN |
 | README | a link to its site page `https://swarm-routing.github.io/arena/<id>/` (AntHocNet: its game); for ns-3 repos, the `ns3-dev` image | WARN |
 | README | `## Epics`, a licence section linking LICENSING.md, a link to AGENTS.md or CONTRIBUTING.md | WARN |
@@ -55,10 +56,19 @@ A repository tunes it in a `[docs]` table of `.github/org-sync.toml`:
 Some parts of these files are generated. Edit those only through their tool,
 or the next run undoes the edit:
 
-- **Badges** (between `<!-- org-sync:begin badges -->` markers) come from
-  `badges` in `.github/org-sync.toml`. The site and image links are the
-  `arena` and `ns3dev` badges: add the names there and run
-  `org_sync.py apply` (the `org-repo` skill). Never type a badge by hand.
+- **Badges** (between `<!-- org-sync:begin badges -->` markers) are a
+  table, one row per group, rendered from `badges` in
+  `.github/org-sync.toml`: the list says which badges appear, the group
+  fixes their row and order (swarm-routing/.github CONTRIBUTING). The site
+  and image links are the `arena` and `ns3dev` badges: add the names there
+  and run `org_sync.py apply` (the `org-repo` skill). Never type a badge by
+  hand, inside the markers or next to them. A badge the check finds outside
+  the table becomes a kind when org-sync has one (`codecov`, `codespaces`,
+  `release`, ...: an exact duplicate of one just goes), else an
+  `[[extra_badges]]` entry with its `group` (`build`, `quality`, `release`,
+  `trust`, `stack` or `community`), `alt`, `image` and `link` copied from
+  the line; delete the line and run `org_sync.py apply`. Say in the report
+  which group each one joined.
   If `org_sync.py plan` does not know those names (an older checkout of the
   org tools), link the site page and the image in the opening paragraph
   instead, and say so in the report.
@@ -109,7 +119,7 @@ Each needs a sentence in the report, even when the answer is "fine":
   the project is (the protocol and its paper, or the tool), why it exists in
   the org, and its status. Take the facts from AGENTS.md "What this repo is",
   never from memory. The site and image links sit in the opening (the badge
-  row), not at the bottom.
+  table), not at the bottom.
 - **Honest status.** The README, AGENTS.md and CONTEXT.md give the same
   status, and it matches the tree: no "works", "supports" or "fast" for a
   part that is planned. A number comparing protocols (delivery ratio,
