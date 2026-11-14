@@ -1,10 +1,11 @@
 # Termite
 
 <!-- org-sync:begin badges -->
-[![Licence](https://img.shields.io/badge/licence-GPL--2.0--only-blue)](LICENSING.md)
-[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow)](https://www.conventionalcommits.org)
-[![Colony Arena](https://img.shields.io/badge/Colony%20Arena-Termite-8a5a2b)](https://swarm-routing.github.io/arena/Termite/)
-[![ns3-dev image](https://img.shields.io/badge/image-ns3--dev-2496ED?logo=docker)](https://github.com/orgs/swarm-routing/packages/container/package/ns3-dev)
+| Group | Badges |
+| --- | --- |
+| Build | [![ns3-dev image](https://img.shields.io/badge/image-ns3--dev-2496ED?logo=docker)](https://github.com/orgs/swarm-routing/packages/container/package/ns3-dev) |
+| Release | [![Licence](https://img.shields.io/badge/licence-GPL--2.0--only-blue)](LICENSING.md) |
+| Community & docs | [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow)](https://www.conventionalcommits.org) [![Colony Arena](https://img.shields.io/badge/Colony%20Arena-Termite-8a5a2b)](https://swarm-routing.github.io/arena/Termite/) |
 <!-- org-sync:end badges -->
 
 **Status: alpha.** Termite (Roth & Wicker, 2003) is routing by stigmergy: the routing state rides inside data packets and there are no control ants. This repository will hold it as a standalone core/ and ns-3 module; the [fidelity sheet](docs/fidelity.md) comes first.

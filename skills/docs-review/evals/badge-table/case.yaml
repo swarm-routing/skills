@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: badge-table
+expected_outcome: |
+  check_docs fails the README's badges (a flat row, not org-sync's grouped table) and warns on the hand-written "Core coverage" badge below the end marker. The fix: the coverage badge becomes an `[[extra_badges]]` entry in .github/org-sync.toml (group = "quality", its alt, image and link unchanged) and its README line is deleted; `org_sync.py apply` renders the `| Group | Badges |` table (Quality: Core coverage; Release: Licence; Community & docs: Conventional Commits, plus whatever badges the agent added through `badges`). Nothing is typed between the badge markers by hand; check_docs then passes the badge table with no badge outside it.
+context:
+  scaffold_script: place-files.sh
