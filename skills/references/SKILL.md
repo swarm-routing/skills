@@ -115,7 +115,11 @@ handle such as `https://hdl.handle.net/1993/20935` is best): the page's
 `citation_*` tags and the repository's OAI-PMH record give the fields, the
 handle's url and no `doi`; paste it as it is, never a copy's url. A field the
 record lacks stays out (a thesis whose record names no degree is `@misc`, with
-no `school`): do not add it by hand, say in the PR what the record lacks. When
+no `school`): do not add it by hand, say in the PR what the record lacks. One
+exception, for a thesis whose record names neither degree nor grantor: its type
+(`@phdthesis`, `@mastersthesis`) and `school` may come from the thesis's own
+title page, quoted in the PR, with the entry's `note` saying so (CONTRIBUTING
+"References"; every other field still comes from the record). When
 it refuses (no title, author or year in the record), the work is unconfirmed,
 as below. If nothing confirms a work, do
 not add it: name it in the PR as unconfirmed, and reword every place the
