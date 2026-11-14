@@ -8,7 +8,7 @@
 # its outputs directory. Exit 0 pass, 77 cannot grade, else fail.
 set -u
 repo=$1
-[ -d "$repo" ] || { echo "no repository at $repo"; exit 77; }
+[[ -d "$repo" ]] || { echo "no repository at $repo"; exit 77; }
 docs=$(cd "$(dirname "$0")/../../../scripts" && pwd)/check-docs
 out=$("$docs" "$repo" 2>&1)
 grep -qE "^(PASS|WARN|FAIL) " <<<"$out" || { echo "check-docs gave no result: $(tail -n 2 <<<"$out")"; exit 77; }

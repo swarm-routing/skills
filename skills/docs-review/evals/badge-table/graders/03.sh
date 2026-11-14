@@ -10,14 +10,17 @@
 # its outputs directory. Exit 0 pass, 77 cannot grade, else fail.
 set -u
 repo=$1
-[ -d "$repo" ] || { echo "no repository at $repo"; exit 77; }
-[ -d "$repo/.git" ] || { echo "no git history in $repo to compare with"; exit 77; }
+[[ -d "$repo" ]] || { echo "no repository at $repo"; exit 77; }
+[[ -d "$repo/.git" ]] || { echo "no git history in $repo to compare with"; exit 77; }
 block() { sed -n "/org-sync:begin badges/,/org-sync:end badges/p"; }
 root=$(git -C "$repo" rev-list --max-parents=0 HEAD | tail -n 1)
 base=$(git -C "$repo" show "$root:README.md" | block)
-[ -f "$repo/README.md" ] || { echo "no README.md in $repo"; exit 1; }
+[[ -f "$repo/README.md" ]] || { echo "no README.md in $repo"; exit 1; }
 now=$(block <"$repo/README.md")
-[ "$now" = "$base" ] && { echo "badge block unchanged: still the flat row, org_sync.py apply not run"; exit 1; }
+[[ "$now" == "$base" ]] && { echo "badge block unchanged: still the flat row, org_sync.py apply not run"; exit 1; }
+# a config that skips README.md would leave the block out of apply, so a hand edit would match
+grep -qE '^skip *=.*"README\.md' "$repo/.github/org-sync.toml" 2>/dev/null \
+    && { echo "org-sync.toml skips README.md: the badge block is not rendered"; exit 1; }
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp" "$tmp.log"' EXIT
 cp -R "$repo/." "$tmp"
@@ -27,8 +30,8 @@ sync=$(cd "$(dirname "$0")/../../../../org-repo/scripts" && pwd)/org-sync
 # rendered nothing, so the run cannot be graded.
 ORG_SYNC_DIR=${ORG_SYNC_DIR:-${ORG_TOOLS_DIR:-}} "$sync" apply "$tmp" >"$tmp.log" 2>&1
 status=$?
-[ "$status" -eq 0 ] || { [ "$status" -eq 1 ] && grep -q "^conflict " "$tmp.log"; } \
+[[ "$status" -eq 0 ]] || { [[ "$status" -eq 1 ]] && grep -q "^conflict " "$tmp.log"; } \
     || { echo "org-sync apply failed (exit $status); cannot grade: $(tail -n 2 "$tmp.log")"; exit 77; }
 rendered=$(block <"$tmp/README.md")
-[ "$now" = "$rendered" ] || { echo "the badge block differs from what org_sync.py apply renders:"; diff <(echo "$rendered") <(echo "$now"); exit 1; }
+[[ "$now" == "$rendered" ]] || { echo "the badge block differs from what org_sync.py apply renders:"; diff <(echo "$rendered") <(echo "$now"); exit 1; }
 echo "badge block is org_sync.py apply's"
