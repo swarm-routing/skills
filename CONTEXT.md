@@ -13,9 +13,10 @@ plugin was called `org-repo` until 2026-11-09, and `marketplace.json` records
 the rename), and as plain Agent Skills that skills.sh installs into any agent
 (`npx skills add swarm-routing/skills`).
 
-Ten skills under `skills/`: `org-repo`, `fidelity-sheet`, `protocol-review`,
+Twelve skills under `skills/`: `org-repo`, `fidelity-sheet`, `protocol-review`,
 `docs-review`, `pr-shepherd`, `lit-search`, `references`, `token-audit`,
-`bestpractices` and `dependency-bump` (what each does: the README table). Each is a procedure over a script in
+`bestpractices`, `dependency-bump`, `release` and `sonar-triage` (what each
+does: the README table). Each is a procedure over a script in
 swarm-routing/.github `tools/`, reached through a thin wrapper in
 `skills/<name>/scripts/`; `token-audit`'s script is this repository's own
 `tools/token-audit/token_audit.py`.
@@ -30,7 +31,7 @@ eval cases yet (#102).
 
 Next work: epic #9 and its open sub-issues. Skills still to write:
 `ns3-new-module` (#12), `ns3-anchor-run` (#13), `ns3-campaign` (#42),
-`release` (#43), `repo-settings` (#44). Releases of this repository: #64.
+`repo-settings` (#44), `vcpkg-port` (#121). Releases of this repository: #64.
 Work in flight is in the newest open `handoff` issue.
 
 ## Glossary
