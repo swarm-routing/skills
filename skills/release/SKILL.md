@@ -92,9 +92,12 @@ gh workflow run release.yml -R swarm-routing/<repo> -f mode=bump
 
 Review the PR it opens from `bot/release`: the version files and the
 `CHANGELOG.md` section. An empty section (a milestone bump with no
-`feat`/`fix`) gets a written paragraph in a commit on the bump PR before it
-merges, since the release notes are that section (swarm-routing/ns3-tools#185).
-If `main` moves before the merge, dispatch `bump` again; `ready` says when.
+`feat`/`fix`) needs a written paragraph before the merge, since the release
+notes are that section (swarm-routing/ns3-tools#185). CONTRIBUTING has it
+added as a commit on the bump PR; that branch is the bot's, so you never push
+it: stop, say the section is empty, and leave that commit to the
+maintainer. If `main` moves before the merge, dispatch `bump` again; `ready`
+says when.
 
 ## 4. Merge
 
