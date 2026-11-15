@@ -1,0 +1,19 @@
+name: release
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      mode: { type: choice, options: [dry-run, bump], default: dry-run }
+permissions:
+  contents: read
+jobs:
+  release:
+    uses: swarm-routing/.github/.github/workflows/reusable-release.yml@main
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    with:
+      mode: ${{ inputs.mode }}
+    secrets: inherit

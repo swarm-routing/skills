@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: ladder-missing
+expected_outcome: |
+  The agent checks readiness with the script (release_check.py ready, through the skill's wrapper or a .github checkout) before any dispatch: the caller, the Commitizen config and make dist pass, there is no open release:v0.5.0 issue and no bump PR, but docs/roadmap.md has no row for v0.5.0, which is a FAIL. So it does not dispatch the dry-run or the bump yet. Its actions.md puts first a docs PR that adds the v0.5.0 row with its scope and exit criteria to docs/roadmap.md (or asks the maintainer for the exit criteria, since they are the maintainer's), then the dry-run, then the bump on the maintainer's go, then merging the bump PR, then the aftercare (release_check.py after, zenodo status). It does not push a tag, edit the version in .cz.toml or write CHANGELOG.md by hand, and does not approve any environment.
+context:
+  scaffold_script: place-files.sh

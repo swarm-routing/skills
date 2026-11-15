@@ -300,7 +300,8 @@ The same holds after a swarm-core release: every protocol repository's
 `swarm-core / pin` goes red until org-bot's lock bump
 (`org-bot/swarm-core-pin`, `chore(core): bump the swarm-core pin (org-bot)`)
 merges there, and every other PR in that repository waits on it. Land that
-PR first.
+PR first; `release_check.py after` (the `release` skill) lists the consumers
+that still lock the old tag and their bump PRs.
 
 **Two org-bot PRs that block each other** (swarm-routing/.github#429). A pin
 or lock bump red on `check / org-sync` (the templates moved) next to a
