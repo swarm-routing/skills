@@ -113,8 +113,12 @@ attempt's commit) and never a new `bump`.
 ## 5. Aftercare
 
 Most of it runs by itself: the `vcpkg` job opens the port PR with
-auto-merge (swarm-routing/.github#461), and org-bot's `release-aftercare`
-task (hourly, for releases younger than 14 days) opens the PR that marks the
+auto-merge (swarm-routing/.github#461); the release's last job sends
+`org-release` to swarm-routing/.github (swarm-routing/.github#479), so
+org-bot runs at once, with the hourly run as the backstop: its
+`release-lock` and `swarm-core-pin` tasks open each consumer's lock bump
+(swarm-routing/.github#478), and its `release-aftercare`
+task (for releases younger than 14 days) opens the PR that marks the
 version shipped in `docs/roadmap.md` with its Zenodo version DOI, the DOI
 rows and the org's archived-releases table, once Zenodo has archived it
 (swarm-routing/.github#465), then posts what is still open as one comment
@@ -123,7 +127,7 @@ the check below is the same check, run by hand. Neither reads the site's
 `release-sync.yml` run: confirm that yourself (the `site:` rows below).
 
 ```bash
-"$T" release-check after swarm-routing/<repo> --tag vX.Y.Z      # --repos A,B where the token cannot list the org
+"$T" release-check after swarm-routing/<repo> --tag vX.Y.Z      # the consumers from ROADMAP.md#epics where the org listing is refused; --repos A,B narrows
 "$T" zenodo status --repo swarm-routing/<repo>                 # the version DOI, from Zenodo
 ```
 
@@ -132,8 +136,8 @@ the check below is the same check, run by hand. Neither reads the site's
 | `release: ... lacks SHA256SUMS / *.intoto.jsonl` | read the release run; recover as in step 4 |
 | `site: no '[release-sync] <repo> <tag>' issue` | an hour after the release, dispatch the site's `release-sync.yml` with `repository` and `tag`, and check that run and its `pages.yml` run (CONTRIBUTING step 6); not earlier |
 | `site: ... [release-sync] ...` OK, but no `release-sync.yml` run for the tag is green | an hour after the release, dispatch the site's `release-sync.yml` with `repository` and `tag`, and check that run and its `pages.yml` run (CONTRIBUTING step 6); not earlier |
-| `lock: <consumer> locks <old>; org-bot's bump ... is open` | shepherd it there: every PR in that consumer waits on it (the `dependency-bump` skill) |
-| `lock: ... no org-bot bump PR open` | `swarm-core.lock`: org-bot opens it once the consumer's pin check is red; any other lock is a hand PR (`dependency-bump` step 3) |
+| `lock: <consumer> locks <old>; org-bot's bump ... is open` (or `a hand bump`) | shepherd it there (the `dependency-bump` skill); a red consumer CI on it is that consumer's finding |
+| `lock: ... no bump PR open: org-bot's <task> task opens it` | within the hour; to run it now, ask before dispatching org-bot with that task. An org-bot run that says `renamed or dropped` for the lock means a hand PR (`dependency-bump` step 3) |
 | `vcpkg: ... <registry>#N is open` / `no bot/vcpkg-<name> PR` | the PR has auto-merge and lands through the registry's queue: shepherd it only if it stalls; with none, re-run the release's `vcpkg` job, or the registry's `tools/port_bump.py bump --port P --tag vX.Y.Z` in a PR (its README "How a port is bumped") |
 | `pypi: ... is not on PyPI` | read the release run's `pypi` job (trusted publishing) |
 | `ladder: ... does not mark vX.Y.Z shipped` | org-bot's `release-aftercare` PR does it once Zenodo has the DOI: shepherd that `org-bot/release-aftercare-*` PR; by hand only if the task cannot (`"$T" zenodo shipped --repo swarm-routing/<repo> --checkout . --write`, never a typed DOI) |
