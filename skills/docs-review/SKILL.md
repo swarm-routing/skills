@@ -63,7 +63,7 @@ or the next run undoes the edit:
   and image links are the `arena` and `ns3dev` badges: add the names there
   and run `org_sync.py apply` (the `org-repo` skill). Never type a badge by
   hand, inside the markers or next to them. A badge the check finds outside
-  the table becomes a kind when org-sync has one (`codecov`, `codespaces`,
+  the table becomes a kind when org-sync has one (`codecov`,
   `release`, ...: an exact duplicate of one just goes), else an
   `[[extra_badges]]` entry with its `group` (`build`, `quality`, `release`,
   `trust`, `stack` or `community`), `alt`, `image` and `link` copied from

@@ -1,0 +1,8 @@
+kind = "protocol"
+dual = ["core/"]
+
+[review]
+core = ["core/"]
+core_tests = ["core/test/"]
+sim_dirs = ["ns3/"]
+moving_refs = "fail"
