@@ -65,10 +65,17 @@ computes (step 2). Fix every FAIL before the bump:
 ## 2. Dry run
 
 ```bash
+t=$(date -u +%Y-%m-%dT%H:%M:%SZ)                                            # before the dispatch
 gh workflow run release.yml -R swarm-routing/<repo> -f mode=dry-run          # add -f increment=MAJOR for 1.0.0
-gh run list -R swarm-routing/<repo> --workflow release.yml --limit 1 --json databaseId,status,conclusion
+gh run list -R swarm-routing/<repo> --workflow release.yml --event workflow_dispatch \
+    --user "$(gh api user --jq .login)" --created ">=$t" --json databaseId,createdAt,displayTitle
 gh run watch <id> -R swarm-routing/<repo> --exit-status
 ```
+
+Take the id from that list, which holds only the dispatches you made since
+`t`: exactly one row is yours; with none yet, list again in a few seconds;
+with two (you dispatched twice), stop and ask. Never take "the latest run" of
+the workflow: a push or another person's dispatch can be newer.
 
 Read the run's summary and its artifact (`gh run download <id>`): the
 version, the assets, `SHA256SUMS`, `<repo>-<ver>.intoto.jsonl`, the notes.

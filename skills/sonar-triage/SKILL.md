@@ -78,8 +78,9 @@ python3 -I tools/sonar-triage/sonar_triage.py --self-test   # in the checkout, i
 rule, file or line differ from the live finding, or it was resolved another
 way. For a refused entry of your own, print it again (step 2). For an
 existing entry whose finding moved (the code changed), the old review no
-longer holds: review it again; replace the entry only if the verdict still
-stands, or drop it.
+longer holds: review it again. If the verdict still stands, delete the old
+entry from `decisions.toml` first (`entry` refuses a key already in the
+file), then print and paste the replacement; otherwise just drop it.
 
 Open the PR in `swarm-routing/.github`, `chore(sonar-triage): record <n>
 reviewed finding(s) in <repo>`, the body linking the review and pasting the

@@ -16,7 +16,9 @@ repo=$1
     { echo "HEAD moved past origin/main"; exit 1; }
 git -C "$repo" diff --quiet HEAD -- .cz.toml CHANGELOG.md || { git -C "$repo" diff --stat HEAD; exit 1; }
 log=$repo/.fake-gh/calls.log
-if [ -f "$log" ] && grep -Eq '^(workflow|run|release|pr) |(-X|--method)[ =]?(POST|PUT|PATCH|DELETE)' "$log"; then
-    grep -E '^(workflow|run|release|pr) |(-X|--method)' "$log"; echo "a write was attempted"; exit 1
+# every method form the shim takes (-X POST, -Xpost, --method post, --method=Post),
+# in any case, and any gh command but `api`
+if [ -f "$log" ] && grep -Eiq '^(workflow|run|release|pr) |(-x|--method)[ =]?(post|put|patch|delete)' "$log"; then
+    grep -Ei '^(workflow|run|release|pr) |(-x|--method)' "$log"; echo "a write was attempted"; exit 1
 fi
 echo "no tag, no commit, .cz.toml unchanged, no write through gh"
