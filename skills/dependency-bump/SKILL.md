@@ -1,6 +1,6 @@
 ---
 name: dependency-bump
-description: "Check or bump how a swarm-routing repository builds on another org repository's release: swarm-core.lock (or another release lock such as AntHocNet's ns3-tools.lock), the places that name its tag or commit (Makefile, core-deps, the ns-3 CI's dependencies, a benchmark cell), and the `swarm-core / pin` check. Use whenever `swarm-core / pin` is red, a swarm-core or ns3-tools release is out, org-bot's `org-bot/swarm-core-pin` PR needs handling, someone asks which release a repository builds on, or a diff edits a lock. Script first: release_lock.py and check-swarm-core-pin.py read every value from the release; you never type a tag, commit or hash."
+description: "Check or bump how a swarm-routing repository builds on another org repository's release: swarm-core.lock (or another release lock such as AntHocNet's ns3-tools.lock), the places that name its tag or commit (Makefile, core-deps, the ns-3 CI's dependencies, a benchmark cell), and the `swarm-core / pin` check. Use whenever `swarm-core / pin` is red, a swarm-core or ns3-tools release is out, org-bot's `org-bot/swarm-core-pin` or `org-bot/release-lock` PR needs handling, someone asks which release a repository builds on, or a diff edits a lock. Script first: release_lock.py and check-swarm-core-pin.py read every value from the release; you never type a tag, commit or hash."
 license: MIT OR GPL-2.0-only
 compatibility: Needs git, python3 3.10+ and network access to github.com (scripts/org-tool clones swarm-routing/.github tools/checks; the checks read tags with git ls-remote and the release's SHA256SUMS). gh for reading PRs.
 metadata:
@@ -47,26 +47,42 @@ swarm-routing/.github>` points the wrapper at a local one.
 | no `swarm-core.lock`, `SWARM_CORE_REF` commit pin | the old pin mode | step 4 |
 
 For another lock (AntHocNet's `ns3-tools.lock`, prefix `NS3_TOOLS`), `verify`
-and `latest` work the same; `swarm-core-pin` is only for swarm-core.
+and `latest` work the same, and `"$T" release-lock bump ns3-tools.lock` prints
+what org-bot's `release-lock` task would write (`--write` writes it);
+`swarm-core-pin` is only for swarm-core.
 
 ## 2. A newer release is out: org-bot's PR first
 
-org-bot's `swarm-core-pin` task opens one PR per repository once the pin
-check is red: head `org-bot/swarm-core-pin`, title `chore(core): bump the
-swarm-core pin (org-bot)`. Look for it before doing anything:
+org-bot moves every release lock (swarm-routing/.github#478), one PR per
+repository and task, updated in place:
+
+- `swarm-core.lock`: task `swarm-core-pin`, once the pin check is red; head
+  `org-bot/swarm-core-pin`, title `chore(core): bump the swarm-core pin (org-bot)`.
+- any other root lock (`ns3-tools.lock`): task `release-lock`, within the hour
+  of the release (on its `org-release` event, else the hourly run); head
+  `org-bot/release-lock`, title `chore(deps): bump the release locks (org-bot)`.
+  It runs the consumer's CI and lands through the merge queue only when green:
+  a release that changes what the consumer's gates compare leaves it red, a
+  finding for that repository, never a reason to bypass the gate.
+
+Look for them before doing anything:
 
 ```bash
 gh api "repos/swarm-routing/<repo>/pulls?state=open&per_page=100" \
-    --jq '.[] | select(.head.ref == "org-bot/swarm-core-pin") | "#\(.number) \(.title)"'
+    --jq '.[] | select(.head.ref | test("^org-bot/(swarm-core-pin|release-lock)$")) | "#\(.number) \(.title)"'
 ```
 
-If it exists, shepherd it (the `pr-shepherd` skill): never push to an
-`org-bot/*` or `bot/*` branch, and never open a second bump beside it. If it
-is red on `check / org-sync` while a template refresh is red on `swarm-core /
-pin`, the two block each other (swarm-routing/.github#429): `pr-shepherd`
-says what to report and the one combined PR that clears it, only when the
-user asks. Every other PR in the repository waits on this one, so it lands
-first.
+If the bot PR for the lock you are asked about exists, shepherd it (the
+`pr-shepherd` skill): never push to an `org-bot/*` or `bot/*` branch, and never
+open a second bump of that lock beside it. Each bot PR covers its own locks
+only: an open `org-bot/release-lock` PR does not hold a `swarm-core.lock` bump,
+nor the reverse. The swarm-core pin PR comes first in its repository: every
+other PR there is red on `swarm-core / pin` until it lands. A `release-lock`
+PR blocks nothing (no check fails because such a lock is behind), so it waits
+on its own CI and never holds other work. If the pin PR is red on `check /
+org-sync` while a template refresh is red on `swarm-core / pin`, the two block
+each other (swarm-routing/.github#429): `pr-shepherd` says what to report and
+the one combined PR that clears it, only when the user asks.
 
 ## 3. No bot PR, and the user asked for the bump
 
@@ -87,9 +103,12 @@ release is a finding for that repository (an issue, with the failing test),
 not a reason to keep the old lock silently. Title: `chore(core): bump
 swarm-core to vX.Y.Z`; the body pastes the three check lines.
 
-A lock org-bot does not bump (`ns3-tools.lock`) is a hand PR the same way,
-written by `render` (the asset name as the lock's comment and the
-repository's docs give it), then `verify`:
+org-bot's `release-lock` task cannot follow an asset the release renamed or
+dropped (its run says `the asset was renamed or dropped`): that bump is a hand
+PR, together with the consumer's code that names the asset (AntHocNet's
+`tools/ns3_tools.py` for `ns3-tools.lock`), and org-bot leaves the lock alone
+while that PR is open. Write the lock with `render` (the asset name as the
+lock's comment and the repository's docs give it), then `verify`:
 
 ```bash
 "$T" release-lock render --prefix NS3_TOOLS --repo swarm-routing/ns3-tools \
