@@ -43,3 +43,10 @@ required_checks = ["plugins", "python / python", "headers / licence", "check / o
 # Merge through a merge queue (swarm-routing/.github#130); every workflow behind a required
 # check also runs on merge_group.
 merge_queue = true
+
+# the skills.sh install count, in the managed table (swarm-routing/.github#415)
+[[extra_badges]]
+group = "community"
+alt = "skills.sh"
+image = "https://skills.sh/b/swarm-routing/skills"
+link = "https://skills.sh/swarm-routing/skills"
