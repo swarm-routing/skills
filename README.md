@@ -6,7 +6,7 @@
 | Build | [![CI](https://github.com/swarm-routing/skills/actions/workflows/ci.yml/badge.svg)](https://github.com/swarm-routing/skills/actions/workflows/ci.yml) |
 | Release | [![Licence: MIT OR GPL-2.0-only](https://img.shields.io/badge/licence-MIT%20OR%20GPL--2.0--only-blue)](LICENSING.md) |
 | Trust | [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/swarm-routing/skills/badge)](https://scorecard.dev/viewer/?uri=github.com/swarm-routing/skills) |
-| Community & docs | [![Claude Code plugins](https://img.shields.io/badge/Claude%20Code-plugin%20marketplace-blueviolet)](https://docs.claude.com/en/docs/claude-code/plugin-marketplaces) [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow)](https://www.conventionalcommits.org) [![skills.sh](https://skills.sh/b/swarm-routing/skills)](https://skills.sh/swarm-routing/skills) |
+| Community & docs | [![Claude Code plugins](https://img.shields.io/badge/Claude%20Code-plugin%20marketplace-blueviolet)](https://docs.claude.com/en/docs/claude-code/plugin-marketplaces) [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow)](https://www.conventionalcommits.org) [![skills.sh](https://img.shields.io/badge/skills.sh-npx%20skills%20add%20swarm--routing%2Fskills-black)](https://skills.sh) |
 <!-- org-sync:end badges -->
 
 The swarm-routing org's **agent skills**, published two ways from one tree:

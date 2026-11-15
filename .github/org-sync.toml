@@ -44,9 +44,11 @@ required_checks = ["plugins", "python / python", "headers / licence", "check / o
 # check also runs on merge_group.
 merge_queue = true
 
-# the skills.sh install count, in the managed table (swarm-routing/.github#415)
+# the skills.sh install command, in the managed table (swarm-routing/.github#415). A static
+# badge: skills.sh has no page for this repository yet, so its count badge
+# (skills.sh/b/swarm-routing/skills) read "resource not found" and its page was a 404.
 [[extra_badges]]
 group = "community"
 alt = "skills.sh"
-image = "https://skills.sh/b/swarm-routing/skills"
-link = "https://skills.sh/swarm-routing/skills"
+image = "https://img.shields.io/badge/skills.sh-npx%20skills%20add%20swarm--routing%2Fskills-black"
+link = "https://skills.sh"
