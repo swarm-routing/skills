@@ -119,7 +119,8 @@ version shipped in `docs/roadmap.md` with its Zenodo version DOI, the DOI
 rows and the org's archived-releases table, once Zenodo has archived it
 (swarm-routing/.github#465), then posts what is still open as one comment
 on the site's `[release-sync] <repo> <tag>` issue. Read that comment first;
-the check below is the same, run by hand.
+the check below is the same check, run by hand. Neither reads the site's
+`release-sync.yml` run: confirm that yourself (the `site:` rows below).
 
 ```bash
 "$T" release-check after swarm-routing/<repo> --tag vX.Y.Z      # --repos A,B where the token cannot list the org
@@ -130,11 +131,12 @@ the check below is the same, run by hand.
 |---|---|
 | `release: ... lacks SHA256SUMS / *.intoto.jsonl` | read the release run; recover as in step 4 |
 | `site: no '[release-sync] <repo> <tag>' issue` | an hour after the release, dispatch the site's `release-sync.yml` with `repository` and `tag`, and check that run and its `pages.yml` run (CONTRIBUTING step 6); not earlier |
+| `site: ... [release-sync] ...` OK, but no `release-sync.yml` run for the tag is green | an hour after the release, dispatch the site's `release-sync.yml` with `repository` and `tag`, and check that run and its `pages.yml` run (CONTRIBUTING step 6); not earlier |
 | `lock: <consumer> locks <old>; org-bot's bump ... is open` | shepherd it there: every PR in that consumer waits on it (the `dependency-bump` skill) |
 | `lock: ... no org-bot bump PR open` | `swarm-core.lock`: org-bot opens it once the consumer's pin check is red; any other lock is a hand PR (`dependency-bump` step 3) |
 | `vcpkg: ... <registry>#N is open` / `no bot/vcpkg-<name> PR` | the PR has auto-merge and lands through the registry's queue: shepherd it only if it stalls; with none, re-run the release's `vcpkg` job, or the registry's `tools/port_bump.py bump --port P --tag vX.Y.Z` in a PR (its README "How a port is bumped") |
 | `pypi: ... is not on PyPI` | read the release run's `pypi` job (trusted publishing) |
-| `ladder: ... does not mark vX.Y.Z shipped` | org-bot's `release-aftercare` PR does it once Zenodo has the DOI: shepherd that `org-bot/release-aftercare-*` PR; by hand only if the task cannot (`zenodo.py shipped --repo R --checkout . --write`, never a typed DOI) |
+| `ladder: ... does not mark vX.Y.Z shipped` | org-bot's `release-aftercare` PR does it once Zenodo has the DOI: shepherd that `org-bot/release-aftercare-*` PR; by hand only if the task cannot (`"$T" zenodo shipped --repo swarm-routing/<repo> --checkout . --write`, never a typed DOI) |
 | zenodo `missing` after the grace period | `zenodo sync --repo ... --dry-run`, then ask the maintainer; a first release's concept: `zenodo_concept`, `org_sync.py reseed CITATION.cff` and the DOI badge (CONTRIBUTING "Releases and DOIs") |
 
 Never type a DOI: copy it from `zenodo status`.
