@@ -1,11 +1,12 @@
 # skills
 
 <!-- org-sync:begin badges -->
-[![CI](https://github.com/swarm-routing/skills/actions/workflows/ci.yml/badge.svg)](https://github.com/swarm-routing/skills/actions/workflows/ci.yml)
-[![Licence: MIT OR GPL-2.0-only](https://img.shields.io/badge/licence-MIT%20OR%20GPL--2.0--only-blue)](LICENSING.md)
-[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow)](https://www.conventionalcommits.org)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/swarm-routing/skills/badge)](https://scorecard.dev/viewer/?uri=github.com/swarm-routing/skills)
-[![Claude Code plugins](https://img.shields.io/badge/Claude%20Code-plugin%20marketplace-blueviolet)](https://docs.claude.com/en/docs/claude-code/plugin-marketplaces)
+| Group | Badges |
+| --- | --- |
+| Build | [![CI](https://github.com/swarm-routing/skills/actions/workflows/ci.yml/badge.svg)](https://github.com/swarm-routing/skills/actions/workflows/ci.yml) |
+| Release | [![Licence: MIT OR GPL-2.0-only](https://img.shields.io/badge/licence-MIT%20OR%20GPL--2.0--only-blue)](LICENSING.md) |
+| Trust | [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/swarm-routing/skills/badge)](https://scorecard.dev/viewer/?uri=github.com/swarm-routing/skills) |
+| Community & docs | [![Claude Code plugins](https://img.shields.io/badge/Claude%20Code-plugin%20marketplace-blueviolet)](https://docs.claude.com/en/docs/claude-code/plugin-marketplaces) [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow)](https://www.conventionalcommits.org) |
 <!-- org-sync:end badges -->
 
 [![skills.sh](https://skills.sh/b/swarm-routing/skills)](https://skills.sh/swarm-routing/skills)
