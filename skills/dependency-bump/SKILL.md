@@ -1,6 +1,6 @@
 ---
 name: dependency-bump
-description: "Check, bump or switch how a swarm-routing repository builds on another org repository's release: swarm-core.lock (or another release lock such as AntHocNet's ns3-tools.lock), the places that name its tag or commit (Makefile, core-deps, the ns-3 CI's dependencies, a benchmark cell), and the `swarm-core / pin` check. Use whenever `swarm-core / pin` is red, a swarm-core or ns3-tools release is out, org-bot's `org-bot/swarm-core-pin` PR needs handling, a repository still on a commit pin moves to a release lock, someone asks which release a repository builds on, or a diff edits a lock. Script first: release_lock.py and check-swarm-core-pin.py read every value from the release; you never type a tag, commit or hash."
+description: "Check or bump how a swarm-routing repository builds on another org repository's release: swarm-core.lock (or another release lock such as AntHocNet's ns3-tools.lock), the places that name its tag or commit (Makefile, core-deps, the ns-3 CI's dependencies, a benchmark cell), and the `swarm-core / pin` check. Use whenever `swarm-core / pin` is red, a swarm-core or ns3-tools release is out, org-bot's `org-bot/swarm-core-pin` PR needs handling, someone asks which release a repository builds on, or a diff edits a lock. Script first: release_lock.py and check-swarm-core-pin.py read every value from the release; you never type a tag, commit or hash."
 license: MIT OR GPL-2.0-only
 compatibility: Needs git, python3 3.10+ and network access to github.com (scripts/org-tool clones swarm-routing/.github tools/checks; the checks read tags with git ls-remote and the release's SHA256SUMS). gh for reading PRs.
 metadata:
@@ -103,20 +103,14 @@ names, each hash read from that release's `SHA256SUMS`, and its own
 `verify` tool (`tools/ns3_tools.py verify` in AntHocNet) must pass. Keep the
 lock's header comment.
 
-## 4. Switch a commit pin to the lock
+## 4. A repository still on a commit pin
 
-One PR per repository (CONTRIBUTING "Dependencies", the switch paragraph):
-write `swarm-core.lock` with `render --prefix SWARM_CORE --repo
-swarm-routing/ns3-swarm-core --tag <latest> --asset
-'swarm-core-{version}.tar.gz'`; replace the git `FetchContent` in
-`core/CMakeLists.txt` with the lock reader (`URL` + `URL_HASH`, `SOURCE_SUBDIR
-core`, `DOWNLOAD_EXTRACT_TIMESTAMP FALSE`; copy it from a repository already
-switched, ARA's or HOPNET's `core/CMakeLists.txt`); move the Makefile and the
-ns-3 CI to the tag and `core-deps` and benchmark cells to the commit; add
-`canary-dependencies:` at `@main`; set `[review] moving_refs = "fail"` in
-`.github/org-sync.toml`; run `org_sync.py apply .` (the AGENTS.md
-`dependencies` section switches to the lock text). Then step 3's checks, and
-the `protocol-review` skill on the diff: its `dependencies` line must PASS.
+Every protocol repository consumes swarm-core by its lock since swarm-core
+v0.3.0 (ARA, BeeAdHoc, Termite, HOPNET, AntHocNet), and a new one starts with
+the lock (the `ns3-new-module` skill, #12). If `swarm-core-pin` reports the
+commit-pin mode anyway, there is no script for the switch yet: report it and
+point to CONTRIBUTING "Dependencies" (the switch paragraph); do not hand-edit
+the build to a lock from this skill.
 
 ## Rules
 

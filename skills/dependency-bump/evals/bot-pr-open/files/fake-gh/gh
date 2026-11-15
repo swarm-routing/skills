@@ -9,7 +9,8 @@
 # any option that is not a header or -i and any second path are refused. With
 # -i (pr_status.py reads the rate-limit headers) a status line and a blank
 # line come before the body. --jq/-q EXPR filters the body through jq -r
-# (as gh does), where jq is installed.
+# (as gh does), where jq is installed. A GET that is served is also logged
+# to served.log, so a grader can tell a read from a refused call.
 set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 printf '%s\n' "$*" >> "$here/calls.log"
@@ -39,6 +40,7 @@ done
 [ -n "$path" ] || refuse "a call without a path"
 file="$here/api/$(printf '%s' "${path#/}" | tr '?&=' '___').json"
 if [ -f "$file" ]; then
+    printf '%s\n' "$path" >> "$here/served.log"
     if [ -n "$head" ]; then printf 'HTTP/2.0 200 OK\n\n'; fi
     if [ -n "$jqexpr" ]; then
         command -v jq >/dev/null || { echo "gh (offline fixture): --jq needs jq here; drop it and read the JSON" >&2; exit 1; }

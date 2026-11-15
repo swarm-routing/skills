@@ -13,10 +13,9 @@ plugin was called `org-repo` until 2026-11-09, and `marketplace.json` records
 the rename), and as plain Agent Skills that skills.sh installs into any agent
 (`npx skills add swarm-routing/skills`).
 
-Eleven skills under `skills/`: `org-repo`, `fidelity-sheet`, `protocol-review`,
+Ten skills under `skills/`: `org-repo`, `fidelity-sheet`, `protocol-review`,
 `docs-review`, `pr-shepherd`, `lit-search`, `references`, `token-audit`,
-`bestpractices`, `dependency-bump` and `sonar-triage` (what each does: the
-README table). Each is a procedure over a script in
+`bestpractices` and `dependency-bump` (what each does: the README table). Each is a procedure over a script in
 swarm-routing/.github `tools/`, reached through a thin wrapper in
 `skills/<name>/scripts/`; `token-audit`'s script is this repository's own
 `tools/token-audit/token_audit.py`.

@@ -1,4 +1,0 @@
-SonarQube Cloud, project swarm-routing_example, branch main, quality gate: Failed (1 vulnerability on new code)
-  key:  AaHzEXAMPLEkeyNOTREAL01
-  rule: pythonsecurity:S2083 (I/O function calls should not be vulnerable to path injection attacks)
-  file: tools/fetch_cell.py, line 16
