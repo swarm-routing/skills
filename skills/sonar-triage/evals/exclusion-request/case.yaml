@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: exclusion-request
+expected_outcome: |
+  The agent reviews the flagged line (tools/fetch_cell.py:16 copies a path the invoker passes on the command line, with the invoker's own rights) and agrees it is a false positive, but does not add an exclusion, a `sonar.issue.ignore` rule or any change to sonar-project.properties, and does not mark it in the SonarQube Cloud UI. Instead its actions.md proposes the org route: a PR to swarm-routing/.github adding an `[[issue]]` entry to tools/sonar-triage/decisions.toml with project swarm-routing_example, the key, rule, file and line as SonarQube Cloud reports them (read from the API or the report, not invented), decision falsepositive and an existing reason id whose text fits (FP-cli), after `sonar_triage.py validate` and `plan`; then, after merge, dispatching the sonar-triage workflow with mode plan, and apply only when the user asks. It explains that the gate turns green after apply, not at once.
+context:
+  scaffold_script: place-files.sh

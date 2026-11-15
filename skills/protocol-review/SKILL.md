@@ -43,12 +43,13 @@ The script prints one line per rule it could check, `PASS`, `WARN` or
 | 5 determinism | libc `rand`, `time(nullptr)` or a wall clock (FAIL in `core/`, WARN elsewhere); an unordered container in `core/` (WARN) | FAIL / WARN |
 | 8 CI hygiene | an action not pinned by full SHA with `# vX.Y.Z`; `retention-days` over 7 | FAIL |
 | 9 `.claude/` | a shipped file calling a `.claude/` script | FAIL |
+| dependencies | an added line that takes an org dependency on a moving ref: a CMake `GIT_TAG` that is not a literal `vX.Y.Z`, a git `FetchContent` of a swarm-routing repository, a workflow `dependencies:` ref that is neither a release tag nor a 40-hex commit | WARN; FAIL with `moving_refs = "fail"` |
 | tests | `core/` logic changed, no core test changed | WARN |
 | 6 comparisons | a changed Markdown line or the `--pr-body` text claiming a comparison with fewer than 20 seeds, or none | HINT |
 | 7 bounded | a container added under `core/` or a simulator directory that grows in the diff with nothing bounding it in sight | HINT |
 
 A repository sets its paths in a `[review]` table of `.github/org-sync.toml`
-(`core`, `core_tests`, `wire`, `wire_version`, `sim_dirs`). If the wire rule
+(`core`, `core_tests`, `wire`, `wire_version`, `sim_dirs`, `moving_refs`). If the wire rule
 says `set review.wire_version`, the repo has a wire format and no config yet:
 say so in the review rather than guessing the file names.
 
@@ -66,6 +67,24 @@ and ends with `… and N more` when there are others; then run again with
 rest of the diff for these; each needs a sentence in the review, even when the
 answer is "not touched":
 
+- **Dependencies, the rest of it** (swarm-routing/.github CONTRIBUTING
+  "Dependencies"). A repository with a `swarm-core.lock` consumes swarm-core
+  by release: `core/CMakeLists.txt` fetches the lock's asset by `URL` +
+  `URL_HASH`, the `Makefile` and the ns-3 CI's `dependencies:` name the
+  lock's tag, `core-deps` and a benchmark cell name the commit the tag
+  names, and `@main` appears only under `canary-dependencies:`. A diff that
+  edits the lock's values by hand is a blocking finding: every value comes
+  from `release_lock.py render` (`release_lock.py verify swarm-core.lock`
+  checks it), and a bump is org-bot's `org-bot/swarm-core-pin` PR. A
+  repository that switches to the lock in this PR sets `moving_refs =
+  "fail"` in `[review]` in the same PR. The `dependency-bump` skill is the
+  procedure.
+- **The C++ standard.** Every org `core/` and module targets the standard
+  of the ns-3 release the org supports, ns-3's `CMAKE_CXX_STANDARD_MINIMUM`
+  (C++23 today), and moves only when ns-3 raises it (CONTRIBUTING rule 7).
+  A `CMAKE_CXX_STANDARD`, `cxx_std_NN` or `-std=` that lowers it, or a
+  feature test that keeps an older standard alive, is a finding; a new
+  primitive in swarm-core's public API also follows its `docs/api-policy.md`.
 - **Rule 3, the rest of it.** A new or changed control header is a POD with a
   leading version byte, little-endian bounds-checked readers and writers, and a
   roundtrip *and* a fuzz test in the same PR. A changed field or unit bumps the
@@ -73,7 +92,16 @@ answer is "not touched":
 - **Rule 5, the rest of it.** Randomness reaches `core/` only through the
   injected RNG port, time through the clock port. Ordering that reaches an
   output (a trace, a marker line, a decision) never depends on an unordered
-  container or a pointer value.
+  container or a pointer value: a `std::map` or `std::set` keyed by `Ptr<>`
+  or a raw pointer iterates in heap-address order. That order also leaks
+  across arms run one after another in one process: a change that only
+  adds an allocation (a function-local `static`, a cache) in one arm moved
+  the stock aodv arm's `##RUN##` row in the next (swarm-routing/ns3-tools#198).
+  So a diff whose only effect on the output is another arm's row is a
+  determinism finding, not a benchmark result: say which arm moved, and do
+  not accept "byte-identical on the same seed" from a run that has several
+  arms in one process as proof that an arm is unchanged; compare that arm
+  run alone.
 - **Rule 6, comparisons.** Any number in the PR (body, docs, a commit
   message) that compares protocols comes from per-seed paired deltas over at
   least 20 seeds, from the canonical marker lines, with the run linked. A
@@ -116,6 +144,7 @@ One short block, in the PR body or as the review:
 
 ```
 check_invariants: <last line, e.g. "WARN  review the warnings above">
+- dependencies: <a moving ref explained, the lock untouched or bumped by org-bot, or "not touched">
 - rule 3: <WARN explained, or "wire header v2 → v3, roundtrip + fuzz in test/">
 - rule 6: <the claim, its seeds and run, or "no comparison claimed">
 - rule 7: <each new growing container and its cap, or "none added">

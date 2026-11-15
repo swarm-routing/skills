@@ -1,0 +1,12 @@
+name: ns3
+on: [pull_request]
+jobs:
+  ci:
+    uses: swarm-routing/.github/.github/workflows/reusable-ns3-ci.yml@main
+    with:
+      module: ara
+      core-deps: "swarm-routing/ns3-swarm-core@6f039ce35b2c04c97e3ff287217d23823dd6b59f:core"
+      dependencies: |
+        swarm-core=swarm-routing/ns3-swarm-core@v0.3.0
+      canary-dependencies: |
+        swarm-core=swarm-routing/ns3-swarm-core@main

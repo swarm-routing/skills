@@ -1,0 +1,7 @@
+# The swarm-core release this repository builds on (written by release_lock.py render).
+SWARM_CORE_REPO=swarm-routing/ns3-swarm-core
+SWARM_CORE_TAG=v0.4.0
+SWARM_CORE_COMMIT=111a67385fbcdaecff5efa49cbdd66b20a355a09
+SWARM_CORE_VERSION=0.4.0
+SWARM_CORE_ASSET=swarm-core-0.4.0.tar.gz
+SWARM_CORE_SHA256=28df546260152d6dae3440d6c367821b525ab40d6bf49050b8a1c75967e393ea

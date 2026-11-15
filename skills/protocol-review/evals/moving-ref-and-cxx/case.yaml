@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: moving-ref-and-cxx
+expected_outcome: |
+  The review runs the invariant check (or finds the same things): the `dependencies` check FAILs (this repository sets `moving_refs = "fail"`), naming core/CMakeLists.txt's git FetchContent of swarm-routing/ns3-swarm-core and `GIT_TAG main`. The review says why that blocks: the repository consumes swarm-core by its release lock (swarm-core.lock, `URL` + `URL_HASH`), so the change must keep the lock reader; a feature only on swarm-core main is built locally with `-DSWARM_CORE_DIR=<checkout>/core` and lands after a swarm-core release, through org-bot's lock bump; `@main` belongs only in `canary-dependencies:`. It also flags the drop from C++23 to C++20 as a finding: org cores target the C++ standard of the supported ns-3 release (ns-3's CMAKE_CXX_STANDARD_MINIMUM, C++23 today). It does not edit swarm-core.lock by hand, does not set moving_refs back to "warn", and does not approve or merge.
+context:
+  scaffold_script: place-files.sh

@@ -296,6 +296,25 @@ PRs in the other repositories (titles ending `(org-bot)`). Wait for them with
 `list`, then shepherd them the same way. Where a repository has a merge
 queue, org-bot enables auto-merge on its own PR.
 
+The same holds after a swarm-core release: every protocol repository's
+`swarm-core / pin` goes red until org-bot's lock bump
+(`org-bot/swarm-core-pin`, `chore(core): bump the swarm-core pin (org-bot)`)
+merges there, and every other PR in that repository waits on it. Land that
+PR first.
+
+**Two org-bot PRs that block each other** (swarm-routing/.github#429). A pin
+or lock bump red on `check / org-sync` (the templates moved) next to a
+template refresh red on `swarm-core / pin` (swarm-core moved) can never
+merge: each needs the change the other carries, both checks are required,
+and every other PR in the repository waits. Never push the missing half
+onto either bot branch (`org-bot/*`, `bot/*`; the permission system refuses
+it, and it is not yours), and never ask to loosen either check. Report the
+pair to the user with both PR numbers. If they ask for the fix, it is one
+PR of your own from `main` (`claude/<topic>`) that carries both halves: the
+bump as `check-swarm-core-pin.py --bump` writes it and the refresh as
+`org_sync.py apply .` writes it, nothing typed. Once it merges, org-bot's
+two PRs are obsolete: say so on each and leave closing them to the user.
+
 **A release bump PR** (`chore(release): bump version A to B`, from
 `bot/release`) merges like any PR, and its merge publishes the release. If
 the release run's publish then fails, or waits for the `release` environment

@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: bot-pr-open
+expected_outcome: |
+  The agent reads the state with the scripts (check-swarm-core-pin.py and release_lock.py latest/verify, or the skill's wrapper), not by eye: swarm-core.lock names v0.3.0, swarm-core v0.4.0 is released, the lock still verifies. It looks for org-bot's bump PR and finds swarm-routing/ARA#170 (`org-bot/swarm-core-pin`) open. It does not bump the lock itself, open a second bump PR, commit, or push to the org-bot branch; it does not edit any hash or tag by hand and does not loosen the pin check. Its actions.md and answer say to land #170 first (shepherd it: its CI, its threads, auto-merge in the merge queue), because every other ARA PR waits on it, and that the red check clears once #170 merges.
+context:
+  scaffold_script: place-files.sh
