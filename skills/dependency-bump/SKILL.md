@@ -72,13 +72,17 @@ gh api "repos/swarm-routing/<repo>/pulls?state=open&per_page=100" \
     --jq '.[] | select(.head.ref | test("^org-bot/(swarm-core-pin|release-lock)$")) | "#\(.number) \(.title)"'
 ```
 
-If it exists, shepherd it (the `pr-shepherd` skill): never push to an
-`org-bot/*` or `bot/*` branch, and never open a second bump beside it. If it
-is red on `check / org-sync` while a template refresh is red on `swarm-core /
-pin`, the two block each other (swarm-routing/.github#429): `pr-shepherd`
-says what to report and the one combined PR that clears it, only when the
-user asks. Every other PR in the repository waits on this one, so it lands
-first.
+If the bot PR for the lock you are asked about exists, shepherd it (the
+`pr-shepherd` skill): never push to an `org-bot/*` or `bot/*` branch, and never
+open a second bump of that lock beside it. Each bot PR covers its own locks
+only: an open `org-bot/release-lock` PR does not hold a `swarm-core.lock` bump,
+nor the reverse. The swarm-core pin PR comes first in its repository: every
+other PR there is red on `swarm-core / pin` until it lands. A `release-lock`
+PR blocks nothing (no check fails because such a lock is behind), so it waits
+on its own CI and never holds other work. If the pin PR is red on `check /
+org-sync` while a template refresh is red on `swarm-core / pin`, the two block
+each other (swarm-routing/.github#429): `pr-shepherd` says what to report and
+the one combined PR that clears it, only when the user asks.
 
 ## 3. No bot PR, and the user asked for the bump
 
