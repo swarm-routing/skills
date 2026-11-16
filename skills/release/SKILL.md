@@ -98,7 +98,11 @@ added as a commit on the bump PR; that branch is the bot's, so you never push
 it: stop, say the section is empty, and leave that commit to the
 maintainer. The workflow holds the line (swarm-routing/.github#524): the bump
 PR's body warns when the section is empty, and a merged release whose
-section is still empty fails before anything is tagged or published. If `main` moves before the merge, org-bot's `release-rebuild`
+section is still empty fails before anything is tagged or published. That
+failure has no recovery for an agent: the release run reads the merged
+commit's `CHANGELOG.md`, so a re-run fails the same way, and no tag or
+release is ever made by hand. Stop and report it to the maintainer; the
+time to fix it is on the bump PR, before the merge. If `main` moves before the merge, org-bot's `release-rebuild`
 task (hourly) dispatches `bump` again with the increment the PR body
 records (`<!-- release-increment: X -->`); `ready` says when a PR is behind.
 
