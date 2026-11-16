@@ -6,7 +6,7 @@
 | Build | [![CI](https://github.com/swarm-routing/skills/actions/workflows/ci.yml/badge.svg)](https://github.com/swarm-routing/skills/actions/workflows/ci.yml) |
 | Release | [![Licence: MIT OR GPL-2.0-only](https://img.shields.io/badge/licence-MIT%20OR%20GPL--2.0--only-blue)](LICENSING.md) |
 | Trust | [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/swarm-routing/skills/badge)](https://scorecard.dev/viewer/?uri=github.com/swarm-routing/skills) |
-| Community & docs | [![Claude Code plugins](https://img.shields.io/badge/Claude%20Code-plugin%20marketplace-blueviolet)](https://docs.claude.com/en/docs/claude-code/plugin-marketplaces) [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow)](https://www.conventionalcommits.org) [![skills.sh](https://img.shields.io/badge/skills.sh-npx%20skills%20add%20swarm--routing%2Fskills-black)](https://skills.sh) |
+| Community & docs | [![Open RCAPA](https://img.shields.io/github/issues/swarm-routing/skills/rcapa?label=open%20RCAPA&color=blue)](https://github.com/swarm-routing/skills/blob/main/docs/rcapa/README.md) [![Claude Code plugins](https://img.shields.io/badge/Claude%20Code-plugin%20marketplace-blueviolet)](https://docs.claude.com/en/docs/claude-code/plugin-marketplaces) [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow)](https://www.conventionalcommits.org) [![skills.sh](https://img.shields.io/badge/skills.sh-npx%20skills%20add%20swarm--routing%2Fskills-black)](https://skills.sh) |
 <!-- org-sync:end badges -->
 
 The swarm-routing org's **agent skills**, published two ways from one tree:
@@ -94,6 +94,9 @@ the tools to install, how to get the code and its dependencies, how to
 build, test, run and lint it, the Docker images, what CI checks and how to
 read a red run. How changes are proposed, reviewed and released is the org's
 [CONTRIBUTING.md](https://github.com/swarm-routing/.github/blob/main/CONTRIBUTING.md).
+A regression in a released version gets an RCAPA (root cause analysis with
+corrective and preventive actions): [docs/rcapa/README.md](docs/rcapa/README.md)
+is this project's flow and its index.
 <!-- org-sync:end develop -->
 
 ## Epics
