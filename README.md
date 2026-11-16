@@ -108,7 +108,14 @@ What is planned and in progress here: the issues labelled [`epic`](https://githu
 | Epic | Status | Sub-issues closed |
 |------|--------|-------------------|
 | [#9](https://github.com/swarm-routing/skills/issues/9) Protocol-development and org-ops skills: fidelity sheets, invariant review, module scaffolds, anchors, handoffs | In progress | 3 / 13 |
-| [#129](https://github.com/swarm-routing/skills/issues/129) developer experience: a newcomer can build, test and contribute from the docs alone | In progress | 1 / 1 |
+
+<details><summary>Closed: 1 epic</summary>
+
+| Epic | Closed |
+|------|--------|
+| [#129](https://github.com/swarm-routing/skills/issues/129) developer experience: a newcomer can build, test and contribute from the docs alone | Done 2026-11-16 |
+
+</details>
 
 <!-- epics:end -->
 
