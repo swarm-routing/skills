@@ -1,5 +1,7 @@
 # org-sync configuration (swarm-routing/.github tools/org-sync).
 kind = "skills"
+# bestpractices.dev project (OpenSSF Best Practices badge; id read from the site's public JSON, swarm-routing/.github#531)
+bestpractices_project = "16823"
 title = "skills"
 dual = [""]
 posture = "the org's agent tooling: Claude Code skills (instructions) and thin wrappers, no simulation code"
