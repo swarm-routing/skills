@@ -96,7 +96,9 @@ Review the PR it opens from `bot/release`: the version files and the
 notes are that section (swarm-routing/ns3-tools#185). CONTRIBUTING has it
 added as a commit on the bump PR; that branch is the bot's, so you never push
 it: stop, say the section is empty, and leave that commit to the
-maintainer. If `main` moves before the merge, org-bot's `release-rebuild`
+maintainer. The workflow holds the line (swarm-routing/.github#524): the bump
+PR's body warns when the section is empty, and a merged release whose
+section is still empty fails before anything is tagged or published. If `main` moves before the merge, org-bot's `release-rebuild`
 task (hourly) dispatches `bump` again with the increment the PR body
 records (`<!-- release-increment: X -->`); `ready` says when a PR is behind.
 
@@ -134,6 +136,7 @@ the check below is the same check, run by hand. Neither reads the site's
 | Line | Do |
 |---|---|
 | `release: ... lacks SHA256SUMS / *.intoto.jsonl` | read the release run; recover as in step 4 |
+| `notes: vX.Y.Z's notes are empty` | never edit the release by hand (an agent session may not): the paragraph goes under `## vX.Y.Z` in `CHANGELOG.md` on `main` in a PR, then, once merged, `gh workflow run release.yml -R swarm-routing/<repo> -f mode=release-notes -f tag=vX.Y.Z` re-renders the notes with the workflow's own token, keeping "Verify your download" byte for byte; a caller without `release-notes` among its `mode` options needs that PR first (swarm-routing/.github#524) |
 | `site: no '[release-sync] <repo> <tag>' issue` | an hour after the release, dispatch the site's `release-sync.yml` with `repository` and `tag`, and check that run and its `pages.yml` run (CONTRIBUTING step 6); not earlier |
 | `site: ... [release-sync] ...` OK, but no `release-sync.yml` run for the tag is green | an hour after the release, dispatch the site's `release-sync.yml` with `repository` and `tag`, and check that run and its `pages.yml` run (CONTRIBUTING step 6); not earlier |
 | `lock: <consumer> locks <old>; org-bot's bump ... is open` (or `a hand bump`) | shepherd it there (the `dependency-bump` skill); a red consumer CI on it is that consumer's finding |
@@ -150,7 +153,7 @@ Never type a DOI: copy it from `zenodo status`.
 ```
 <repo> vX.Y.Z: <ready | bump PR #N | released <date>>
 ready: <FAILs, or "nothing failed"> · dry run <run url>: <version, assets>
-after: release <ok> · zenodo <DOI | pending | missing> · site <issue #> · locks <n current, n pending (#PRs)> · vcpkg <ok | PR> · pypi <ok | n/a> · ladder <shipped | PR #>
+after: release <ok> · notes <ok | empty: re-rendered run url> · zenodo <DOI | pending | missing> · site <issue #> · locks <n current, n pending (#PRs)> · vcpkg <ok | PR> · pypi <ok | n/a> · ladder <shipped | PR #>
 ```
 
 Name every step you did not take and why (a bump not asked for, an approval
