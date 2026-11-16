@@ -1,8 +1,8 @@
 ---
 name: bestpractices
-description: "OpenSSF Best Practices badge (bestpractices.dev) for a repository: register it, propose its passing-level answers from the repository's evidence, keep them current, and answer one criterion pasted from the form. Use whenever someone mentions the OpenSSF / CII Best Practices badge, bestpractices.dev, a project id there, .bestpractices.json, `bestpractices_project`, the weekly `[bestpractices]` drift issue, or pastes a criterion (\"The project MUST ...\", a `<criterion>_justification` field) and wants a justification. Script first: bestpractices.py derives the answers, the registration and proposal links and the drift report; nothing logs in or submits, the maintainer reviews and saves on the site."
+description: "OpenSSF Best Practices badge (bestpractices.dev) for a repository: register it, propose its passing-level answers from the repository's evidence, keep them current, and answer one criterion pasted from the form. Use whenever someone mentions the OpenSSF / CII Best Practices badge, bestpractices.dev, a project id there, .bestpractices.json, `bestpractices_project`, the weekly `[bestpractices]` drift issue, or pastes a criterion (\"The project MUST ...\", a `<criterion>_justification` field) and wants a justification. Script first: the org's Go tool `bestpractices` derives the answers, the registration and proposal links and the drift report; nothing logs in or submits, the maintainer reviews and saves on the site."
 license: MIT OR GPL-2.0-only
-compatibility: Needs git, python3 3.11+, gh (authenticated, for tracker counts) and network access to github.com (scripts/bestpractices clones swarm-routing/.github tools/bestpractices; scripts/responses runs this repository's tools/tracker-responses) and to www.bestpractices.dev (public read-only JSON).
+compatibility: Needs git, Go (swarm-routing/.github go.mod's toolchain; scripts/bestpractices builds cmd/bestpractices), python3 3.11+ and gh (authenticated, for tracker counts), and network access to github.com (scripts/bestpractices clones swarm-routing/.github; scripts/responses runs this repository's tools/tracker-responses) and to www.bestpractices.dev (public read-only JSON).
 metadata:
   author: swarm-routing
   repository: https://github.com/swarm-routing/skills
@@ -18,10 +18,13 @@ evidence on `main`, hands the maintainer something to review, and keeps the
 site and the repository in step.
 
 **What can never be automated, and why.** bestpractices.dev has no token
-write API. The maintainer decided (2026-11-13) that nothing logs in to the
-site or stores a password for it: no agent, no workflow. So every change on
-the site is made by the maintainer, logged in, who reviews a proposal and
-clicks **Save**. You prepare; you never submit, never ask for credentials,
+write API. The maintainer decided (2026-11-13, kept 2026-11-16) that nothing
+logs in to the site or stores a password for it: no agent, no workflow. So
+every change on the site is made by the maintainer, logged in, who reviews a
+proposal and clicks **Save**: one click per project, only when something
+changed. Everything before that click is automated: org-bot regenerates each
+repository's `.bestpractices.json`, and the weekly check puts the ready
+proposal link in the repository's `[bestpractices]` issue. You prepare; you never submit, never ask for credentials,
 never drive a browser session on the site. The only site requests you make
 are the public read-only ones the script makes (`/projects.json?url=…`,
 `/projects/<id>.json`).
@@ -36,9 +39,10 @@ BP="$SKILL/scripts/bestpractices"
 "$SKILL/scripts/responses" OWNER/NAME --label bug|enhancement  # tracker counts for the response criteria
 ```
 
-Inside a `swarm-routing/.github` checkout, `python3 -I
-tools/bestpractices/bestpractices.py …` is the same; `ORG_TOOLS_DIR=<checkout>`
-points the wrapper at a local one.
+Inside a `swarm-routing/.github` checkout, `go run ./cmd/bestpractices …` is
+the same; `ORG_TOOLS_DIR=<checkout>` points the wrapper at a local one. The
+tool is the Go port of the former `tools/bestpractices/bestpractices.py`
+(swarm-routing/.github#531), with the same commands and output.
 
 ## Facts to carry into every answer
 
@@ -51,7 +55,7 @@ points the wrapper at a local one.
   reports). List them for the maintainer to answer on the site.
 - **Response history is counted, not guessed.** `report_responses`,
   `enhancement_responses` and `vulnerability_report_response` depend on the
-  tracker's history. bestpractices.py leaves them `?`; if asked, count them
+  tracker's history. The tool leaves them `?`; if asked, count them
   with `responses` (section 4) and give the maintainer the numbers and a
   draft justification to submit themselves.
 - **Licence of the answers.** bestpractices.dev releases submitted data under
@@ -108,10 +112,12 @@ so; do not hand-promote a `?` to `Met` without a URL.
 
 Two ways to the site, both ending with the maintainer's Save:
 
-- **The file.** `"$BP" answers REPO_DIR --write` writes `.bestpractices.json`
-  at the top level; commit it in a PR. After it merges, the maintainer
-  re-saves on the site with **"Save (and continue) 🤖"** (the robot button),
-  which proposes the file's answers. Do this again whenever the file changes.
+- **The file.** org-bot (task `bestpractices`, daily and on a push that
+  touches the evidence) regenerates `.bestpractices.json` in every public
+  repository and opens a PR when it changes, so you rarely write it by hand;
+  `"$BP" answers REPO_DIR --write` does the same locally. After it merges, the
+  weekly check's issue carries the proposal link (below); the robot button
+  ("Save (and continue) 🤖") on the site proposes the file's answers too.
 - **Proposal links.** `"$BP" register swarm-routing/NAME --dir REPO_DIR
   [--answers reviewed.json]` prints
   `https://www.bestpractices.dev/en/projects/<id>/passing/edit?<criterion>_status=…&<criterion>_justification=…`,
@@ -127,7 +133,13 @@ could not evidence.
 
 The weekly `bestpractices.yml` workflow in `swarm-routing/.github` runs
 `check --issues` with the bot's token and keeps one `[bestpractices] N
-finding(s)` issue per repository. By hand, run it read-only:
+finding(s)` issue per repository: for a registered project, the findings,
+then the proposal link(s) for exactly what the site lacks or contradicts
+("open, review, Save"), then the owner-only criteria still `?` (listed, never
+a finding); for a repository in scope that is not registered, the
+registration steps. Every public org repository is in scope; one opts out
+with `bestpractices = false` under `[settings]` in `.github/org-sync.toml`. The issue closes
+itself when the site matches. By hand, run it read-only:
 
 ```bash
 "$BP" check --repos NAME            # NAME=ID if the config has no key yet; exit 0 clean, 1 drift, 2 unreadable
@@ -137,6 +149,8 @@ Findings and their fix:
 
 | Finding | Fix |
 |---|---|
+| not registered on bestpractices.dev (in scope) | the maintainer registers it on the site (section 1); the next weekly run finds it by URL |
+| N answer(s) in `.bestpractices.json` not on the site yet | the maintainer opens the issue's proposal link, reviews, Saves |
 | registered, but no `bestpractices_project` key | PR adding the key (section 1) |
 | site answer differs from `.bestpractices.json` | decide which is right from `main`; fix the file by PR, or give the maintainer the criterion to re-save |
 | justification URL's path gone from `main` | regenerate (`answers --write`), PR, then the maintainer re-saves with the robot button |
@@ -150,8 +164,8 @@ token); never edit the site to clear a finding.
 The maintainer pastes a criterion's text (or its id). Return **one**
 paste-ready status and justification.
 
-1. Map the text to its criterion id (the form's order is `PASSING` in
-   bestpractices.py). If it is owner-only, say so and stop: give the facts
+1. Map the text to its criterion id (the form's order is `Passing` in
+   swarm-routing/.github `internal/bestpractices/criteria.go`). If it is owner-only, say so and stop: give the facts
    you can check (links to the Security tab, the advisories page) but no
    status.
 2. Find the evidence on `main`: `git fetch -q origin`, then search
