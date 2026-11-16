@@ -1,89 +1,24 @@
-# RCAPA: regressions in a release of swarm-routing/skills
+# RCAPA: does not apply to swarm-routing/skills's own changes
 
 An **RCAPA** (root cause analysis with corrective and preventive actions) is
-the full record of one **regression in a published release** of this
-project: something that worked in a released version and broke after a
-change. A bug or change that never reached a release needs none (an
-ordinary `bug` issue is enough), and an upstream ns-3 bug is an `NS3-NNN` in
-swarm-routing/ns3-tools. The org's rule and its decision table are in
-[CONTRIBUTING.md, "RCAPA"](https://github.com/swarm-routing/.github/blob/main/CONTRIBUTING.md#rcapa)
-([ADR-0003](https://github.com/swarm-routing/.github/blob/main/docs/adr/0003-rcapa-for-ns3-bugs-and-released-regressions.md)).
-This page is the project's flow and its index.
+required for a regression in a **published library**: a version another
+project consumes (a swarm-core or ns3-tools release through its lock or PyPI,
+a protocol core's vcpkg port), and for every upstream ns-3 bug or
+investigation of one, which gets an `NS3-NNN` ticket in
+swarm-routing/ns3-tools first, before the bug is confirmed. A Docker image
+gets one only when its composition (its Dockerfile and what it copies in, the
+configure line, the base image) is the cause, in the repository that owns the
+Dockerfile. The rule and its decision table are in [CONTRIBUTING.md, "RCAPA"](https://github.com/swarm-routing/.github/blob/main/CONTRIBUTING.md#rcapa) ([ADR-0003](https://github.com/swarm-routing/.github/blob/main/docs/adr/0003-rcapa-for-ns3-bugs-and-released-regressions.md)).
 
-## The flow for this project
+**RCAPA does not apply to this repository's own changes**, because
+nothing consumes it at a version that this rule counts: the plugin
+`swarm-routing` installs from `main` by its `plugin.json` version, and its
+skills are procedures over scripts in other repositories. A broken skill is
+an ordinary `bug` issue, fixed with a plugin version bump.
 
-What this repository publishes is the **plugin version**: the Claude
-Code plugin `swarm-routing` and its marketplace entry install from `main` by
-the version in `.claude-plugin/plugin.json` (golden rule 12), and skills.sh
-(`npx skills add swarm-routing/skills`) installs the same files. There are no
-`v*` tags, so `git tag --contains` does not apply: a change is published once
-a version bump carrying it is on `main`. A regression is a skill or script that worked at one plugin
-version and broke at a later one, in any repository that enables the
-plugin. A defect caught in a PR, before a version bump reaches `main`, needs
-no RCAPA.
+**Where RCAPA applies instead:** a defect in a script a skill calls lives with that script (mostly
+swarm-routing/.github `tools/`, which takes no RCAPA either; ns3-tools' CLI
+does, as a library).
 
-| | |
-|---|---|
-| Published as | the plugin version on `main` (`.claude-plugin/plugin.json` and `marketplace.json`, moved together), installed by Claude Code and skills.sh; no tags |
-| ID prefix | `SKL-NNN` |
-| Ticket | an issue in swarm-routing/skills, form *Regression in a release (RCAPA)*, title `[rcapa] SKL-NNN <short description>`, labels `rcapa` and `bug` |
-| Verified by | `make test` (`tools/checks/check-plugins.py` and its self-test, `tools/evals/grade.py --self-test`), the skill's evals (`skills/<skill>/evals/`, graded with `tools/evals/grade.py`), and `claude plugin validate .`, at the failing version and the last good one |
-| Corrective action | the fix PR with an eval or script grader that fails without it, and the plugin version bumped with its marketplace entry |
-| Preventive action | an eval case or `check-plugins.py` rule that catches it |
-| Closes when | the fix is merged **and** a plugin version carrying it is on `main` (version recorded) |
-
-```mermaid
-sequenceDiagram
-    participant U as Session using the plugin
-    participant T as RCAPA ticket
-    participant E as check-plugins and evals
-    participant M as main
-    participant P as Plugin version
-    U->>T: a skill that worked at one version breaks
-    T->>E: reproduce with an eval
-    T->>M: fix, eval and version bump
-    M->>P: new plugin version installed
-    P->>T: version recorded, ticket closed
-```
-
-## Index
-
-| ID | RCAPA | RCAPA ticket | Fixed in |
-|----|-------|--------------|----------|
-
-## Adding one: the ticket first
-
-1. Open the RCAPA ticket (the table above). `NNN` is the next free number in
-   the index.
-2. Copy [`_template.md`](_template.md) to `rcapa-<short-description>.md`
-   (lowercase, hyphens: what breaks, not where it was found), and add its row
-   to the index in the same pull request.
-3. The ticket stays open until a plugin version carrying the fix is on `main`; record that version in the index.
-
-## What an RCAPA answers
-
-1. **What broke, in which release, and who did it touch?** The symptom, the
-   releases that fail and the last that passes, the users, numbers or
-   downstream pins it affects.
-2. **How do I see it myself?** Exact commands, the release or commit, an
-   image by tag and digest when one is involved, seeds, expected against
-   actual.
-3. **Why did it happen, and why did our checks let it into a release?** Five
-   whys, each citing its evidence: a source line at a named commit, a log, a
-   run, a comment. An answer without a source is a hypothesis and says so.
-4. **What does it look like?** Mermaid diagrams: the failing call chain, the
-   types or components involved.
-5. **What did we do about it?** Corrective actions (the fix, its PR, the
-   release that carries it) and preventive actions (the test or check that
-   catches a recurrence). An action not done yet is an open issue, linked.
-6. **When?** A dated timeline and every link.
-
-## Writing one
-
-- Every issue and PR reference is fully qualified: `swarm-routing/<repo>#N`,
-  also for this repository's own items; an ns-3 item is a link whose text is
-  `nsnam/ns-3-dev#N` to its full gitlab.com URL. Never a bare number with a
-  hash. In a mermaid block, which cannot hold a hash, name the item in words.
-- Mermaid: no HTML entities inside a block; write template arguments as
-  words.
-- An RCAPA is never deleted. Later findings update its status and timeline.
+The "open RCAPA" badge in the README counts this repository's open issues
+labelled `rcapa`, so it reads 0 here.
