@@ -1,6 +1,6 @@
 ---
 name: docs-review
-description: "Bring a swarm-routing repository's README, AI files (AGENTS.md, CLAUDE.md, CONTEXT.md) and docs/ to the org documentation standard, which is AntHocNet's: the org-sync badge table, grouped by purpose, a short explanation of the project, its page on the Colony Arena site, the ns-3 image for ns-3 repos, a layout that matches the tree, Epics, licence and how-to-work-here sections, a released repository's DOI and citing section with the papers it implements, a docs/ map with no orphan pages and no broken links, and no claim the repository cannot back. Use whenever a README or docs page is written or reviewed in an org repository, a repository is set up or its status changes, someone asks for badges, citation or DOI references, the game or site link, the container link or a docs cleanup, before a docs PR, or when handoff lessons or a `[docs] AI files` issue should be folded back into AGENTS.md and CLAUDE.md. Script first: check_docs.py does the mechanical checks; you judge the prose."
+description: "Bring a swarm-routing repository's README, AI files (AGENTS.md, CLAUDE.md, CONTEXT.md) and docs/ to the org documentation standard, which is AntHocNet's: the org-sync badge table, a short explanation, its page on the Colony Arena site, the ns-3 image for ns-3 repos, a layout that matches the tree, Epics, licence and how-to-work-here sections, a released repository's DOI and citing section with the papers it implements, a docs/ map with no orphan pages and no broken links, a developer guide (docs/development.md, linked from the README), and no claim the repository cannot back. Use whenever a README, developer guide or docs page is written or reviewed in an org repository, a repository is set up or its status changes, someone asks for badges, citation or DOI references, the site or container link or a docs cleanup, before a docs PR, or when handoff lessons or a `[docs] AI files` issue should be folded back into AGENTS.md and CLAUDE.md. Script first: check_docs.py does the mechanical checks; you judge the prose."
 license: MIT OR GPL-2.0-only
 compatibility: Needs python3 and network access to github.com (scripts/check-docs clones swarm-routing/.github tools/docs-review); step 4 and --online also need the GitHub CLI, logged in (gh auth login) or with GH_TOKEN set.
 metadata:
@@ -43,6 +43,7 @@ on a FAIL:
 | CONTEXT.md | still the org-sync seed although the repo has code | WARN |
 | docs/ | a `docs/README.md` map once there are two pages; pages linked from nowhere; ADRs missing from `docs/adr/README.md` | WARN |
 | links | relative links in README, AGENTS.md, CONTEXT.md and docs/ resolve | FAIL |
+| development | `docs/development.md` exists, has every `##` section of `swarm-routing/.github` `templates/development.md` (Prerequisites, Get the code, Dependencies, Build, Test, Run, Docker and dev containers, Lint and format, CI map, Release, Troubleshooting), and the README links it | FAIL |
 | citation | a released repository (a `v*` tag or `zenodo_concept`): the DOI badge; CITATION.cff whose `doi:` is the concept; a README section on citing it that links CITATION.cff (AntHocNet's "Releases & citing"); for a protocol, a CITATION.cff reference per source, each with a `doi:` or the reason it has none | FAIL |
 | citation | a protocol whose CITATION.cff cites no source; a `v*` tag but no `zenodo_concept` (Zenodo has not archived it yet) | WARN |
 | AI files | outside the org-sync sections of AGENTS.md, CLAUDE.md, CONTEXT.md: paths that do not exist; paths marked planned that exist; with `--online`, issues written as open or blocking that are closed; text an org rule replaced (the script's `CONTRADICTIONS` table names each source); checks called required that are not | WARN |
@@ -56,6 +57,10 @@ A repository tunes it in a `[docs]` table of `.github/org-sync.toml`:
 Some parts of these files are generated. Edit those only through their tool,
 or the next run undoes the edit:
 
+- **The Develop section** (between `<!-- org-sync:begin develop -->`
+  markers) links `docs/development.md` and CONTRIBUTING; it comes from
+  `templates/readme-develop.md`: run `org_sync.py apply`, never write it by
+  hand.
 - **Badges** (between `<!-- org-sync:begin badges -->` markers) are a
   table, one row per group, rendered from `badges` in
   `.github/org-sync.toml`: the list says which badges appear, the group
@@ -106,6 +111,14 @@ blocks, Quick start, CONTEXT.md and docs/.
   (`(planned, #N)` on its line, or "The layout below is the plan" above the
   block, as the protocol repositories do). Never create an empty directory to
   satisfy the check.
+- **A missing developer guide** starts from `swarm-routing/.github`
+  `templates/development.md`, keeping every `##` heading in order. Fill each
+  section from what runs today: the commands in the CI workflows, the
+  Makefile and AGENTS.md "Build & verify", run where you can, and a step only
+  CI can run names its workflow. A section with nothing to say keeps one
+  sentence saying so; never invent a command. **A guide that lacks a
+  section** gets it, its existing sections kept (as `###` under the standard
+  one they belong to, or as the repository's own `##` after them).
 - **An orphan docs page** gets a row in `docs/README.md` (a one-line "what you
   find there"), or is removed if it is obsolete. Say which.
 - **A broken link** points at the file that exists now, or the sentence
@@ -128,6 +141,15 @@ Each needs a sentence in the report, even when the answer is "fine":
 - **Quick start.** The commands match AGENTS.md "Build & verify" and the
   repository's Makefile targets. A command for a part that does not exist yet
   is marked as the plan.
+- **The developer guide.** A newcomer could follow it without AGENTS.md:
+  every prerequisite has a version, the commands are the ones CI runs today
+  (check them against the workflows), CI-only steps name their workflow, the
+  CI map's required checks match `gh api
+  'repos/{owner}/{repo}/rules/branches/main'` (run in the checkout: `gh`
+  fills in the owner and name), and the prose has no agent
+  jargon. A gap a newcomer would hit (no dev container, an undocumented
+  prerequisite) is an issue under the repository's epic, not a sentence
+  promising it.
 - **CONTEXT.md** states the current state and the next work, with the issue
   numbers (handoff, epic), when the repository has content.
 - **docs/README.md** says in one line what each page is for, so a reader picks
@@ -183,7 +205,7 @@ check_docs: <last line, e.g. "WARN  review the warnings above">
 - fixed: <file: what changed, one line each>
 - generated: <badges / org sections / Epics changed through which tool, or "none">
 - explained: <each WARN left, and why>
-- judgement: explanation <ok / rewritten>; status <consistent / fixed: …>; claims <none unbacked / removed: …>; quick start <matches / fixed>
+- judgement: explanation <ok / rewritten>; status <consistent / fixed: …>; claims <none unbacked / removed: …>; quick start <matches / fixed>; developer guide <matches CI / fixed: … / gaps filed: #N>
 - lessons: <handoff #N: org rule → .github PR / local fact → this PR / decision → listed on #M; or "none recorded">
 ```
 
