@@ -33,6 +33,9 @@ tools/tracker-responses/responses.py      how many issues of a label the project
 
 ## Build & verify
 
+The step-by-step version for people (prerequisites, every command, the CI
+map, troubleshooting) is [`docs/development.md`](docs/development.md).
+
 ```bash
 make help    # the org's standard target names: build, test, lint, format, check, clean, shell, ci
 make test    # check-plugins.py + its self-test, test_wrapper_cache.py, grade.py --self-test, token_audit.py --self-test, responses.py --self-test
