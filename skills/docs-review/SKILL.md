@@ -145,7 +145,8 @@ Each needs a sentence in the report, even when the answer is "fine":
   every prerequisite has a version, the commands are the ones CI runs today
   (check them against the workflows), CI-only steps name their workflow, the
   CI map's required checks match `gh api
-  repos/<owner>/<repo>/rules/branches/main`, and the prose has no agent
+  'repos/{owner}/{repo}/rules/branches/main'` (run in the checkout: `gh`
+  fills in the owner and name), and the prose has no agent
   jargon. A gap a newcomer would hit (no dev container, an undocumented
   prerequisite) is an issue under the repository's epic, not a sentence
   promising it.
