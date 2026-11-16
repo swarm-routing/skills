@@ -1,6 +1,6 @@
 ---
 name: sonar-triage
-description: "Record a reviewed SonarQube Cloud finding as a false positive (or an accepted wontfix) where the quality gate reads it, through swarm-routing/.github's decisions.toml and the sonar-triage workflow: review the finding, read its key, rule, file and line from SonarQube Cloud's API, add the entry with a reason, validate and plan, open the PR, then plan and apply after merge. Use whenever a SonarQube Cloud quality gate is red on a finding someone calls a false positive, a Sonar security hotspot or vulnerability needs a verdict, someone asks to mark, accept, dismiss or exclude a Sonar finding, or `sonar_triage.py plan` refuses an entry (the finding moved). Script first: sonar_triage.py checks every entry against the live finding; you never mark a finding in the SonarQube Cloud UI, add a rule or path exclusion, or change a quality gate."
+description: "Record a reviewed SonarQube Cloud finding as a false positive (or an accepted wontfix) where the quality gate reads it, through swarm-routing/.github's decisions.toml and the sonar-triage workflow: review the finding, read its key, rule, file and line from SonarQube Cloud's API, add the entry with a reason, validate and plan, open the PR, then plan and apply after merge. Use whenever a SonarQube Cloud quality gate is red on a finding someone calls a false positive, a Sonar security hotspot or vulnerability needs a verdict, someone asks to mark, accept, dismiss or exclude a Sonar finding, or `sonar_triage.py plan` refuses an entry or reports one moved. Script first: sonar_triage.py checks every entry against the live finding; you never mark a finding in the SonarQube Cloud UI, add a rule or path exclusion, or change a quality gate."
 license: MIT OR GPL-2.0-only
 compatibility: Needs git, python3 3.11+ and network access to github.com (scripts/sonar-triage clones swarm-routing/.github tools/sonar-triage) and sonarcloud.io (public read API, no token). gh to open the PR and dispatch the workflow.
 metadata:
@@ -74,13 +74,26 @@ ORG_TOOLS_DIR=<checkout> "$ST" plan --repos <repo>      # your entry `open`, not
 python3 -I tools/sonar-triage/sonar_triage.py --self-test   # in the checkout, if you touched the script
 ```
 
-`plan` refuses the whole run when an entry's key is gone, or its project,
-rule, file or line differ from the live finding, or it was resolved another
-way. For a refused entry of your own, print it again (step 2). For an
-existing entry whose finding moved (the code changed), the old review no
-longer holds: review it again. If the verdict still stands, delete the old
-entry from `decisions.toml` first (`entry` refuses a key already in the
-file), then print and paste the replacement; otherwise just drop it.
+`plan` matches an entry by its key, project, rule and file
+(swarm-routing/.github#487) and refuses the whole run when the key is gone,
+the project, rule or file differ from the live finding, or it was resolved
+another way. For a refused entry of your own, print it again (step 2). For an
+existing entry refused that way, the old review no longer holds (Sonar gives
+a finding whose code changed substantively a new key): review it again. If
+the verdict still stands, delete the old entry from `decisions.toml` first
+(`entry` refuses a key already in the file), then print and paste the
+replacement; otherwise just drop it.
+
+A finding whose line only moved is not refused: its row reads `moved from
+line N`. Rewrite the lines from the API, never by hand, and commit the
+result by PR (`chore(sonar-triage): refresh <n> moved line(s)`):
+
+```bash
+ORG_TOOLS_DIR=<checkout> "$ST" refresh [--repos <repo>]   # read-only against the API; rewrites only the moved `line =`
+ORG_TOOLS_DIR=<checkout> "$ST" plan                       # no row says moved now
+```
+
+`refresh` writes nothing when `plan` would refuse.
 
 Open the PR in `swarm-routing/.github`, `chore(sonar-triage): record <n>
 reviewed finding(s) in <repo>`, the body linking the review and pasting the
