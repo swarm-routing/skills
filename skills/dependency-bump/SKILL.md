@@ -1,6 +1,6 @@
 ---
 name: dependency-bump
-description: "Check or bump how a swarm-routing repository builds on another org repository's release: swarm-core.lock (or another release lock such as AntHocNet's ns3-tools.lock), the places that name its tag or commit (Makefile, core-deps, the ns-3 CI's dependencies, a benchmark cell), and the `swarm-core / pin` check. Use whenever `swarm-core / pin` is red, a swarm-core or ns3-tools release is out, org-bot's `org-bot/swarm-core-pin` or `org-bot/release-lock` PR needs handling, someone asks which release a repository builds on, or a diff edits a lock. Script first: release_lock.py and check-swarm-core-pin.py read every value from the release; you never type a tag, commit or hash."
+description: "Check or bump how a swarm-routing repository builds on another org repository's release: swarm-core.lock (or another release lock such as AntHocNet's ns3-tools.lock), the places that name its tag or commit (Makefile, core-deps, the ns-3 CI's dependencies, a benchmark cell), and the `swarm-core / pin` check. Use whenever `swarm-core / pin` is red, a swarm-core or ns3-tools release is out, org-bot's `org-bot/swarm-core-pin` or `org-bot/release-lock` PR needs handling, someone asks which release a repository builds on, or a diff edits a lock or a vcpkg.json / vcpkg-configuration.json that pins swarm-core (vcpkg mode). Script first: release_lock.py and check-swarm-core-pin.py read every value from the release; you never type a tag, commit or hash."
 license: MIT OR GPL-2.0-only
 compatibility: Needs git, python3 3.10+ and network access to github.com (scripts/org-tool clones swarm-routing/.github tools/checks; the checks read tags with git ls-remote and the release's SHA256SUMS). gh for reading PRs.
 metadata:
@@ -19,6 +19,18 @@ tag; `core-deps` and a benchmark cell's `dependencies:` name the commit the
 tag names; `canary-dependencies:` alone names `@main`. Every value is read
 from the release by a script. A hand-typed hash is the one way to get this
 wrong, so you never write one.
+
+**vcpkg mode** (swarm-routing/.github#489): where a root `vcpkg.json`
+depends on `swarm-core`, `core/` takes it from its vcpkg port instead of the
+lock's tarball. `vcpkg.json`'s `overrides` pins the version and port-version,
+`vcpkg-configuration.json` the swarm-routing/vcpkg-registry `baseline` commit;
+the lock stays the record of the tag the ns-3 build uses. The same
+`swarm-core / pin` check then also requires the override to pin the lock's
+version and the baseline to be a registry `main` commit holding exactly that
+version, and the same `--bump` moves the override and the baseline with the
+lock, but only once the registry's `main` holds the new release (it prints
+`waiting for its port PR` and changes nothing before). Never edit either
+JSON file's version or baseline by hand.
 
 ```bash
 SKILL="${CLAUDE_PLUGIN_ROOT}/skills/dependency-bump"   # as the Claude Code plugin
@@ -40,7 +52,9 @@ swarm-routing/.github>` points the wrapper at a local one.
 
 | What it prints | Meaning | Next |
 |---|---|---|
-| `ok, swarm-core.lock names vX, the newest swarm-core release` | current | nothing to do |
+| `ok, swarm-core.lock names vX, the newest swarm-core release` (vcpkg mode adds `vcpkg.json and the registry baseline agree`) | current | nothing to do |
+| `the override pins swarm-core X, swarm-core.lock names Y`, or the registry baseline `has swarm-core X#P` | vcpkg mode drifted from the lock | step 3, `--bump`; if the lock is current, report it (a hand edit) |
+| `--bump`: `waiting for its port PR` | the release is out, the registry's port PR is not merged yet | wait: org-bot's next run bumps; check the registry's `bot/vcpkg-ns3-swarm-core` PR |
 | a newer release than the lock | the pin check is red on every PR here | step 2 |
 | a place that names another tag or commit than the lock | a hand edit drifted | step 3, `--bump` rewrites the pin lines |
 | `does not verify` (tag moved, hash differs) | the lock is wrong or the release was replaced | stop and report: never re-hash to make it pass |
@@ -92,8 +106,8 @@ From a branch off `origin/main` (`claude/swarm-core-vX.Y.Z`):
 "$T" swarm-core-pin --bump                   # writes the lock from the release, moves tag and commit on the pin lines only
 "$T" release-lock verify swarm-core.lock     # must say verifies
 "$T" swarm-core-pin                          # must say ok
-make core-test                               # core/ on the new release (and `make test` where ns3/ exists)
-git diff --stat                              # the lock, Makefile, workflows; nothing else
+make core-test                               # core/ on the new release (vcpkg mode: VCPKG_ROOT=<vcpkg checkout>; `make test` where ns3/ exists)
+git diff --stat                              # the lock, Makefile, workflows (vcpkg mode: also vcpkg.json, vcpkg-configuration.json); nothing else
 ```
 
 `--bump` leaves recorded data alone (a `##PROV##` line, a campaign plan, a
