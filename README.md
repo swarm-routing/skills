@@ -5,7 +5,7 @@
 | --- | --- |
 | Build | [![CI](https://github.com/swarm-routing/skills/actions/workflows/ci.yml/badge.svg)](https://github.com/swarm-routing/skills/actions/workflows/ci.yml) |
 | Release | [![Licence: MIT OR GPL-2.0-only](https://img.shields.io/badge/licence-MIT%20OR%20GPL--2.0--only-blue)](LICENSING.md) |
-| Trust | [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/swarm-routing/skills/badge)](https://scorecard.dev/viewer/?uri=github.com/swarm-routing/skills) |
+| Trust | [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/swarm-routing/skills/badge)](https://scorecard.dev/viewer/?uri=github.com/swarm-routing/skills) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/16823/badge)](https://www.bestpractices.dev/projects/16823) |
 | Community & docs | [![Open RCAPA](https://img.shields.io/github/issues/swarm-routing/skills/rcapa?label=open%20RCAPA&color=blue)](https://github.com/swarm-routing/skills/blob/main/docs/rcapa/README.md) [![Claude Code plugins](https://img.shields.io/badge/Claude%20Code-plugin%20marketplace-blueviolet)](https://docs.claude.com/en/docs/claude-code/plugin-marketplaces) [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow)](https://www.conventionalcommits.org) [![skills.sh](https://img.shields.io/badge/skills.sh-npx%20skills%20add%20swarm--routing%2Fskills-black)](https://skills.sh) |
 <!-- org-sync:end badges -->
 
