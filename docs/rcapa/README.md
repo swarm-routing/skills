@@ -10,34 +10,39 @@ swarm-routing/ns3-tools. The org's rule and its decision table are in
 ([ADR-0003](https://github.com/swarm-routing/.github/blob/main/docs/adr/0003-rcapa-for-ns3-bugs-and-released-regressions.md)).
 This page is the project's flow and its index.
 
-<!-- Seeded by org-sync from swarm-routing/.github templates/rcapa/README.md;
-the repository's own from here. Replace every TODO with this project's facts
-(its AGENTS.md, release.yml and docs), then delete this comment. -->
-
 ## The flow for this project
+
+What this repository publishes is the **plugin version**: the Claude
+Code plugin `swarm-routing` and its marketplace entry install from `main` by
+the version in `.claude-plugin/plugin.json` (golden rule 12), and skills.sh
+(`npx skills add swarm-routing/skills`) installs the same files. There are no
+`v*` tags. A regression is a skill or script that worked at one plugin
+version and broke at a later one, in any repository that enables the
+plugin. A defect caught in a PR, before a version bump reaches `main`, needs
+no RCAPA.
 
 | | |
 |---|---|
-| Published as | TODO: the release channels this project ships (GitHub release + Zenodo DOI, PyPI, a vcpkg port, images, a site deploy, a dataset release, a plugin version), or "nothing yet: the flow starts at the first release" |
-| ID prefix | TODO: `<PREFIX>-NNN` (CONTRIBUTING "RCAPA", the prefix table) |
-| Ticket | an issue in swarm-routing/skills, form *Regression in a release (RCAPA)*, title `[rcapa] <PREFIX>-NNN <short description>`, labels `rcapa` and `bug` |
-| Verified by | TODO: the check, gate or reproducer that shows the regression and its fix |
-| Corrective action | TODO: the fix and its test, and how a fixed release is cut |
-| Preventive action | TODO: the check that would have caught it before the release |
-| Closes when | the fix is merged **and** a release of the channel above carries it |
+| Published as | the plugin version on `main` (`.claude-plugin/plugin.json` and `marketplace.json`, moved together), installed by Claude Code and skills.sh; no tags |
+| ID prefix | `SKL-NNN` |
+| Ticket | an issue in swarm-routing/skills, form *Regression in a release (RCAPA)*, title `[rcapa] SKL-NNN <short description>`, labels `rcapa` and `bug` |
+| Verified by | `make test` (`tools/checks/check-plugins.py` and its self-test, `tools/evals/grade.py --self-test`), the skill's evals (`skills/<skill>/evals/`, graded with `tools/evals/grade.py`), and `claude plugin validate .`, at the failing version and the last good one |
+| Corrective action | the fix PR with an eval or script grader that fails without it, and the plugin version bumped with its marketplace entry |
+| Preventive action | an eval case or `check-plugins.py` rule that catches it |
+| Closes when | the fix is merged **and** a plugin version carrying it is on `main` (version recorded) |
 
 ```mermaid
 sequenceDiagram
-    participant U as Reporter
+    participant U as Session using the plugin
     participant T as RCAPA ticket
-    participant D as This page
+    participant E as check-plugins and evals
     participant M as main
-    participant R as Release
-    U->>T: regression found against a release
-    T->>D: RCAPA document and index row
-    T->>M: fix and test, merged
-    M->>R: release that carries the fix
-    R->>T: tag and DOI recorded, ticket closed
+    participant P as Plugin version
+    U->>T: a skill that worked at one version breaks
+    T->>E: reproduce with an eval
+    T->>M: fix, eval and version bump
+    M->>P: new plugin version installed
+    P->>T: version recorded, ticket closed
 ```
 
 ## Index
