@@ -16,7 +16,8 @@ What this repository publishes is the **plugin version**: the Claude
 Code plugin `swarm-routing` and its marketplace entry install from `main` by
 the version in `.claude-plugin/plugin.json` (golden rule 12), and skills.sh
 (`npx skills add swarm-routing/skills`) installs the same files. There are no
-`v*` tags. A regression is a skill or script that worked at one plugin
+`v*` tags, so `git tag --contains` does not apply: a change is published once
+a version bump carrying it is on `main`. A regression is a skill or script that worked at one plugin
 version and broke at a later one, in any repository that enables the
 plugin. A defect caught in a PR, before a version bump reaches `main`, needs
 no RCAPA.
@@ -57,8 +58,7 @@ sequenceDiagram
 2. Copy [`_template.md`](_template.md) to `rcapa-<short-description>.md`
    (lowercase, hyphens: what breaks, not where it was found), and add its row
    to the index in the same pull request.
-3. The ticket stays open until the corrective action is merged **and a
-   release carries the fix**; record that release in the index.
+3. The ticket stays open until a plugin version carrying the fix is on `main`; record that version in the index.
 
 ## What an RCAPA answers
 
