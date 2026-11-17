@@ -1,0 +1,22 @@
+# Copyright (c) 2026 Daniel Joppi (https://github.com/swarm-routing)
+# SPDX-License-Identifier: MIT OR GPL-2.0-only
+# Releases go through swarm-routing/.github's reusable-release.yml
+# (.github/workflows/release.yml; CONTRIBUTING "Cutting a release" there),
+# swarm-routing/.github#636, cut on the maintainer's request only. The tag is
+# the plugin's own version: this `version`, plugin.json's, the marketplace
+# entry's and CITATION.cff's are one number (golden rule 12; make test checks
+# it), bumped by hand in every plugin PR so Claude Code sees the update, and
+# by Commitizen on a release (the first one continues from 0.32.x:
+# `first-release-from-config` in release.yml).
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.32.2"
+version_scheme = "semver"
+tag_format = "v$version"
+major_version_zero = true
+update_changelog_on_bump = true
+version_files = [
+    ".claude-plugin/plugin.json:\"version\"",
+    ".claude-plugin/marketplace.json:\"version\"",
+    "CITATION.cff:^version:",
+]

@@ -112,18 +112,25 @@ merge queue, so a pull request is merged by enabling auto-merge.
 
 ## Release
 
-There are no tagged releases: the plugin follows `main`. Every change to
-the plugin bumps its version in `.claude-plugin/plugin.json` and its entry
-in `.claude-plugin/marketplace.json` together, in the same PR (golden rule
-12; `make test` checks they match). The org-wide procedure for repositories
-that do release is [CONTRIBUTING "Cutting a release"](https://github.com/swarm-routing/.github/blob/main/CONTRIBUTING.md#cutting-a-release).
+The plugin follows `main`, and versioned releases are cut on the
+maintainer's request only (swarm-routing/.github#636). Every change to the
+plugin bumps its version in `.claude-plugin/plugin.json`, its entry in
+`.claude-plugin/marketplace.json`, `.cz.toml` and `CITATION.cff` together,
+in the same PR (golden rule 12; `make test` checks they match), so Claude
+Code sees the update. A release (`.github/workflows/release.yml`, on
+swarm-routing/.github's `reusable-release.yml`) bumps all four with
+Commitizen and tags that version; the first tag continues from 0.32.x
+(`first-release-from-config`), not 0.1.0. `make dist` writes its asset,
+`dist/skills-<version>.tar.gz` (the tree at `HEAD`). The ladder is
+[`docs/roadmap.md`](roadmap.md); the procedure is
+[CONTRIBUTING "Cutting a release"](https://github.com/swarm-routing/.github/blob/main/CONTRIBUTING.md#cutting-a-release).
 
 ## Troubleshooting
 
 - **`check-plugins` says a description is too long.** The spec caps it at
   1024 characters; shorten it.
-- **`check-plugins` says the versions differ.** Bump `plugin.json` and the
-  marketplace entry together.
+- **`check-plugins` says the versions differ.** Bump `plugin.json`, the
+  marketplace entry, `.cz.toml` and `CITATION.cff` together.
 - **`check-plugins` says a cached-checkout block differs.** A wrapper that
   fetches a repository copies that block unchanged from an existing wrapper.
 - **A wrapper runs an older version of a tool.** It fetches swarm-routing/.github

@@ -1,0 +1,25 @@
+# Citation File Format (https://citation-file-format.github.io), seeded by
+# swarm-routing/.github org-sync (`citation = true`; `citation_type` and
+# `[[references]]` in .github/org-sync.toml); the repository's own once
+# written. Commitizen keeps `version:` in step (`.cz.toml` version_files
+# "CITATION.cff:^version:"); swarm-routing/.github tools/zenodo reads the
+# concept DOI from `doi:` once the first release is archived on Zenodo.
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+title: "skills"
+abstract: >-
+  The swarm-routing org's agent skills: one Claude Code plugin (swarm-routing)
+  and plain Agent Skills for any agent (npx skills add swarm-routing/skills).
+  Each skill is a procedure over a script in swarm-routing/.github tools/,
+  script first.
+type: software
+authors:
+  - family-names: Joppi
+    given-names: Daniel Henrique
+    orcid: "https://orcid.org/0009-0009-6436-8174"
+version: "0.32.2"
+license:
+  - MIT
+  - GPL-2.0-only
+repository-code: "https://github.com/swarm-routing/skills"
+url: "https://github.com/swarm-routing/skills"

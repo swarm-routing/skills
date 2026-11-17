@@ -13,7 +13,7 @@ ORG_DIR   ?= $(HOME)/.cache/swarm-routing/dotgithub
 ORG_REF   ?= main
 
 .DEFAULT_GOAL := help
-.PHONY: help build test lint format check clean shell ci headers org-sync-check org-tools
+.PHONY: help build test lint format check clean shell ci headers org-sync-check org-tools dist
 
 help: ## list the targets
 	@awk 'BEGIN{FS=":.*## "} /^[a-zA-Z0-9_-]+:.*## /{printf "  %-16s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -54,3 +54,14 @@ org-sync-check: org-tools ## org-managed files match the org templates
 check: lint test headers org-sync-check ## everything CI gates on
 
 ci: check ## exactly what CI runs
+
+# The release asset (swarm-routing/.github#636): the plugin tree at HEAD as
+# skills-<version>.tar.gz, deterministic (git archive). reusable-release.yml's
+# build runs it at the release commit with RELEASE_VERSION set, which must be
+# plugin.json's version (Commitizen bumped both).
+dist: ## the release asset: dist/skills-<version>.tar.gz
+	@v=$$(python3 -I -c 'import json; print(json.load(open(".claude-plugin/plugin.json"))["version"])'); \
+	if [ -n "$$RELEASE_VERSION" ] && [ "$$RELEASE_VERSION" != "$$v" ]; then \
+	  echo "make dist: RELEASE_VERSION $$RELEASE_VERSION != plugin.json $$v" >&2; exit 1; fi; \
+	mkdir -p dist && git archive --format=tar.gz --prefix="skills-$$v/" -o "dist/skills-$$v.tar.gz" HEAD && \
+	echo "dist/skills-$$v.tar.gz"
