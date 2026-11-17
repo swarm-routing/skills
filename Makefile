@@ -8,8 +8,9 @@
 
 NS3_IMAGE ?= ghcr.io/swarm-routing/ns3-dev:latest-debug
 PLATFORM  ?=
-# The org tooling (check-headers.py, org-sync), cloned once on demand.
+# The org tooling (check-headers, org-sync): a shallow clone, refreshed to ORG_REF.
 ORG_DIR   ?= $(HOME)/.cache/swarm-routing/dotgithub
+ORG_REF   ?= main
 
 .DEFAULT_GOAL := help
 .PHONY: help build test lint format check clean shell ci headers org-sync-check org-tools
@@ -40,11 +41,12 @@ shell: ## an interactive shell in the dev image with this repo at /src
 	@command -v docker >/dev/null || { echo "make shell: docker not found (Docker Desktop, Colima, or docker.io)" >&2; exit 127; }
 	docker run --rm -it -v "$(CURDIR):/src" -w /src $(if $(PLATFORM),--platform $(PLATFORM)) python:3.13-slim bash
 
-org-tools:
-	@test -d "$(ORG_DIR)/.git" || git clone -q --depth 1 https://github.com/swarm-routing/.github "$(ORG_DIR)"
+org-tools:  # the same templates CI checks against: refreshed to ORG_REF every time
+	@[ -d "$(ORG_DIR)/.git" ] || { git init -q "$(ORG_DIR)" && git -C "$(ORG_DIR)" remote add origin https://github.com/swarm-routing/.github; }
+	@git -C "$(ORG_DIR)" fetch -q --depth 1 origin $(ORG_REF) && git -C "$(ORG_DIR)" checkout -q --detach FETCH_HEAD
 
 headers: org-tools ## licence headers (org rule 1)
-	python3 -I "$(ORG_DIR)/tools/checks/check-headers.py" --dual '' .
+	"$(ORG_DIR)/tools/checks/check-headers.sh" --dual '' .
 
 org-sync-check: org-tools ## org-managed files match the org templates
 	python3 -I "$(ORG_DIR)/tools/org-sync/org_sync.py" check .

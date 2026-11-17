@@ -21,6 +21,7 @@ is in the org's
 | actionlint | 1.7.12 (`pip install actionlint-py==1.7.12.25`) | `make lint` |
 | shellcheck | 0.10 (`pip install shellcheck-py==0.10.0.1`) | the wrapper and grader scripts |
 | ruff | 0.17.1 | Python lint and format |
+| Docker with its daemon running, or Go | Docker: any recent; Go: 1.27 (swarm-routing/.github `go.mod`) | `make headers`: the licence gate CI runs, from the ci-tools image, or built with `go` when docker is absent |
 | Claude Code (`claude`) | current | optional: `claude plugin validate .`, trying a skill as a plugin |
 | Node.js with `npx` | 18 or newer | optional: trying the skills.sh install |
 
