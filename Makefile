@@ -8,7 +8,7 @@
 
 NS3_IMAGE ?= ghcr.io/swarm-routing/ns3-dev:latest-debug
 PLATFORM  ?=
-# The org tooling (check-headers.py, org-sync), cloned once on demand.
+# The org tooling (check-headers, org-sync), cloned once on demand.
 ORG_DIR   ?= $(HOME)/.cache/swarm-routing/dotgithub
 
 .DEFAULT_GOAL := help
@@ -44,7 +44,7 @@ org-tools:
 	@test -d "$(ORG_DIR)/.git" || git clone -q --depth 1 https://github.com/swarm-routing/.github "$(ORG_DIR)"
 
 headers: org-tools ## licence headers (org rule 1)
-	python3 -I "$(ORG_DIR)/tools/checks/check-headers.py" --dual '' .
+	"$(ORG_DIR)/tools/checks/check-headers.sh" --dual '' .
 
 org-sync-check: org-tools ## org-managed files match the org templates
 	python3 -I "$(ORG_DIR)/tools/org-sync/org_sync.py" check .
