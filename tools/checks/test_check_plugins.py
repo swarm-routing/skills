@@ -28,6 +28,8 @@ def broken(path, old, new, expect):
     d = tempfile.mkdtemp()
     for sub in (".claude-plugin", "skills"):
         shutil.copytree(os.path.join(ROOT, sub), os.path.join(d, sub))
+    for f in (".cz.toml", "CITATION.cff"):
+        shutil.copy(os.path.join(ROOT, f), d)
     p = os.path.join(d, path)
     text = open(p).read()
     assert old in text, (path, old)
@@ -54,6 +56,18 @@ broken(
     f'"version": "{VERSION}"',
     '"version": "9.9.9"',
     f"version 9.9.9 != marketplace {VERSION}",
+)
+broken(
+    ".cz.toml",
+    f'version = "{VERSION}"',
+    'version = "9.9.9"',
+    f".cz.toml: version 9.9.9 != plugin.json {VERSION}",
+)
+broken(
+    "CITATION.cff",
+    f'version: "{VERSION}"',
+    'version: "9.9.9"',
+    f"CITATION.cff: version 9.9.9 != plugin.json {VERSION}",
 )
 broken(
     ".claude-plugin/marketplace.json",

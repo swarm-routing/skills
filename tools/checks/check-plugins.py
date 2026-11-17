@@ -12,7 +12,11 @@ tools/evals/grade.py). Every skill directory under skills/ must belong to a
 listed plugin. Every script under skills/*/scripts/ that fetches a repository
 does it through the `cached-checkout` block, and the block is the same in all
 of them (a skill installs alone, so each wrapper carries its own copy;
-tools/checks/test_wrapper_cache.py tests the block). One line per problem; exit 1 if any. Stdlib only.
+tools/checks/test_wrapper_cache.py tests the block). The plugin at the
+repository root releases at its own version: `.cz.toml`'s `version` and
+`CITATION.cff`'s `version:` (where they exist) equal plugin.json's, since
+Commitizen rewrites all of them on a release and finds only the version it
+holds (golden rule 12, swarm-routing/.github#636). One line per problem; exit 1 if any. Stdlib only.
 
 Usage: check-plugins.py [REPO_DIR]
 """
@@ -21,6 +25,7 @@ import json
 import os
 import re
 import sys
+import tomllib
 
 NAME = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")  # no leading, trailing or doubled hyphen
 FIELDS = {
@@ -38,6 +43,28 @@ GRADER_TYPES = {"regex", "tool_order", "tool_used", "file_exists", "llm", "basel
 # The fetch block every wrapper carries, between these marker lines.
 BLOCK = re.compile(r"^# >>> cached-checkout\b.*?^# <<< cached-checkout$", re.S | re.M)
 FETCHES = re.compile(r"\bgit\b[^\n]*\b(clone|fetch)\b|XDG_CACHE_HOME")
+
+
+def release_versions(root):
+    """{file: version} of the release files at the repository root: .cz.toml's
+    Commitizen `version` and CITATION.cff's top-level `version:`, each only
+    where the file exists; an unreadable one maps to None."""
+    out = {}
+    cz = os.path.join(root, ".cz.toml")
+    if os.path.exists(cz):
+        try:
+            with open(cz, "rb") as f:
+                out[".cz.toml"] = (
+                    tomllib.load(f).get("tool", {}).get("commitizen", {}).get("version")
+                )
+        except (OSError, tomllib.TOMLDecodeError):
+            out[".cz.toml"] = None
+    cff = os.path.join(root, "CITATION.cff")
+    if os.path.exists(cff):
+        with open(cff, encoding="utf-8") as f:
+            m = re.search(r'^version:\s*["\']?([^"\'\s]+)', f.read(), re.M)
+        out["CITATION.cff"] = m.group(1) if m else None
+    return out
 
 
 def scalar(raw):
@@ -176,6 +203,13 @@ def check(root):
                 errs.append(
                     f"{src}: version {manifest.get('version')} != marketplace {p.get('version')}"
                 )
+            if pdir == os.path.normpath(root):
+                for fname, v in release_versions(root).items():
+                    if v != manifest.get("version"):
+                        errs.append(
+                            f"{fname}: version {v} != plugin.json {manifest.get('version')} "
+                            "(bump them together)"
+                        )
         sdir = os.path.join(pdir, "skills")
         skills = sorted(os.listdir(sdir)) if os.path.isdir(sdir) else []
         if not skills:

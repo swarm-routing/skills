@@ -29,6 +29,9 @@ tools/evals/grade.py                       runs the script graders on an eval wo
 tools/token-audit/token_audit.py           what a session loads from the agent files, and where a finished session's tokens went: the `token-audit` skill's script (+ test_token_audit.py)
 tools/tracker-responses/responses.py      how many issues of a label the project acknowledged (OpenSSF Best Practices' report_responses, enhancement_responses): the `bestpractices` skill's tracker count (+ test_responses.py)
 .github/org-sync.toml                      this repo's org-sync config (kind = "skills")
+.github/workflows/release.yml              releases through swarm-routing/.github's reusable-release.yml, on the maintainer's request only (swarm-routing/.github#636)
+.cz.toml, CITATION.cff                     Commitizen config (the version is plugin.json's, golden rule 12) and citation metadata; `make dist` packs the release asset
+docs/roadmap.md                            the release ladder
 ```
 
 ## Build & verify
@@ -119,7 +122,10 @@ Org-wide (1–9), then this repo's own.
     (or this repo's `tools/`) that works without the skill, and the agent reads
     the script's summary, not raw files.
 12. **Versions move together.** A plugin change bumps its `plugin.json`
-    version and its marketplace entry in the same PR (`check-plugins.py`).
+    version, its marketplace entry, `.cz.toml`'s `version` and
+    `CITATION.cff`'s `version:` in the same PR (`check-plugins.py`); a
+    release's Commitizen bump moves all four, and its tag is that version
+    (swarm-routing/.github#636).
 13. **One plugin, Agent Skills format.** Every skill lives in `skills/<name>/`
     and follows the [Agent Skills spec](https://agentskills.io/specification),
     so the Claude Code plugin `swarm-routing` and `npx skills add
