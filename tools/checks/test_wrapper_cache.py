@@ -15,12 +15,16 @@ Cases:
   - refs that differ only in a character a directory name cannot hold
     (rel/v1, rel_v1) get two directories;
   - without flock, a lock left by a killed run (its pid gone) is taken over;
+  - without flock, a lock with no pid file (a run killed between mkdir and
+    writing its pid) is taken over once untouched for over a minute, and a
+    fresh one is waited on (#192);
   - token-audit installed alone (skills.sh layout) falls back to its last
     snapshot when the fetch fails; an org-tools wrapper fails instead.
 """
 
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -262,6 +266,50 @@ def main():
             and time.time() - t0 < 60,
             f"without flock, a lock left by a killed run is taken over: {r.stderr.strip()!r}",
         )
+
+        # Without flock, a lock with no pid file: taken over once untouched for
+        # over a minute (a run killed between mkdir and its pid), waited on while
+        # fresh (an owner about to write its pid).
+        cache = os.path.join(base, "cache-nopid")
+        lock = os.path.join(cache, "swarm-routing/checkouts/github/main/lock.d")
+        os.makedirs(lock)
+        old = time.time() - 600
+        os.utime(lock, (old, old))
+        nopid_path = no_flock_path(base, "bin-nopid")
+        t0 = time.time()
+        r = subprocess.run(
+            [W["fidelity"]],
+            env=env_for(base, cache, nopid_path),
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        check(
+            r.returncode == 0
+            and r.stdout.startswith("B ")
+            and "removing a lock with no pid" in r.stderr
+            and not os.path.exists(lock)
+            and time.time() - t0 < 60,
+            f"without flock, an old lock with no pid is taken over: {r.stderr.strip()!r}",
+        )
+        os.makedirs(lock)
+        waiter = subprocess.Popen(
+            [W["fidelity"]],
+            env=env_for(base, cache, nopid_path),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            start_new_session=True,
+        )
+        time.sleep(4)
+        waiting = waiter.poll() is None and os.path.isdir(lock)
+        os.killpg(waiter.pid, signal.SIGKILL)
+        _, err = waiter.communicate(timeout=30)
+        check(
+            waiting and "removing" not in err,
+            f"without flock, a fresh lock with no pid is waited on: {err.strip()!r}",
+        )
+        os.rmdir(lock)
 
         # token-audit installed alone: offline falls back to the last snapshot.
         alone = os.path.join(base, "installed/token-audit/scripts")

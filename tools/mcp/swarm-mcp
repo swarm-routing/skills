@@ -60,6 +60,14 @@ cached_checkout() {
             rm -rf "$cache/lock.d"
             continue
         fi
+        # a run killed between mkdir and writing its pid leaves no pid; an
+        # owner writes it at once, so a lock untouched for a minute is left
+        if [ -z "$pid" ] && [ -n "$(find "$cache/lock.d" -maxdepth 0 -mmin +1 2>/dev/null)" ] &&
+            [ -z "$(cat "$cache/lock.d/pid" 2>/dev/null)" ]; then
+            echo "cached_checkout: removing a lock with no pid, untouched for over a minute" >&2
+            rm -rf "$cache/lock.d"
+            continue
+        fi
         sleep 1
     done
     echo "cached_checkout: no lock on $cache in 600 s" >&2
