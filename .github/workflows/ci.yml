@@ -54,7 +54,7 @@ jobs:
           find skills \( -path '*/scripts/*' -o -path '*/graders/*.sh' \) -type f -print0 | xargs -0 -r shellcheck
 
   python:
-    uses: swarm-routing/.github/.github/workflows/reusable-python-ci.yml@main
+    uses: swarm-routing/.github/.github/workflows/reusable-python-ci.yml@2d2c557c2d25e899fb487edd599056096b218d3f # main@2026-11-22
     with:
       paths: tools
       tests: tools/checks/test_check_plugins.py tools/evals/test_grade.py tools/token-audit/test_token_audit.py tools/tracker-responses/test_responses.py
@@ -69,7 +69,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    uses: swarm-routing/.github/.github/workflows/reusable-codecov.yml@main
+    uses: swarm-routing/.github/.github/workflows/reusable-codecov.yml@2d2c557c2d25e899fb487edd599056096b218d3f # main@2026-11-22
     with:
       artifact: python-coverage
       flags: python
