@@ -1,0 +1,8 @@
+# Copyright (c) 2026 Daniel Joppi (https://github.com/swarm-routing)
+# SPDX-License-Identifier: MIT OR GPL-2.0-only
+#
+# What ci.yml's lint job installs with pip (shellcheck for the skill wrappers
+# and script graders). ci.txt is the lock it installs with --require-hashes
+# (OpenSSF Scorecard Pinned-Dependencies, swarm-routing/.github#716); regenerate:
+#   uv pip compile --universal --generate-hashes --no-header tools/requirements/ci.in -o tools/requirements/ci.txt
+shellcheck-py==0.10.0.1
