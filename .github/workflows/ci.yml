@@ -58,3 +58,17 @@ jobs:
       paths: tools
       tests: tools/checks/test_check_plugins.py tools/evals/test_grade.py tools/token-audit/test_token_audit.py tools/tracker-responses/test_responses.py
       source: tools
+
+  # The Python coverage of the `python` job to Codecov (report-only; GitHub
+  # OIDC, no stored token; swarm-routing/.github#635). Not in the merge queue:
+  # main's push uploads it.
+  codecov:
+    needs: python
+    if: github.event_name != 'merge_group'
+    permissions:
+      contents: read
+      id-token: write
+    uses: swarm-routing/.github/.github/workflows/reusable-codecov.yml@main
+    with:
+      artifact: python-coverage
+      flags: python
