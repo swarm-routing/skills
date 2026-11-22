@@ -3,7 +3,7 @@
 name: CI
 
 # The marketplace and every plugin manifest, SKILL.md and eval grader validate;
-# the skill wrappers and the script graders pass shellcheck; the workflows pass
+# the skill wrappers, the MCP launcher and the script graders pass shellcheck; the workflows pass
 # actionlint; tools/ passes ruff and its self-tests run under coverage
 # (report-only, swarm-routing/.github#35). Licence headers and the org-sync
 # drift check run in their own workflows (licence.yml, org-sync.yml).
@@ -37,7 +37,7 @@ jobs:
           persist-credentials: false
       - name: make test (marketplace, plugin.json, SKILL.md frontmatter, + self-test)
         run: make test
-      - name: lint (actionlint, shellcheck on the skill wrappers and script graders)
+      - name: lint (actionlint, shellcheck on the skill wrappers, the MCP launcher and script graders)
         timeout-minutes: 5  # the two downloads (org CONTRIBUTING invariant 5)
         env:
           # actionlint 1.7.12's own release, checked against its sha256 (the release's
@@ -51,13 +51,13 @@ jobs:
           echo "$ACTIONLINT_SHA256  $RUNNER_TEMP/actionlint.tgz" | sha256sum -c -
           tar -xzf "$RUNNER_TEMP/actionlint.tgz" -C "$RUNNER_TEMP" actionlint
           "$RUNNER_TEMP/actionlint" .github/workflows/*.yml
-          find skills \( -path '*/scripts/*' -o -path '*/graders/*.sh' \) -type f -print0 | xargs -0 -r shellcheck
+          find skills tools/mcp \( -path '*/scripts/*' -o -path '*/graders/*.sh' -o -path 'tools/mcp/*' \) -type f -print0 | xargs -0 -r shellcheck
 
   python:
     uses: swarm-routing/.github/.github/workflows/reusable-python-ci.yml@bab27478f41284acdfd5b069d9bbdd9279cb934f # main@2026-11-22
     with:
       paths: tools
-      tests: tools/checks/test_check_plugins.py tools/evals/test_grade.py tools/token-audit/test_token_audit.py tools/tracker-responses/test_responses.py tools/swarm-mcp/test_swarm_mcp.py
+      tests: tools/checks/test_check_plugins.py tools/evals/test_grade.py tools/token-audit/test_token_audit.py tools/tracker-responses/test_responses.py tools/checks/test_mcp_launcher.py
       source: tools
 
   # The Python coverage of the `python` job to Codecov (report-only; GitHub

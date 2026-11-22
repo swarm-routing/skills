@@ -25,7 +25,8 @@ T="$SKILL/scripts/org-tool"    # T release-check|zenodo ...
 ```
 
 `ORG_TOOLS_DIR=<checkout of swarm-routing/.github>` points the wrapper at a
-local one. With the plugin's `swarm-mcp` MCP server running, its
+local one. With the plugin's `swarm-mcp` MCP server
+([swarm-routing/swarm-mcp](https://github.com/swarm-routing/swarm-mcp)) running, its
 `release_ready` (step 1), `release_after` (step 5) and `lock_verify` (a
 consumer's lock, step 5) tools run `release-check ready`, `release-check
 after` and `release_lock.py verify` and return the summary, capped; the

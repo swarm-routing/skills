@@ -28,9 +28,11 @@ tools/checks/test_wrapper_cache.py         runs the wrappers concurrently on loc
 tools/evals/grade.py                       runs the script graders on an eval workspace, merges them into grading.json (+ test_grade.py)
 tools/token-audit/token_audit.py           what a session loads from the agent files, and where a finished session's tokens went: the `token-audit` skill's script (+ test_token_audit.py)
 tools/tracker-responses/responses.py      how many issues of a label the project acknowledged (OpenSSF Best Practices' report_responses, enhancement_responses): the `bestpractices` skill's tracker count (+ test_responses.py)
-tools/swarm-mcp/swarm_mcp.py               swarm-mcp, the local read-only MCP server (stdio, stdlib): seven tools over the fidelity-sheet, protocol-review,
-                                           release and dependency-bump wrappers, each the script's summary, capped (docs/adr/0002; + test_swarm_mcp.py)
-.mcp.json                                  the plugin's MCP manifest: swarm-mcp only, a local stdio server (check-plugins.py validates it)
+.mcp.json                                  the plugin's MCP manifest: swarm-mcp only, a local stdio server run by tools/mcp/swarm-mcp (check-plugins.py validates it)
+tools/mcp/swarm-mcp                        the launcher: swarm-routing/swarm-mcp's server at the commit swarm-mcp.lock pins, from the wrappers'
+                                           snapshot cache (their cached-checkout block; SWARM_MCP_DIR = a local checkout); + tools/checks/test_mcp_launcher.py
+swarm-mcp.lock                             the swarm-routing/swarm-mcp commit the plugin runs; moved by a PR naming the commit read from its main
+                                           (the server, its seven tools and its ADR live there: swarm-routing/swarm-mcp docs/adr/0002)
 .github/org-sync.toml                      this repo's org-sync config (kind = "skills")
 .github/workflows/release.yml              releases through swarm-routing/.github's reusable-release.yml, on the maintainer's request only (swarm-routing/.github#636)
 .cz.toml, CITATION.cff                     Commitizen config (the version is plugin.json's, golden rule 12) and citation metadata; `make dist` packs the release asset

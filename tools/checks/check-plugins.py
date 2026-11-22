@@ -18,7 +18,10 @@ repository root releases at its own version: `.cz.toml`'s `version` and
 Commitizen rewrites all of them on a release and finds only the version it
 holds (golden rule 12, swarm-routing/.github#636). A plugin's `.mcp.json` names
 local stdio servers only, each script it runs in the plugin, no literal `env`
-value (`check_mcp`, docs/adr/0002). One line per problem; exit 1 if any. Stdlib only.
+value (`check_mcp`, docs/adr/0002). The MCP launchers under tools/mcp/ carry
+the same cached-checkout block, and swarm-mcp.lock pins swarm-routing/swarm-mcp
+by a full commit that tools/mcp/swarm-mcp reads (`check_pin`). One line per
+problem; exit 1 if any. Stdlib only.
 
 Usage: check-plugins.py [REPO_DIR]
 """
@@ -191,14 +194,57 @@ def check_mcp(root, pdir):
     return errs
 
 
+PIN = "swarm-mcp.lock"
+LAUNCHER = "tools/mcp/swarm-mcp"
+PIN_LINES = {
+    "repository": re.compile(r'^repository = "swarm-routing/swarm-mcp"[ \t]*$', re.M),
+    "commit": re.compile(r'^commit = "[0-9a-f]{40}"[ \t]*$', re.M),
+}
+
+
+def check_pin(root):
+    """Problems with swarm-mcp.lock, the commit of swarm-routing/swarm-mcp the
+    MCP launcher runs: both lines once each, a full commit, and the launcher
+    present and reading this file (docs/adr/0002)."""
+    path, launcher = os.path.join(root, PIN), os.path.join(root, LAUNCHER)
+    if not os.path.exists(path) and not os.path.exists(launcher):
+        return []
+    if not os.path.exists(path):
+        return [f"{LAUNCHER}: present, but {PIN} is missing"]
+    if not os.path.exists(launcher):
+        return [f"{PIN}: present, but {LAUNCHER} is missing"]
+    with open(path, encoding="utf-8") as f:
+        text = f.read()
+    errs = []
+    for key, rx in PIN_LINES.items():
+        n = len(rx.findall(text))
+        if n != 1:
+            errs.append(
+                f'{PIN}: needs exactly one `{key} = "..."` line '
+                + (
+                    'naming "swarm-routing/swarm-mcp"'
+                    if key == "repository"
+                    else "with a 40-hex commit"
+                )
+                + f" (found {n})"
+            )
+    with open(launcher, encoding="utf-8") as f:
+        if PIN not in f.read():
+            errs.append(f"{LAUNCHER}: does not read {PIN}")
+    return errs
+
+
 def check_wrappers(root):
-    """Problems with the cached-checkout block in skills/*/scripts/*."""
+    """Problems with the cached-checkout block in skills/*/scripts/* and tools/mcp/*."""
     errs, blocks = [], {}
     top = os.path.join(root, "skills")
-    for s in sorted(os.listdir(top)) if os.path.isdir(top) else []:
-        sdir = os.path.join(top, s, "scripts")
+    dirs = [
+        (os.path.join(top, s, "scripts"), f"skills/{s}/scripts")
+        for s in (sorted(os.listdir(top)) if os.path.isdir(top) else [])
+    ] + [(os.path.join(root, "tools", "mcp"), "tools/mcp")]
+    for sdir, reldir in dirs:
         for name in sorted(os.listdir(sdir)) if os.path.isdir(sdir) else []:
-            rel = f"skills/{s}/scripts/{name}"
+            rel = f"{reldir}/{name}"
             with open(os.path.join(sdir, name), encoding="utf-8") as f:
                 text = f.read()
             found = BLOCK.findall(text)
@@ -321,6 +367,7 @@ def check(root):
                     errs.append(f"{os.path.relpath(sp, root)}: not executable")
             errs.extend(check_graders(root, os.path.join(sdir, s)))
     errs.extend(check_wrappers(root))
+    errs.extend(check_pin(root))
     top = os.path.join(root, "skills")
     for s in sorted(os.listdir(top)) if os.path.isdir(top) else []:
         if os.path.normpath(os.path.join(top, s)) not in seen:

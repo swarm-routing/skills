@@ -1,0 +1,6 @@
+# The swarm-routing/swarm-mcp commit the plugin's MCP server runs (.mcp.json ->
+# tools/mcp/swarm-mcp; docs/adr/0002). Move it by a PR that names the commit read
+# from swarm-mcp's main (never typed) and what changed since the last pin
+# (git log OLD..NEW there); tools/checks/check-plugins.py checks this file.
+repository = "swarm-routing/swarm-mcp"
+commit = "60bbc8233be42282d42bb666c7b5bb260748832a"

@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "swarm-mcp": {
-      "command": "python3",
-      "args": ["-I", "${CLAUDE_PLUGIN_ROOT}/tools/swarm-mcp/swarm_mcp.py"]
+      "command": "bash",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/tools/mcp/swarm-mcp"]
     }
   }
 }
