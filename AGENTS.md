@@ -32,7 +32,7 @@ tools/tracker-responses/responses.py      how many issues of a label the project
 .mcp.json                                  the plugin's MCP manifest: swarm-mcp only, a local stdio server run by tools/mcp/swarm-mcp (check-plugins.py validates it)
 tools/mcp/swarm-mcp                        the launcher: swarm-routing/swarm-mcp's server at the commit swarm-mcp.lock pins, from the wrappers'
                                            snapshot cache (their cached-checkout block; SWARM_MCP_DIR = a local checkout); + tools/checks/test_mcp_launcher.py
-swarm-mcp.lock                             the swarm-routing/swarm-mcp commit the plugin runs; moved by a PR naming the commit read from its main
+swarm-mcp.lock                             the swarm-routing/swarm-mcp commit the plugin runs (+ its release tag); moved by a PR naming the commit read from swarm-mcp
                                            (the server, its seven tools and its ADR live there: swarm-routing/swarm-mcp docs/adr/0002)
 .github/org-sync.toml                      this repo's org-sync config (kind = "skills")
 .github/workflows/release.yml              releases through swarm-routing/.github's reusable-release.yml, on the maintainer's request only (swarm-routing/.github#636)

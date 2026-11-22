@@ -1,6 +1,9 @@
 # The swarm-routing/swarm-mcp commit the plugin's MCP server runs (.mcp.json ->
-# tools/mcp/swarm-mcp; docs/adr/0002). Move it by a PR that names the commit read
-# from swarm-mcp's main (never typed) and what changed since the last pin
-# (git log OLD..NEW there); tools/checks/check-plugins.py checks this file.
+# tools/mcp/swarm-mcp; docs/adr/0002), and the release tag that names it when
+# the pin is a release (`tag`, optional; the launcher reads `commit` only).
+# Move it by a PR that names the commit (and tag) read from swarm-mcp (never
+# typed) and what changed since the last pin (git log OLD..NEW there);
+# tools/checks/check-plugins.py checks this file.
 repository = "swarm-routing/swarm-mcp"
-commit = "60bbc8233be42282d42bb666c7b5bb260748832a"
+commit = "3aa301f539af3c426f0e3d7a1f136057f048e99c"
+tag = "v0.1.0"
