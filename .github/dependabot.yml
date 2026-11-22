@@ -20,3 +20,9 @@ updates:
       codeql-action:
         patterns:
           - "github/codeql-action*"
+  - package-ecosystem: pip
+    directory: /tools/requirements
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "chore(deps)"
