@@ -133,14 +133,16 @@ org-bot runs at once, with the hourly run as the backstop: its
 task (for releases younger than 14 days) opens the PR that marks the
 version shipped in `docs/roadmap.md` with its Zenodo version DOI, the DOI
 rows and the org's archived-releases table, once Zenodo has archived it
-(swarm-routing/.github#465), then posts what is still open as one comment
+(swarm-routing/.github#465; for a repository with `zenodo = false` in its
+`.github/org-sync.toml`, swarm-routing/.github#811, at once, from the
+GitHub releases, with no DOI: it is never archived), then posts what is still open as one comment
 on the site's `[release-sync] <repo> <tag>` issue. Read that comment first;
 the check below is the same check, run by hand. Neither reads the site's
 `release-sync.yml` run: confirm that yourself (the `site:` rows below).
 
 ```bash
 "$T" release-check after swarm-routing/<repo> --tag vX.Y.Z      # the consumers from ROADMAP.md#epics where the org listing is refused; --repos A,B narrows
-"$T" zenodo status --repo swarm-routing/<repo>                 # the version DOI, from Zenodo
+"$T" zenodo status --repo swarm-routing/<repo>                 # the version DOI, from Zenodo (`skipped` with zenodo = false: no DOI)
 ```
 
 | Line | Do |
@@ -156,14 +158,16 @@ the check below is the same check, run by hand. Neither reads the site's
 | `ladder: ... does not mark vX.Y.Z shipped` | org-bot's `release-aftercare` PR does it once Zenodo has the DOI: shepherd that `org-bot/release-aftercare-*` PR; by hand only if the task cannot (`"$T" zenodo shipped --repo swarm-routing/<repo> --checkout . --write`, never a typed DOI) |
 | zenodo `missing` after the grace period | `zenodo sync --repo ... --dry-run`, then ask the maintainer; a first release's concept: `zenodo_concept`, `org_sync.py reseed CITATION.cff` and the DOI badge (CONTRIBUTING "Releases and DOIs") |
 
-Never type a DOI: copy it from `zenodo status`.
+Never type a DOI: copy it from `zenodo status`. A repository with `zenodo =
+false` (skills, swarm-mcp, the site, .github) has none: `after` prints
+`zenodo: none` as OK, and its summary line reads `zenodo n/a`.
 
 ## Report
 
 ```
 <repo> vX.Y.Z: <ready | bump PR #N | released <date>>
 ready: <FAILs, or "nothing failed"> · dry run <run url>: <version, assets>
-after: release <ok> · notes <ok | empty: re-rendered run url> · zenodo <DOI | pending | missing> · site <issue #> · locks <n current, n pending (#PRs)> · vcpkg <ok | PR> · pypi <ok | n/a> · ladder <shipped | PR #>
+after: release <ok> · notes <ok | empty: re-rendered run url> · zenodo <DOI | pending | missing | n/a> · site <issue #> · locks <n current, n pending (#PRs)> · vcpkg <ok | PR> · pypi <ok | n/a> · ladder <shipped | PR #>
 ```
 
 Name every step you did not take and why (a bump not asked for, an approval
