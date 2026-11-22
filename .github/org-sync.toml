@@ -43,7 +43,7 @@ instead of `main`, and compare `git log` of this repository before moving it."""
 [settings]
 # GitHub settings as code: swarm-routing/.github tools/repo-settings (swarm-routing/.github#117).
 description = "The swarm-routing org's agent skills: one Claude Code plugin (swarm-routing) and plain Agent Skills for any agent (npx skills add swarm-routing/skills). Each skill is a procedure over a script in swarm-routing/.github tools/, script first."
-homepage = ""
+homepage = "https://swarm-routing.github.io/projects/skills/"
 topics = ["claude-code", "claude-code-plugin", "agent-skills", "ai-agents", "automation", "swarm-intelligence"]
 ruleset = "tooling"
 required_checks = ["plugins", "python / python", "headers / licence", "check / org-sync", "title / title", "review / coderabbit"]
@@ -53,6 +53,9 @@ optional_checks = ["analysis / Scorecard analysis", "Analyze (*)", "CodeRabbit",
 # Merge through a merge queue (swarm-routing/.github#130); every workflow behind a required
 # check also runs on merge_group.
 merge_queue = true
+
+[docs]
+arena_id = "skills"  # its id in swarm-routing.github.io site/hub/projects.json (swarm-routing/swarm-routing.github.io#283)
 
 # the skills.sh install command, in the managed table (swarm-routing/.github#415). A static
 # badge: skills.sh has no page for this repository yet, so its count badge
