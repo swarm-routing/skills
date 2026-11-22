@@ -7,6 +7,7 @@ with the expected message."""
 import importlib.util
 import json
 import os
+import re
 import shutil
 import tempfile
 
@@ -273,6 +274,18 @@ pin(lambda t: t + 'repository = "someone/x"\n', "one `repository = ...` line (fo
 pin(
     lambda t: t.replace("swarm-routing/swarm-mcp", "someone/swarm-mcp"),
     'must be repository = "swarm-routing/swarm-mcp"',
+)
+
+
+def notag(t):
+    return re.sub(r"^tag = .*\n", "", t, flags=re.M)
+
+
+pin(lambda t: notag(t) + 'tag = "main"\n', 'must be tag = "vX.Y.Z"')
+pin(lambda t: notag(t) + 'tag = "v1.2"\n', 'must be tag = "vX.Y.Z"')
+pin(
+    lambda t: notag(t) + 'tag = "v1.2.3"\ntag = "v1.2.4"\n',
+    "at most one `tag = ...` line (found 2)",
 )
 pin(lambda t: t, "but swarm-mcp.lock is missing", drop=cp.PIN)
 pin(lambda t: t, "but tools/mcp/swarm-mcp is missing", drop=cp.LAUNCHER)

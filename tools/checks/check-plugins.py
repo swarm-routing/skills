@@ -26,7 +26,8 @@ permission, hook or server, golden rule 10), a boolean `omitClaudeMd`, preloaded
 `skills` that exist in the plugin, and a prompt body (`check_agents`). The
 MCP launchers under tools/mcp/ carry the same cached-checkout block, and
 swarm-mcp.lock pins swarm-routing/swarm-mcp by a full commit that
-tools/mcp/swarm-mcp reads (`check_pin`). One line per problem; exit 1 if any.
+tools/mcp/swarm-mcp reads, with at most one `tag = "vX.Y.Z"` line naming the
+release that commit is (`check_pin`). One line per problem; exit 1 if any.
 Stdlib only.
 
 Usage: check-plugins.py [REPO_DIR]
@@ -227,6 +228,8 @@ PIN_LINES = {
     "repository": re.compile(r'^repository = "swarm-routing/swarm-mcp"[ \t]*$', re.M),
     "commit": re.compile(r'^commit = "[0-9a-f]{40}"[ \t]*$', re.M),
 }
+# Optional: the release tag that names the commit, when the pin is a release.
+PIN_TAG = re.compile(r'^tag = "v[0-9]+\.[0-9]+\.[0-9]+"[ \t]*$', re.M)
 
 
 def check_pin(root):
@@ -257,6 +260,11 @@ def check_pin(root):
                     else 'commit = "<40 hex>"'
                 )
             )
+    tags = re.findall(r"^[ \t]*tag[ \t]*=.*$", text, re.M)
+    if len(tags) > 1:
+        errs.append(f"{PIN}: at most one `tag = ...` line (found {len(tags)})")
+    elif tags and not PIN_TAG.fullmatch(tags[0]):
+        errs.append(f'{PIN}: `{tags[0].strip()}` must be tag = "vX.Y.Z"')
     with open(launcher, encoding="utf-8") as f:
         if PIN not in f.read():
             errs.append(f"{LAUNCHER}: does not read {PIN}")
