@@ -24,7 +24,7 @@ test: ## the fast tests CI runs on every PR
 	python3 -I tools/evals/grade.py --self-test
 	python3 -I tools/token-audit/token_audit.py --self-test
 	python3 -I tools/tracker-responses/responses.py --self-test
-	python3 -I tools/swarm-mcp/swarm_mcp.py --self-test
+	python3 -I tools/checks/test_mcp_launcher.py
 
 lint: ## static checks, no changes
 	actionlint

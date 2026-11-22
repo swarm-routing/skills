@@ -23,8 +23,11 @@ plugin subagent: frontmatter with `name` = file name and a `description`, only
 the fields a plugin agent honours, never one Claude Code ignores for plugins
 (`permissionMode`, `hooks`, `mcpServers`, `initialPrompt`: an agent adds no
 permission, hook or server, golden rule 10), a boolean `omitClaudeMd`, preloaded
-`skills` that exist in the plugin, and a prompt body (`check_agents`). One line
-per problem; exit 1 if any. Stdlib only.
+`skills` that exist in the plugin, and a prompt body (`check_agents`). The
+MCP launchers under tools/mcp/ carry the same cached-checkout block, and
+swarm-mcp.lock pins swarm-routing/swarm-mcp by a full commit that
+tools/mcp/swarm-mcp reads (`check_pin`). One line per problem; exit 1 if any.
+Stdlib only.
 
 Usage: check-plugins.py [REPO_DIR]
 """
@@ -218,6 +221,48 @@ def check_mcp(root, pdir):
     return errs
 
 
+PIN = "swarm-mcp.lock"
+LAUNCHER = "tools/mcp/swarm-mcp"
+PIN_LINES = {
+    "repository": re.compile(r'^repository = "swarm-routing/swarm-mcp"[ \t]*$', re.M),
+    "commit": re.compile(r'^commit = "[0-9a-f]{40}"[ \t]*$', re.M),
+}
+
+
+def check_pin(root):
+    """Problems with swarm-mcp.lock, the commit of swarm-routing/swarm-mcp the
+    MCP launcher runs: both lines once each, a full commit, and the launcher
+    present and reading this file (docs/adr/0002)."""
+    path, launcher = os.path.join(root, PIN), os.path.join(root, LAUNCHER)
+    if not os.path.exists(path) and not os.path.exists(launcher):
+        return []
+    if not os.path.exists(path):
+        return [f"{LAUNCHER}: present, but {PIN} is missing"]
+    if not os.path.exists(launcher):
+        return [f"{PIN}: present, but {LAUNCHER} is missing"]
+    with open(path, encoding="utf-8") as f:
+        text = f.read()
+    errs = []
+    for key, rx in PIN_LINES.items():
+        # every assignment of the key counts, whatever its value: one, and valid
+        found = re.findall(rf"^[ \t]*{key}[ \t]*=.*$", text, re.M)
+        if len(found) != 1:
+            errs.append(f"{PIN}: needs exactly one `{key} = ...` line (found {len(found)})")
+        elif not rx.fullmatch(found[0]):
+            errs.append(
+                f"{PIN}: `{found[0].strip()}` must be "
+                + (
+                    'repository = "swarm-routing/swarm-mcp"'
+                    if key == "repository"
+                    else 'commit = "<40 hex>"'
+                )
+            )
+    with open(launcher, encoding="utf-8") as f:
+        if PIN not in f.read():
+            errs.append(f"{LAUNCHER}: does not read {PIN}")
+    return errs
+
+
 def check_agents(root, pdir, skills):
     """Problems with a plugin's agents/*.md (Claude Code plugin subagents)."""
     adir = os.path.join(pdir, "agents")
@@ -262,13 +307,16 @@ def check_agents(root, pdir, skills):
 
 
 def check_wrappers(root):
-    """Problems with the cached-checkout block in skills/*/scripts/*."""
+    """Problems with the cached-checkout block in skills/*/scripts/* and tools/mcp/*."""
     errs, blocks = [], {}
     top = os.path.join(root, "skills")
-    for s in sorted(os.listdir(top)) if os.path.isdir(top) else []:
-        sdir = os.path.join(top, s, "scripts")
+    dirs = [
+        (os.path.join(top, s, "scripts"), f"skills/{s}/scripts")
+        for s in (sorted(os.listdir(top)) if os.path.isdir(top) else [])
+    ] + [(os.path.join(root, "tools", "mcp"), "tools/mcp")]
+    for sdir, reldir in dirs:
         for name in sorted(os.listdir(sdir)) if os.path.isdir(sdir) else []:
-            rel = f"skills/{s}/scripts/{name}"
+            rel = f"{reldir}/{name}"
             with open(os.path.join(sdir, name), encoding="utf-8") as f:
                 text = f.read()
             found = BLOCK.findall(text)
@@ -392,6 +440,7 @@ def check(root):
             errs.extend(check_graders(root, os.path.join(sdir, s)))
         errs.extend(check_agents(root, pdir, skills))
     errs.extend(check_wrappers(root))
+    errs.extend(check_pin(root))
     top = os.path.join(root, "skills")
     for s in sorted(os.listdir(top)) if os.path.isdir(top) else []:
         if os.path.normpath(os.path.join(top, s)) not in seen:

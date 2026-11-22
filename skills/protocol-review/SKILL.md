@@ -29,7 +29,8 @@ Inside a `swarm-routing/.github` checkout, `python3 -I
 tools/protocol-review/check_invariants.py <repo>` is the same;
 `ORG_TOOLS_DIR=<checkout>` points the wrapper at a local one.
 
-With the plugin's `swarm-mcp` MCP server running, its `protocol_review` tool
+With the plugin's `swarm-mcp` MCP server
+([swarm-routing/swarm-mcp](https://github.com/swarm-routing/swarm-mcp)) running, its `protocol_review` tool
 (arguments `repo`, `base`, `pr_body`) runs the same command and returns the
 script's summary, capped; use either.
 

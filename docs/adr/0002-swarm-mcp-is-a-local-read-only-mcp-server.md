@@ -1,8 +1,16 @@
 # 0002. swarm-mcp is a local, read-only MCP server over the org's scripts
 
-- **Status:** accepted (the maintainer asked on 2026-11-22 for this design
-  note and the prototype together; that request is the acceptance of #185's
-  first criterion)
+- **Status:** superseded: moved to
+  [swarm-routing/swarm-mcp `docs/adr/0002`](https://github.com/swarm-routing/swarm-mcp/blob/main/docs/adr/0002-swarm-mcp-is-a-local-read-only-mcp-server.md)
+  and amended there on 2026-11-22 (maintainer decision: "configure the MCP
+  repo out of skills ... Skills and MCP repo need to work together"). This
+  repository keeps the procedures and the plugin; the server is
+  swarm-routing/swarm-mcp's, versioned and released on its own, and the
+  plugin starts it at the commit `swarm-mcp.lock` pins, through
+  `tools/mcp/swarm-mcp`. The text below is the decision as accepted here
+  (the maintainer asked on 2026-11-22 for this design note and the prototype
+  together; that request is the acceptance of #185's first criterion); its
+  paths name the files as they were then.
 - **Date:** 2026-11-22
 - **Issue:** #185 (part of swarm-routing/.github#672, decisions 20 and 23)
 

@@ -204,6 +204,7 @@ def mcp(servers, expect):
     d = os.path.join(top, "plugin")
     for sub in (".claude-plugin", "skills", "tools"):
         shutil.copytree(os.path.join(ROOT, sub), os.path.join(d, sub))
+    shutil.copy(os.path.join(ROOT, cp.PIN), d)
     assert cp.check(d) == [], cp.check(d)  # the copy passes before .mcp.json is written
     text = servers if isinstance(servers, str) else json.dumps(servers)
     open(os.path.join(d, ".mcp.json"), "w").write(text)
@@ -236,4 +237,64 @@ mcp(
 )
 mcp({"mcpServers": {"s": {**SRV, "env": {"GH_TOKEN": "${GH_TOKEN}"}}}}, None)
 mcp({"mcpServers": {"s": {"args": []}}}, "`command` must be a non-empty string")
+assert SRV["args"] == ["${CLAUDE_PLUGIN_ROOT}/" + cp.LAUNCHER], SRV
+print("ok    .mcp.json starts swarm-mcp through the launcher")
+
+
+def pin(edit, expect, drop=None):
+    """A copy with swarm-mcp.lock and the launcher, `edit`(lock text) written
+    (or the file `drop` removed), fails with `expect`."""
+    d = tempfile.mkdtemp()
+    for sub in (".claude-plugin", "skills", "tools"):
+        shutil.copytree(os.path.join(ROOT, sub), os.path.join(d, sub))
+    shutil.copy(os.path.join(ROOT, cp.PIN), d)
+    assert cp.check(d) == [], cp.check(d)
+    p = os.path.join(d, cp.PIN)
+    with open(p) as fh:
+        text = edit(fh.read())
+    with open(p, "w") as fh:
+        fh.write(text)
+    if drop:
+        os.remove(os.path.join(d, drop))
+    errs = cp.check(d)
+    assert any(expect in e for e in errs), (expect, errs)
+    print(f"ok    pin: {expect}")
+
+
+with open(os.path.join(ROOT, cp.PIN)) as fh:
+    LOCK = fh.read()
+COMMIT = cp.PIN_LINES["commit"].search(LOCK).group(0)
+pin(lambda t: t.replace(COMMIT, 'commit = "main"'), 'must be commit = "<40 hex>"')
+pin(lambda t: t.replace(COMMIT, COMMIT[:-3] + '"'), 'must be commit = "<40 hex>"')
+pin(lambda t: t.replace(COMMIT, "# no commit"), "one `commit = ...` line (found 0)")
+pin(lambda t: t + COMMIT + "\n", "one `commit = ...` line (found 2)")
+pin(lambda t: t + 'commit = "main"\n', "one `commit = ...` line (found 2)")
+pin(lambda t: t + 'repository = "someone/x"\n', "one `repository = ...` line (found 2)")
+pin(
+    lambda t: t.replace("swarm-routing/swarm-mcp", "someone/swarm-mcp"),
+    'must be repository = "swarm-routing/swarm-mcp"',
+)
+pin(lambda t: t, "but swarm-mcp.lock is missing", drop=cp.PIN)
+pin(lambda t: t, "but tools/mcp/swarm-mcp is missing", drop=cp.LAUNCHER)
+
+
+def launcher_reads(old, new, expect):
+    d = tempfile.mkdtemp()
+    for sub in (".claude-plugin", "skills", "tools"):
+        shutil.copytree(os.path.join(ROOT, sub), os.path.join(d, sub))
+    shutil.copy(os.path.join(ROOT, cp.PIN), d)
+    p = os.path.join(d, cp.LAUNCHER)
+    text = open(p).read()
+    assert old in text, old
+    open(p, "w").write(text.replace(old, new))
+    errs = cp.check(d)
+    assert any(expect in e for e in errs), (expect, errs)
+    print(f"ok    launcher: {expect}")
+
+
+launcher_reads("swarm-mcp.lock", "other.lock", "does not read swarm-mcp.lock")
+launcher_reads(
+    "# <<< cached-checkout\n", "# <<< cached-checkout\ngit fetch x\n", "fetches or caches outside"
+)
+launcher_reads("cached_checkout_locked() {", "cached_checkout_lockd() {", "block differs from")
 print("check-plugins self-test: OK")
