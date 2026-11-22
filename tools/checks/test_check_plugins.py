@@ -244,10 +244,16 @@ def pin(edit, expect, drop=None):
 with open(os.path.join(ROOT, cp.PIN)) as fh:
     LOCK = fh.read()
 COMMIT = cp.PIN_LINES["commit"].search(LOCK).group(0)
-pin(lambda t: t.replace(COMMIT, 'commit = "main"'), "with a 40-hex commit (found 0)")
-pin(lambda t: t.replace(COMMIT, COMMIT[:-3] + '"'), "with a 40-hex commit (found 0)")
-pin(lambda t: t + COMMIT + "\n", "with a 40-hex commit (found 2)")
-pin(lambda t: t.replace("swarm-routing/swarm-mcp", "someone/swarm-mcp"), 'naming "swarm-routing')
+pin(lambda t: t.replace(COMMIT, 'commit = "main"'), 'must be commit = "<40 hex>"')
+pin(lambda t: t.replace(COMMIT, COMMIT[:-3] + '"'), 'must be commit = "<40 hex>"')
+pin(lambda t: t.replace(COMMIT, "# no commit"), "one `commit = ...` line (found 0)")
+pin(lambda t: t + COMMIT + "\n", "one `commit = ...` line (found 2)")
+pin(lambda t: t + 'commit = "main"\n', "one `commit = ...` line (found 2)")
+pin(lambda t: t + 'repository = "someone/x"\n', "one `repository = ...` line (found 2)")
+pin(
+    lambda t: t.replace("swarm-routing/swarm-mcp", "someone/swarm-mcp"),
+    'must be repository = "swarm-routing/swarm-mcp"',
+)
 pin(lambda t: t, "but swarm-mcp.lock is missing", drop=cp.PIN)
 pin(lambda t: t, "but tools/mcp/swarm-mcp is missing", drop=cp.LAUNCHER)
 

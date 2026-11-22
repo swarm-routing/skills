@@ -217,16 +217,18 @@ def check_pin(root):
         text = f.read()
     errs = []
     for key, rx in PIN_LINES.items():
-        n = len(rx.findall(text))
-        if n != 1:
+        # every assignment of the key counts, whatever its value: one, and valid
+        found = re.findall(rf"^[ \t]*{key}[ \t]*=.*$", text, re.M)
+        if len(found) != 1:
+            errs.append(f"{PIN}: needs exactly one `{key} = ...` line (found {len(found)})")
+        elif not rx.fullmatch(found[0]):
             errs.append(
-                f'{PIN}: needs exactly one `{key} = "..."` line '
+                f"{PIN}: `{found[0].strip()}` must be "
                 + (
-                    'naming "swarm-routing/swarm-mcp"'
+                    'repository = "swarm-routing/swarm-mcp"'
                     if key == "repository"
-                    else "with a 40-hex commit"
+                    else 'commit = "<40 hex>"'
                 )
-                + f" (found {n})"
             )
     with open(launcher, encoding="utf-8") as f:
         if PIN not in f.read():
