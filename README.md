@@ -127,9 +127,9 @@ and preventive actions), and how: [docs/rcapa/README.md](docs/rcapa/README.md).
 <!-- org-sync:begin citing -->
 ## Releases & citing
 
-Versions follow [SemVer](https://semver.org) ([CHANGELOG.md](CHANGELOG.md)). Each release is listed under [Releases](https://github.com/swarm-routing/skills/releases), built by the org's release workflow and archived on [Zenodo](https://zenodo.org) with its own DOI.
+Versions follow [SemVer](https://semver.org) ([CHANGELOG.md](CHANGELOG.md)). Each release is listed under [Releases](https://github.com/swarm-routing/skills/releases), built by the org's release workflow.
 
-To cite this repository, use the “Cite this repository” button (from [CITATION.cff](CITATION.cff)). It has no DOI yet: the concept DOI appears here and in the badge above once Zenodo archives its first release.
+To cite this repository, use the “Cite this repository” button (from [CITATION.cff](CITATION.cff)). Its releases are not archived on Zenodo, so it has no DOI: name the release you used by its tag.
 
 Using it in your work? Contributions are welcome, and citing it helps just as much.
 <!-- org-sync:end citing -->
