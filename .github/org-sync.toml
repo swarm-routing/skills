@@ -4,9 +4,11 @@ kind = "skills"
 bestpractices_project = "16823"
 title = "skills"
 dual = [""]
-# CITATION.cff seed and cite badge (swarm-routing/.github#636: versioned releases). Once
-# Zenodo archives the first release, org-bot's `zenodo` task sets zenodo_concept.
+# CITATION.cff seed and cite badge (swarm-routing/.github#636: versioned releases), cited
+# by release tag: no Zenodo archive and no DOI (maintainer decision 2026-11-22,
+# swarm-routing/.github#811), so no zenodo_concept, no DOI badge.
 citation = true
+zenodo = false
 posture = "the org's agent tooling: Claude Code skills (instructions) and thin wrappers, no simulation code"
 description = """
 The swarm-routing org's **agent skills**, published two ways from one tree:
