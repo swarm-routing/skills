@@ -19,6 +19,7 @@ the `ns3-` prefix.
 ```
 .claude-plugin/marketplace.json  the marketplace: one plugin, `swarm-routing`, source ./ (version equals plugin.json's)
 .claude-plugin/plugin.json       the plugin manifest; Claude Code loads skills/ from the plugin root
+agents/<name>.md                 plugin subagents (Claude Code frontmatter; org-worker: one repository, omitClaudeMd, #186)
 skills/<skill>/SKILL.md          the procedure (Agent Skills spec: name = directory, 1-64 chars, description <= 1024, < 500 lines)
 skills/<skill>/scripts/          thin wrappers only (org rule 9); one that fetches a repository carries the same
                                  cached-checkout block (a snapshot per ref and commit, updated under a lock)
@@ -309,7 +310,9 @@ Condensed from [andrej-karpathy-skills](https://github.com/forrestchang/andrej-k
   maintainer reserves the decision; list it in swarm-routing/.github#568.
 - **Measure before cutting or adding agent text:** the `token-audit` skill
   (`swarm-routing/skills` `tools/token-audit/token_audit.py`) prints what a
-  session loads and where a finished session's tokens went.
+  session loads and where a finished session's tokens went. MCP servers,
+  plugins and the habits that save tokens: [`docs/agents.md`](https://github.com/swarm-routing/.github/blob/main/docs/agents.md)
+  in swarm-routing/.github (ADR-0005).
 
 ## Response style — caveman (token economy)
 

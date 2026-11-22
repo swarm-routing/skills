@@ -18,10 +18,16 @@ repository root releases at its own version: `.cz.toml`'s `version` and
 Commitizen rewrites all of them on a release and finds only the version it
 holds (golden rule 12, swarm-routing/.github#636). A plugin's `.mcp.json` names
 local stdio servers only, each script it runs in the plugin, no literal `env`
-value (`check_mcp`, docs/adr/0002). The MCP launchers under tools/mcp/ carry
-the same cached-checkout block, and swarm-mcp.lock pins swarm-routing/swarm-mcp
-by a full commit that tools/mcp/swarm-mcp reads (`check_pin`). One line per
-problem; exit 1 if any. Stdlib only.
+value (`check_mcp`, docs/adr/0002). Every agents/<name>.md is a Claude Code
+plugin subagent: frontmatter with `name` = file name and a `description`, only
+the fields a plugin agent honours, never one Claude Code ignores for plugins
+(`permissionMode`, `hooks`, `mcpServers`, `initialPrompt`: an agent adds no
+permission, hook or server, golden rule 10), a boolean `omitClaudeMd`, preloaded
+`skills` that exist in the plugin, and a prompt body (`check_agents`). The
+MCP launchers under tools/mcp/ carry the same cached-checkout block, and
+swarm-mcp.lock pins swarm-routing/swarm-mcp by a full commit that
+tools/mcp/swarm-mcp reads (`check_pin`). One line per problem; exit 1 if any.
+Stdlib only.
 
 Usage: check-plugins.py [REPO_DIR]
 """
@@ -47,6 +53,27 @@ MAX_LINES = 500
 GRADER_TYPES = {"regex", "tool_order", "tool_used", "file_exists", "llm", "baseline"}
 # The fetch block every wrapper carries, between these marker lines.
 BLOCK = re.compile(r"^# >>> cached-checkout\b.*?^# <<< cached-checkout$", re.S | re.M)
+# Claude Code's plugin subagent frontmatter (docs: plugins/components, "Frontmatter
+# fields in plugin agents"); the ignored ones are rejected so nothing is dropped
+# silently.
+AGENT_FIELDS = {
+    "name",
+    "description",
+    "model",
+    "effort",
+    "maxTurns",
+    "autoCompactWindow",
+    "tools",
+    "disallowedTools",
+    "skills",
+    "memory",
+    "background",
+    "omitClaudeMd",
+    "isolation",
+    "color",
+    "experimental",
+}
+AGENT_IGNORED = {"permissionMode", "hooks", "mcpServers", "initialPrompt"}
 FETCHES = re.compile(r"\bgit\b[^\n]*\b(clone|fetch)\b|XDG_CACHE_HOME")
 
 
@@ -236,6 +263,49 @@ def check_pin(root):
     return errs
 
 
+def check_agents(root, pdir, skills):
+    """Problems with a plugin's agents/*.md (Claude Code plugin subagents)."""
+    adir = os.path.join(pdir, "agents")
+    errs = []
+    for name in sorted(os.listdir(adir)) if os.path.isdir(adir) else []:
+        path = os.path.join(adir, name)
+        rel = os.path.relpath(path, root)
+        if os.path.isdir(path) or not name.endswith(".md"):
+            errs.append(f"{rel}: an agent is one agents/<name>.md file")
+            continue
+        with open(path, encoding="utf-8") as f:
+            text = f.read()
+        fm = frontmatter(text)
+        if fm is None:
+            errs.append(f"{rel}: no --- frontmatter ---")
+            continue
+        fm, yaml_problems = fm
+        errs.extend(f"{rel}: frontmatter {p}" for p in yaml_problems)
+        stem = name[: -len(".md")]
+        if fm.get("name") != stem:
+            errs.append(f"{rel}: frontmatter name `{fm.get('name')}` != file name `{stem}`")
+        if not NAME.match(stem):
+            errs.append(f"{rel}: name must be lowercase letters, digits and single hyphens")
+        if not fm.get("description"):
+            errs.append(f"{rel}: missing description")
+        for key in fm:
+            if key in AGENT_IGNORED:
+                errs.append(
+                    f"{rel}: `{key}` is ignored for plugin agents; an agent adds no "
+                    "permission, hook or server (golden rule 10)"
+                )
+            elif key not in AGENT_FIELDS:
+                errs.append(f"{rel}: frontmatter field `{key}` is not a subagent field")
+        if fm.get("omitClaudeMd", "true") not in ("true", "false"):
+            errs.append(f"{rel}: `omitClaudeMd` must be true or false")
+        for s in re.split(r"[,\s]+", fm.get("skills", "").strip("[] ")):
+            if s and s not in skills:
+                errs.append(f"{rel}: preloaded skill `{s}` is not in the plugin")
+        if not re.sub(r"^---\n.*?\n---\n", "", text, count=1, flags=re.S).strip():
+            errs.append(f"{rel}: no prompt after the frontmatter")
+    return errs
+
+
 def check_wrappers(root):
     """Problems with the cached-checkout block in skills/*/scripts/* and tools/mcp/*."""
     errs, blocks = [], {}
@@ -368,6 +438,7 @@ def check(root):
                 if not os.access(sp, os.X_OK):
                     errs.append(f"{os.path.relpath(sp, root)}: not executable")
             errs.extend(check_graders(root, os.path.join(sdir, s)))
+        errs.extend(check_agents(root, pdir, skills))
     errs.extend(check_wrappers(root))
     errs.extend(check_pin(root))
     top = os.path.join(root, "skills")

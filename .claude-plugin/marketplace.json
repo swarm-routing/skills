@@ -12,7 +12,7 @@
       "name": "swarm-routing",
       "source": "./",
       "description": "Skills for building and maintaining the swarm-routing ns-3 protocols and their org: org-repo, fidelity-sheet, protocol-review, docs-review, pr-shepherd, lit-search, references, token-audit, bestpractices, dependency-bump, release, sonar-triage; plus swarm-mcp, a local read-only MCP server (.mcp.json: swarm-routing/swarm-mcp at the commit swarm-mcp.lock pins) giving the fidelity, protocol-review, release and release-lock verdicts as MCP tools; ns-3-specific skills carry the ns3- prefix.",
-      "version": "0.33.1"
+      "version": "0.34.1"
     }
   ],
   "renames": {

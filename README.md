@@ -99,6 +99,19 @@ client, register `python3 -I <checkout of swarm-mcp>/tools/swarm-mcp/swarm_mcp.p
    - `make test` validates the manifests and every skill against the spec;
    - `claude plugin validate .` is Claude Code's own check.
 
+## Delegate to `org-worker`
+
+The plugin ships one subagent, [`org-worker`](agents/org-worker.md)
+(`swarm-routing:org-worker`; #186). It starts with `omitClaudeMd: true`, so
+it loads none of the attached repositories' CLAUDE.md and AGENTS.md files, and
+reads its own repository's agent files as its first step. The contract: the
+orchestrator names one repository (its checkout path) and the task; the worker
+works there only and reports back. It adds no tool, server or permission
+(golden rule 10); it only removes context. In a 13-repository session the
+attached agent files are about 115,000 tokens (`token_audit.py files`,
+estimate); the worker reads back the 6,500 to 12,000 of its own repository,
+so every request it makes carries about 100,000 tokens less.
+
 <!-- org-sync:begin develop -->
 ## Develop
 
