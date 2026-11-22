@@ -19,7 +19,7 @@ requested, the dry run's version replaces the one below in a PR first.
 
 | Release | Theme | Exit criteria |
 |---|---|---|
-| v0.33.0 | first tagged release | `release.yml` on `reusable-release.yml` with `first-release-from-config`; `.cz.toml`, `plugin.json`, the marketplace entry and `CITATION.cff` at one version (`make test`); a dry run green; no open issue labelled `release:v0.33.0`; the maintainer asks for it |
+| v0.35.0 | first tagged release (requested by the maintainer 2026-11-22: "release swarm-mcp v0.1.0 and skills"); the plugin's swarm-mcp pinned to the swarm-mcp v0.1.0 release | `release.yml` on `reusable-release.yml` with `first-release-from-config`; `.cz.toml`, `plugin.json`, the marketplace entry and `CITATION.cff` at one version (`make test`); `swarm-mcp.lock` names swarm-mcp's v0.1.0 tag and the commit it names; a dry run green; no open issue labelled `release:v0.35.0`; the maintainer asks for it |
 
 ## Non-goals
 
