@@ -102,7 +102,10 @@ or the next run undoes the edit:
   hand, a dataset's message), say so in the report and leave the file to the
   `references` skill instead of reseeding over those fields. A tagged
   repository without `zenodo_concept` waits for Zenodo to archive the
-  release; report it, never invent a DOI.
+  release; report it, never invent a DOI. A repository whose
+  `.github/org-sync.toml` sets `zenodo = false` (skills, swarm-mcp, the
+  site, .github; swarm-routing/.github#811) is never archived: it waits for
+  nothing and has no DOI badge or `doi:` to report.
 
 Everything else is the repository's own: the opening paragraph, the layout
 blocks, Quick start, CONTEXT.md and docs/.
