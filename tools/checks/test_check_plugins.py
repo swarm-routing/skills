@@ -26,7 +26,7 @@ with open(os.path.join(ROOT, ".claude-plugin/plugin.json")) as fh:
 
 def broken(path, old, new, expect):
     d = tempfile.mkdtemp()
-    for sub in (".claude-plugin", "skills"):
+    for sub in (".claude-plugin", "skills", "agents"):
         shutil.copytree(os.path.join(ROOT, sub), os.path.join(d, sub))
     for f in (".cz.toml", "CITATION.cff"):
         shutil.copy(os.path.join(ROOT, f), d)
@@ -110,6 +110,26 @@ broken(
     "# grader: check_docs.py",
     "# check_docs.py",
     "no `# grader: <criterion>` line",
+)
+broken("agents/org-worker.md", "name: org-worker", "name: worker", "!= file name `org-worker`")
+broken(
+    "agents/org-worker.md",
+    "omitClaudeMd: true",
+    "omitClaudeMd: true\npermissionMode: bypassPermissions",
+    "`permissionMode` is ignored for plugin agents",
+)
+broken(
+    "agents/org-worker.md",
+    "omitClaudeMd: true",
+    "omitClaudeMd: true\nomitAgentsMd: true",
+    "field `omitAgentsMd` is not a subagent field",
+)
+broken("agents/org-worker.md", "omitClaudeMd: true", "omitClaudeMd: yes", "must be true or false")
+broken(
+    "agents/org-worker.md",
+    "omitClaudeMd: true",
+    "omitClaudeMd: true\nskills: org-repo, nope",
+    "preloaded skill `nope` is not in the plugin",
 )
 
 
