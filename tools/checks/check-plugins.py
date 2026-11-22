@@ -173,14 +173,21 @@ def check_mcp(root, pdir):
             args = []
         for a in [srv.get("command", "")] + args:
             for m in re.finditer(r"\$\{CLAUDE_PLUGIN_ROOT\}/([^\s\"']+)", str(a)):
-                if not os.path.isfile(os.path.join(pdir, m.group(1))):
+                real_root = os.path.realpath(pdir)
+                target = os.path.realpath(os.path.join(real_root, m.group(1)))
+                if os.path.commonpath([real_root, target]) != real_root:
+                    errs.append(f"{where}: {m.group(0)} is outside the plugin")
+                elif not os.path.isfile(target):
                     errs.append(f"{where}: {m.group(0)} not found in the plugin")
         env = srv.get("env", {})
         if not isinstance(env, dict) or any(
-            not (isinstance(v, str) and re.fullmatch(r"\$\{[A-Za-z_][A-Za-z0-9_]*(:-[^}]*)?\}", v))
+            not (isinstance(v, str) and re.fullmatch(r"\$\{[A-Za-z_][A-Za-z0-9_]*\}", v))
             for v in env.values()
         ):
-            errs.append(f"{where}: every `env` value must be a ${{VAR}} reference, never a literal")
+            errs.append(
+                f"{where}: every `env` value must be a ${{VAR}} reference, never a literal "
+                "(nor a :-default)"
+            )
     return errs
 
 

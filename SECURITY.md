@@ -17,8 +17,11 @@ which is what sessions load.
 
 The plugin also starts `swarm-mcp` (`.mcp.json`, `tools/swarm-mcp/`), a local
 stdio MCP server whose tools run read-only commands of the same scripts
-through the same wrappers; it opens no connection of its own, reads no
-token and writes nothing
+through the same wrappers. The server itself opens no connection, reads no
+token and writes no file. The wrappers it runs do what they do for a skill:
+without `ORG_TOOLS_DIR`, they fetch `swarm-routing/.github` from github.com
+into their snapshot cache under `~/.cache/swarm-routing/checkouts/`, and the
+scripts make their own read-only network calls
 ([ADR-0002](docs/adr/0002-swarm-mcp-is-a-local-read-only-mcp-server.md)).
 
 ## Known, by-design limitations (out of scope)
@@ -37,8 +40,9 @@ token and writes nothing
   other than what its text says it runs.
 - A wrapper script under `skills/*/scripts/` that does more than
   locate and call the org tool it names.
-- A `swarm-mcp` tool that writes, opens a connection of its own, prints a
-  credential, or runs a command outside ADR-0002's table; an `.mcp.json`
+- A `swarm-mcp` tool that runs a command outside ADR-0002's table, writes
+  anything beyond the wrappers' snapshot cache, makes a network call the
+  wrapper or the script does not, or prints a credential; an `.mcp.json`
   that names a remote server.
 - A compromised or tampered `.claude-plugin/marketplace.json` or
   `plugin.json` (for example a `source` that points outside this repository).

@@ -67,10 +67,13 @@ The rules every tool keeps, which a review of a new tool checks:
    parses it. Relative paths resolve against `CLAUDE_PROJECT_DIR` (set by
    Claude Code), else the server's working directory.
 4. **No network of its own, no token, no write.** The server opens no
-   connection and reads no credential. A script reaches the network only as
-   it does when a person runs it (`git ls-remote`, `gh` with the user's own
-   login for `release_after`, public HTTPS reads). The environment passes
-   through to the script unchanged and is never printed.
+   connection, reads no credential and writes no file. What it runs does
+   what it does for a skill: without `ORG_TOOLS_DIR`, a wrapper fetches
+   `swarm-routing/.github` from github.com into its snapshot cache (below);
+   a script reaches the network only as it does when a person runs it
+   (`git ls-remote`, `gh` with the user's own login for `release_after`,
+   public HTTPS reads). Nothing touches the repository a tool reads. The
+   environment passes through to the script unchanged and is never printed.
 
 ### Where the scripts come from
 
@@ -109,7 +112,10 @@ asked for among `2025-11-25`, `2025-06-18`, `2025-03-26` (else `2025-11-25`).
 An unknown version is `UnsupportedProtocolVersionError` (-32022) listing the
 supported ones; an unknown tool is -32602, an unknown method -32601, bad
 JSON -32700, a batch -32600 (MCP has no batches); notifications get no
-reply. Methods: `initialize`, `server/discover`, `ping`, `tools/list`,
+reply. A modern `tools/list` and `server/discover` carry the
+`CacheableResult` fields (`ttlMs` one hour, `cacheScope: "public"`: the list
+is fixed for a plugin version). A message the server cannot handle is
+-32603 and the server keeps serving. Methods: `initialize`, `server/discover`, `ping`, `tools/list`,
 `tools/call`. `tools/list` is in a fixed order, each tool annotated
 `readOnlyHint: true`.
 

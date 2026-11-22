@@ -47,6 +47,7 @@ LEGACY = ["2025-11-25", "2025-06-18", "2025-03-26"]
 SUPPORTED = MODERN + LEGACY
 META_VERSION = "io.modelcontextprotocol/protocolVersion"
 UNSUPPORTED_VERSION = -32022
+CACHE_TTL_MS = 3600000  # the tool list is fixed for a plugin version
 INSTRUCTIONS = (
     "Read-only verdicts from the swarm-routing org's scripts: a fidelity sheet's check, row and "
     "locator verification, the golden-rule checks on a diff, a release's readiness and aftercare, "
@@ -235,11 +236,13 @@ def validate(schema, args):
 def trim(text, cap):
     if len(text) <= cap:
         return text
+    cap = max(cap, 0)
     head, tail = cap * 2 // 3, cap // 3
     cut = len(text) - head - tail
+    # text[len(text) - tail:], never text[-tail:]: with tail 0 that is the whole text
     return (
         f"{text[:head]}\n[... {cut} characters cut by swarm-mcp; run the script for the full "
-        f"output ...]\n{text[-tail:]}"
+        f"output ...]\n{text[len(text) - tail :]}"
     )
 
 
@@ -341,7 +344,7 @@ def handle(msg, state):
         result = {"tools": tool_list()}
     elif method == "tools/call":
         name = params.get("name")
-        if name not in TOOLS:
+        if not isinstance(name, str) or name not in TOOLS:
             return _err(mid, -32602, f"Unknown tool: {name}")
         text, is_error = run(name, params.get("arguments") or {})
         result = {"content": [{"type": "text", "text": text}], "isError": is_error}
@@ -349,6 +352,8 @@ def handle(msg, state):
         return _err(mid, -32601, f"Method not found: {method}")
     if modern:
         result = {"resultType": "complete", **result}
+        if method in ("server/discover", "tools/list"):  # CacheableResult in 2026-07-28
+            result.update(ttlMs=CACHE_TTL_MS, cacheScope="public")
     return {"jsonrpc": "2.0", "id": mid, "result": result}
 
 
@@ -362,7 +367,11 @@ def serve(inp=sys.stdin, out=sys.stdout):
         except ValueError:
             reply = _err(None, -32700, "Parse error")
         else:
-            reply = handle(msg, state)
+            try:
+                reply = handle(msg, state)
+            except Exception as e:  # one bad message never ends the server
+                mid = msg.get("id") if isinstance(msg, dict) else None
+                reply = _err(mid, -32603, f"Internal error: {type(e).__name__}")
         if reply is not None:
             out.write(json.dumps(reply, separators=(",", ":")) + "\n")
             out.flush()
@@ -454,6 +463,9 @@ def self_test():
         req(21, "tools/list", {"_meta": {META_VERSION: "1900-01-01"}}),
         req(22, "ping"),
         json.dumps([1, 2]),
+        req(23, "tools/call", {"name": [], "arguments": {}}),
+        req(24, "tools/list", {"_meta": modern}),
+        req(25, "tools/call", {"name": "fidelity_check", "arguments": "x"}),
     ]
     proc = subprocess.run(
         [sys.executable, "-I", os.path.abspath(__file__)],
@@ -472,7 +484,7 @@ def self_test():
         return c[0].get("text", "")
 
     check(proc.returncode == 0, "the server exits 0 at the end of its input")
-    check(len(replies) == 24, f"one reply per request, none for the notification ({len(replies)})")
+    check(len(replies) == 27, f"one reply per request, none for the notification ({len(replies)})")
     init = res.get(1, {})
     check(
         init.get("protocolVersion") == "2025-06-18"
@@ -562,6 +574,31 @@ def self_test():
         any(r.get("error", {}).get("code") == -32600 for r in replies),
         "a batch is an invalid request (MCP has no batches)",
     )
+    check(
+        by_id.get(23, {}).get("error", {}).get("code") == -32602,
+        "a tool name that is not a string is -32602, and the server keeps serving",
+    )
+    tl = res.get(24, {})
+    check(
+        tl.get("resultType") == "complete"
+        and tl.get("ttlMs") == CACHE_TTL_MS
+        and tl.get("cacheScope") == "public"
+        and disc.get("ttlMs") == CACHE_TTL_MS
+        and disc.get("cacheScope") == "public"
+        and "ttlMs" not in res.get(2, {})
+        and "ttlMs" not in res.get(20, {}),
+        "modern tools/list and server/discover carry ttlMs and cacheScope (CacheableResult)",
+    )
+    check(
+        "arguments must be an object" in text(25) and res[25]["isError"],
+        "arguments that are not an object are a tool error",
+    )
+    check(
+        trim("a" * 100 + "Z", 2) == "a\n[... 100 characters cut by swarm-mcp; run the script for "
+        "the full output ...]\n",
+        "a cap whose tail is 0 keeps no tail, not the whole text",
+    )
+    check(trim("abc", -5).endswith("...]\n"), "a negative cap keeps nothing")
     print(f"swarm_mcp self-test: {'ok' if not failures else f'{len(failures)} failed'}")
     return 1 if failures else 0
 
