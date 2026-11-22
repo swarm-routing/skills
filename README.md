@@ -67,6 +67,16 @@ time; run `npx skills update` to get later commits. To review changes before
 your sessions load them, pin the plugin source to a tag or commit (see
 [SECURITY.md](SECURITY.md)).
 
+**The `swarm-mcp` MCP server.** The plugin also starts `swarm-mcp`
+([ADR-0002](docs/adr/0002-swarm-mcp-is-a-local-read-only-mcp-server.md)), a
+local, read-only stdio server whose tools (`fidelity_check`, `fidelity_row`,
+`fidelity_verify`, `protocol_review`, `release_ready`, `release_after`,
+`lock_verify`) run the same scripts as the skills and return their summary,
+capped. In any other MCP client, register the command
+`python3 -I <checkout of this repository>/tools/swarm-mcp/swarm_mcp.py`
+(`--list` prints the tools; `ORG_TOOLS_DIR` points it at a local
+`swarm-routing/.github`).
+
 ## Add a skill
 
 1. Create `skills/<name>/SKILL.md` in the [Agent Skills format](https://agentskills.io/specification):

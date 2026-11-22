@@ -173,4 +173,33 @@ def no_block():
 
 
 no_block()
+
+
+def mcp(servers, expect):
+    """A copy whose .mcp.json is `servers` (a dict, or raw text) fails with `expect`."""
+    d = tempfile.mkdtemp()
+    for sub in (".claude-plugin", "skills", "tools"):
+        shutil.copytree(os.path.join(ROOT, sub), os.path.join(d, sub))
+    assert cp.check(d) == [], cp.check(d)  # the copy passes before .mcp.json is written
+    text = servers if isinstance(servers, str) else json.dumps(servers)
+    open(os.path.join(d, ".mcp.json"), "w").write(text)
+    errs = cp.check(d)
+    assert any(expect in e for e in errs), (expect, errs)
+    print(f"ok    .mcp.json: {expect}")
+
+
+with open(os.path.join(ROOT, ".mcp.json")) as fh:
+    MCP = json.load(fh)
+assert "swarm-mcp" in MCP["mcpServers"], MCP
+SRV = MCP["mcpServers"]["swarm-mcp"]
+mcp("{", ".mcp.json: Expecting property name")
+mcp({"swarm-mcp": SRV}, "must be {")
+mcp({"mcpServers": {"Swarm_MCP": SRV}}, "name must be kebab-case")
+mcp({"mcpServers": {"r": {"type": "http", "url": "https://x"}}}, "local stdio servers only")
+mcp(
+    {"mcpServers": {"s": {**SRV, "args": ["-I", "${CLAUDE_PLUGIN_ROOT}/tools/nope.py"]}}},
+    "${CLAUDE_PLUGIN_ROOT}/tools/nope.py not found in the plugin",
+)
+mcp({"mcpServers": {"s": {**SRV, "env": {"GH_TOKEN": "ghp_x"}}}}, "never a literal")
+mcp({"mcpServers": {"s": {"args": []}}}, "`command` must be a non-empty string")
 print("check-plugins self-test: OK")

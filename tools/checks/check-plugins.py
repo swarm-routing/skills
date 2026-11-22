@@ -16,7 +16,9 @@ tools/checks/test_wrapper_cache.py tests the block). The plugin at the
 repository root releases at its own version: `.cz.toml`'s `version` and
 `CITATION.cff`'s `version:` (where they exist) equal plugin.json's, since
 Commitizen rewrites all of them on a release and finds only the version it
-holds (golden rule 12, swarm-routing/.github#636). One line per problem; exit 1 if any. Stdlib only.
+holds (golden rule 12, swarm-routing/.github#636). A plugin's `.mcp.json` names
+local stdio servers only, each script it runs in the plugin, no literal `env`
+value (`check_mcp`, docs/adr/0002). One line per problem; exit 1 if any. Stdlib only.
 
 Usage: check-plugins.py [REPO_DIR]
 """
@@ -130,6 +132,58 @@ def check_graders(root, skill_dir):
     return errs
 
 
+def check_mcp(root, pdir):
+    """Problems with a plugin's .mcp.json (Claude Code's plugin MCP manifest): an
+    `mcpServers` map of kebab-case names to local stdio servers only (`command`,
+    `args`, `env`; never a remote `url`: golden rule 10, ADR-0002), each
+    `${CLAUDE_PLUGIN_ROOT}/<path>` it names a file in the plugin, and no literal
+    value in `env` (a variable reference only, so no secret is committed)."""
+    path = os.path.join(pdir, ".mcp.json")
+    if not os.path.exists(path):
+        return []
+    rel = os.path.relpath(path, root)
+    try:
+        with open(path, encoding="utf-8") as f:
+            doc = json.load(f)
+    except (OSError, json.JSONDecodeError) as e:
+        return [f"{rel}: {e}"]
+    servers = doc.get("mcpServers") if isinstance(doc, dict) else None
+    if not isinstance(servers, dict) or not servers or set(doc) != {"mcpServers"}:
+        return [f'{rel}: must be {{"mcpServers": {{NAME: SERVER, ...}}}} and nothing else']
+    errs = []
+    for name, srv in servers.items():
+        where = f"{rel} server `{name}`"
+        if not NAME.match(name):
+            errs.append(f"{where}: name must be kebab-case")
+        if not isinstance(srv, dict):
+            errs.append(f"{where}: must be an object")
+            continue
+        extra = set(srv) - {"type", "command", "args", "env"}
+        if extra or srv.get("type", "stdio") != "stdio":
+            errs.append(
+                f"{where}: local stdio servers only (command, args, env); not {sorted(extra)}"
+                if extra
+                else f"{where}: local stdio servers only; type is `{srv.get('type')}`"
+            )
+        args = srv.get("args", [])
+        if not isinstance(srv.get("command"), str) or not srv.get("command"):
+            errs.append(f"{where}: `command` must be a non-empty string")
+        if not (isinstance(args, list) and all(isinstance(a, str) for a in args)):
+            errs.append(f"{where}: `args` must be a list of strings")
+            args = []
+        for a in [srv.get("command", "")] + args:
+            for m in re.finditer(r"\$\{CLAUDE_PLUGIN_ROOT\}/([^\s\"']+)", str(a)):
+                if not os.path.isfile(os.path.join(pdir, m.group(1))):
+                    errs.append(f"{where}: {m.group(0)} not found in the plugin")
+        env = srv.get("env", {})
+        if not isinstance(env, dict) or any(
+            not (isinstance(v, str) and re.fullmatch(r"\$\{[A-Za-z_][A-Za-z0-9_]*(:-[^}]*)?\}", v))
+            for v in env.values()
+        ):
+            errs.append(f"{where}: every `env` value must be a ${{VAR}} reference, never a literal")
+    return errs
+
+
 def check_wrappers(root):
     """Problems with the cached-checkout block in skills/*/scripts/*."""
     errs, blocks = [], {}
@@ -210,6 +264,7 @@ def check(root):
                             f"{fname}: version {v} != plugin.json {manifest.get('version')} "
                             "(bump them together)"
                         )
+        errs.extend(check_mcp(root, pdir))
         sdir = os.path.join(pdir, "skills")
         skills = sorted(os.listdir(sdir)) if os.path.isdir(sdir) else []
         if not skills:

@@ -28,7 +28,10 @@ SCRATCH="$(mktemp -d)"   # extracted paper text (step 4); outside every reposito
 `$SKILL/scripts/fidelity` runs `swarm-routing/.github` `tools/fidelity/fidelity.py`
 from a cached snapshot. Inside a `.github` checkout,
 `python3 tools/fidelity/fidelity.py` is the same; `ORG_TOOLS_DIR=<checkout>`
-points the wrapper at a local one.
+points the wrapper at a local one. With the plugin's `swarm-mcp` MCP server
+running, its `fidelity_check`, `fidelity_row` and `fidelity_verify` tools run
+`check`, `row` and `verify` (step 7) and return the summary, capped; the
+commands that write (`skeleton`, `bib sources`) stay the wrapper's.
 
 ## The sheet's shape
 
