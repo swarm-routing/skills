@@ -25,7 +25,12 @@ T="$SKILL/scripts/org-tool"    # T release-check|zenodo ...
 ```
 
 `ORG_TOOLS_DIR=<checkout of swarm-routing/.github>` points the wrapper at a
-local one.
+local one. With the plugin's `swarm-mcp` MCP server running, its
+`release_ready` (step 1), `release_after` (step 5) and `lock_verify` (a
+consumer's lock, step 5) tools run `release-check ready`, `release-check
+after` and `release_lock.py verify` and return the summary, capped; the
+dispatches, the merge and the `zenodo` writes stay yours, through `gh` and
+the wrapper.
 
 **Who decides.** A release is cut on the maintainer's request only, once the
 version's `release:vX.Y.Z` issues are done and its exit criteria in the

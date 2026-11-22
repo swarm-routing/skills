@@ -173,4 +173,47 @@ def no_block():
 
 
 no_block()
+
+
+def mcp(servers, expect):
+    """A copy whose .mcp.json is `servers` (a dict, or raw text) fails with `expect`,
+    or passes when `expect` is None. Beside the copy is an outside.py, so a path
+    that leaves the plugin names a file that exists."""
+    top = tempfile.mkdtemp()
+    open(os.path.join(top, "outside.py"), "w").write("print(1)\n")
+    d = os.path.join(top, "plugin")
+    for sub in (".claude-plugin", "skills", "tools"):
+        shutil.copytree(os.path.join(ROOT, sub), os.path.join(d, sub))
+    assert cp.check(d) == [], cp.check(d)  # the copy passes before .mcp.json is written
+    text = servers if isinstance(servers, str) else json.dumps(servers)
+    open(os.path.join(d, ".mcp.json"), "w").write(text)
+    errs = cp.check(d)
+    if expect is None:
+        assert errs == [], errs
+        print("ok    .mcp.json: a valid variant passes")
+        return
+    assert any(expect in e for e in errs), (expect, errs)
+    print(f"ok    .mcp.json: {expect}")
+
+
+with open(os.path.join(ROOT, ".mcp.json")) as fh:
+    MCP = json.load(fh)
+assert "swarm-mcp" in MCP["mcpServers"], MCP
+SRV = MCP["mcpServers"]["swarm-mcp"]
+mcp("{", ".mcp.json: Expecting property name")
+mcp({"swarm-mcp": SRV}, "must be {")
+mcp({"mcpServers": {"Swarm_MCP": SRV}}, "name must be kebab-case")
+mcp({"mcpServers": {"r": {"type": "http", "url": "https://x"}}}, "local stdio servers only")
+mcp(
+    {"mcpServers": {"s": {**SRV, "args": ["-I", "${CLAUDE_PLUGIN_ROOT}/tools/nope.py"]}}},
+    "${CLAUDE_PLUGIN_ROOT}/tools/nope.py not found in the plugin",
+)
+mcp({"mcpServers": {"s": {**SRV, "env": {"GH_TOKEN": "ghp_x"}}}}, "never a literal")
+mcp({"mcpServers": {"s": {**SRV, "env": {"GH_TOKEN": "${GH_TOKEN:-ghp_x}"}}}}, "nor a :-default")
+mcp(
+    {"mcpServers": {"s": {**SRV, "args": ["${CLAUDE_PLUGIN_ROOT}/../outside.py"]}}},
+    "${CLAUDE_PLUGIN_ROOT}/../outside.py is outside the plugin",
+)
+mcp({"mcpServers": {"s": {**SRV, "env": {"GH_TOKEN": "${GH_TOKEN}"}}}}, None)
+mcp({"mcpServers": {"s": {"args": []}}}, "`command` must be a non-empty string")
 print("check-plugins self-test: OK")
