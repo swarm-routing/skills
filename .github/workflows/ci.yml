@@ -54,7 +54,7 @@ jobs:
           find skills tools/mcp \( -path '*/scripts/*' -o -path '*/graders/*.sh' -o -path 'tools/mcp/*' \) -type f -print0 | xargs -0 -r shellcheck
 
   python:
-    uses: swarm-routing/.github/.github/workflows/reusable-python-ci.yml@7d1020d0e02001f17f15939438f4300ba01724d5 # main@2026-11-24
+    uses: swarm-routing/.github/.github/workflows/reusable-python-ci.yml@a3155ab8851bab4a54f41b770f22587afee30f2d # main@2026-11-24
     with:
       paths: tools
       tests: tools/checks/test_check_plugins.py tools/evals/test_grade.py tools/token-audit/test_token_audit.py tools/tracker-responses/test_responses.py tools/checks/test_mcp_launcher.py
@@ -69,7 +69,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    uses: swarm-routing/.github/.github/workflows/reusable-codecov.yml@7d1020d0e02001f17f15939438f4300ba01724d5 # main@2026-11-24
+    uses: swarm-routing/.github/.github/workflows/reusable-codecov.yml@a3155ab8851bab4a54f41b770f22587afee30f2d # main@2026-11-24
     with:
       artifact: python-coverage
       flags: python
