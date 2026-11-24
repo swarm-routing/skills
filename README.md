@@ -61,6 +61,19 @@ npx skills add swarm-routing/skills --skill fidelity-sheet  # one skill
 }
 ```
 
+That file covers terminal sessions (CLI, desktop, IDE). **Cloud sessions**
+(claude.ai/code) ignore it: they don't add a marketplace a repository declares,
+since that needs the workspace trust dialog they never show, and a plugin
+enabled only in the committed `.claude/settings.json` is not fetched
+([plugins/loading](https://code.claude.com/docs/en/plugins/loading.md#trust-check)).
+A cloud session gets the plugin from the organization instead: the same two
+keys in claude.ai's server-managed settings (Organization settings > Claude
+Code > Managed settings, Owner), or the plugin turned on under Organization
+settings > Plugins & skills
+([plugins/org](https://code.claude.com/docs/en/plugins/org.md#pre-install-and-require-plugins);
+#214). Check it in a new cloud session: the Agent tool lists
+`swarm-routing:org-worker`.
+
 The plugin route follows `main`: Claude Code picks up new commits when it
 refreshes the marketplace. The skills.sh route copies the skills at install
 time; run `npx skills update` to get later commits. To review changes before
