@@ -49,7 +49,7 @@ npx skills add swarm-routing/skills --skill fidelity-sheet  # one skill
 /plugin install swarm-routing --marketplace swarm-routing/skills
 ```
 
-**Every session in an org repository**: commit this to the repository's
+**In an org repository**: commit this to the repository's
 `.claude/settings.json` (`org-sync` writes and checks these keys):
 
 ```json
@@ -60,6 +60,30 @@ npx skills add swarm-routing/skills --skill fidelity-sheet  # one skill
   "enabledPlugins": { "swarm-routing@swarm-routing": true }
 }
 ```
+
+In a terminal session (CLI, desktop, IDE) that file registers the marketplace
+once you accept the folder's workspace trust dialog; it does not install the
+plugin. Install it once per clone (`--scope user` covers all your projects),
+then run `/reload-plugins` or start a new session
+([plugins/loading](https://code.claude.com/docs/en/plugins/loading.md#enabled-in-project-settings-but-not-installed)):
+
+```bash
+claude plugin install swarm-routing@swarm-routing --scope project
+```
+
+**Cloud sessions** (claude.ai/code) ignore that file: they don't add a
+marketplace a repository declares, since that needs the trust dialog they never
+show, and a plugin enabled only in the committed `.claude/settings.json` is not
+fetched ([plugins/loading](https://code.claude.com/docs/en/plugins/loading.md#trust-check)).
+A cloud session gets the plugin from the organization instead, set by an
+Owner in one of two ways: the same two keys in claude.ai's server-managed
+settings (Organization settings > Claude Code > Managed settings;
+[plugins/org](https://code.claude.com/docs/en/plugins/org.md#pre-install-and-require-plugins)),
+or on claude.ai's Plugins & skills page, first **Add** > **Sync from GitHub**
+with `swarm-routing/skills`, then the plugin's **Default access** set to
+**Installed by default** or **Required**
+([plugins/admin](https://claude.com/docs/plugins/admin); #214). Check it in a
+new cloud session: the Agent tool lists `swarm-routing:org-worker`.
 
 The plugin route follows `main`: Claude Code picks up new commits when it
 refreshes the marketplace. The skills.sh route copies the skills at install
