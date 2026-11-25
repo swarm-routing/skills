@@ -1,3 +1,10 @@
+## v0.35.2 (2026-11-25)
+
+### Fix
+
+- **scripts**: recover a no-flock cache lock left without its pid file (#205)
+- **skills**: docs-review and release know the zenodo = false opt-out (#200)
+
 ## v0.35.0 (2026-11-22)
 
 ### Feat
