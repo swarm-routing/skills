@@ -20,7 +20,7 @@ requested, the dry run's version replaces the one below in a PR first.
 | Release | Theme | Exit criteria |
 |---|---|---|
 | v0.35.0 | first tagged release (requested by the maintainer 2026-11-22: "release swarm-mcp v0.1.0 and skills"); the plugin's swarm-mcp pinned to the swarm-mcp v0.1.0 release | `release.yml` on `reusable-release.yml` with `first-release-from-config`; `.cz.toml`, `plugin.json`, the marketplace entry and `CITATION.cff` at one version (`make test`); `swarm-mcp.lock` names swarm-mcp's v0.1.0 tag and the commit it names; a dry run green; no open issue labelled `release:v0.35.0`; the maintainer asks for it |
-| v0.35.2 | patch release (requested by the maintainer 2026-11-25): the fixes since v0.35.0 (#200, #205) and the plugin changes that moved the version files to 0.35.1 unreleased; the version Commitizen computes from them | #200 and #205 merged; `make check` green on `main`; the dry run computes 0.35.2; no open issue labelled `release:v0.35.2`; the maintainer asks for it |
+| v0.36.0 | minor release (requested by the maintainer 2026-11-25; replaces the unreleased v0.35.2): the changes since v0.35.0, the fixes #200 (docs-review and release know the `zenodo = false` opt-out) and #205 (the wrappers' cache lock recovers when left without its pid file), and the plugin changes that moved the version files to 0.35.1 unreleased; the version Commitizen computes from them (dry run 45639186046: increment MINOR) | #200 and #205 merged; `make check` green on `main`; the dry run computes 0.36.0; no open issue labelled `release:v0.36.0`; the maintainer asks for it |
 
 ## Non-goals
 
