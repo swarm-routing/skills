@@ -32,5 +32,6 @@ requested, the dry run's version replaces the one below in a PR first.
 Every published release (no Zenodo archive: `zenodo = false`), read from GitHub by swarm-routing/.github `tools/zenodo/zenodo.py shipped` (org-bot's `release-aftercare` task); never edit the block by hand.
 
 <!-- releases:shipped:begin (zenodo.py shipped --write; never edit by hand) -->
+- **v0.35.2** shipped 2026-11-25 ([release](https://github.com/swarm-routing/skills/releases/tag/v0.35.2))
 - **v0.35.0** shipped 2026-11-22 ([release](https://github.com/swarm-routing/skills/releases/tag/v0.35.0))
 <!-- releases:shipped:end -->
