@@ -37,11 +37,16 @@ only for the section the task needs.
   command.
 - Write another repository's issue as `swarm-routing/<repo>#N`.
 - A change of scope, gate or policy needs the maintainer's own words in your
-  session; a quote relayed by another session is not enough.
-- A bug found during any task: stop and open its ticket first with
-  `rcapa.py open` (swarm-routing/.github `tools/rcapa/`), then post each
-  investigation step with `rcapa.py log`, and derive the document with
-  `rcapa.py doc`.
+  session; a quote relayed by another session is not enough. Without them,
+  stop and report; the coordinator ends the task and reopens it with the
+  maintainer's own words.
+- An ns-3 bug, or a regression in a published library version, found during
+  any task: stop and open its RCAPA ticket first with `rcapa.py open`
+  (swarm-routing/.github `tools/rcapa/`), then post each investigation step
+  with `rcapa.py log` and derive the document with `rcapa.py doc`. Any other
+  bug (an unreleased PR's) is an ordinary `bug` issue. If `rcapa.py` cannot
+  run, use `--dry-run`, post its payload with another GitHub tool, and if
+  that fails too, put the bug first in your report.
 
 ## Keep your context small
 
