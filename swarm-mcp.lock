@@ -5,5 +5,5 @@
 # typed) and what changed since the last pin (git log OLD..NEW there);
 # tools/checks/check-plugins.py checks this file.
 repository = "swarm-routing/swarm-mcp"
-commit = "3aa301f539af3c426f0e3d7a1f136057f048e99c"
-tag = "v0.1.0"
+commit = "e03a95689c1930bab4db5f8d96791ddc99754b55"
+tag = "v0.2.0"
