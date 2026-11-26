@@ -19,7 +19,7 @@ the `ns3-` prefix.
 ```
 .claude-plugin/marketplace.json  the marketplace: one plugin, `swarm-routing`, source ./ (version equals plugin.json's)
 .claude-plugin/plugin.json       the plugin manifest; Claude Code loads skills/ from the plugin root
-agents/<name>.md                 plugin subagents (Claude Code frontmatter; org-worker: one repository, omitClaudeMd, #186)
+agents/<name>.md                 plugin subagents (Claude Code frontmatter; org-worker: one repository, omitClaudeMd, #186; release-worker, pr-worker: versioned briefs)
 skills/<skill>/SKILL.md          the procedure (Agent Skills spec: name = directory, 1-64 chars, description <= 1024, < 500 lines)
 skills/<skill>/scripts/          thin wrappers only (org rule 9); one that fetches a repository carries the same
                                  cached-checkout block (a snapshot per ref and commit, updated under a lock)

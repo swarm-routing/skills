@@ -125,8 +125,13 @@ client, register `python3 -I <checkout of swarm-mcp>/tools/swarm-mcp/swarm_mcp.p
 
 ## Delegate to `org-worker`
 
-The plugin ships one subagent, [`org-worker`](agents/org-worker.md)
-(`swarm-routing:org-worker`; #186). It starts with `omitClaudeMd: true`, so
+The plugin ships three subagents: [`org-worker`](agents/org-worker.md)
+(`swarm-routing:org-worker`; #186), and two versioned briefs of procedures a
+coordinator otherwise relearns, [`release-worker`](agents/release-worker.md)
+(ladder row, `ready`, dry-run, bump, merged-bump recovery) and
+[`pr-worker`](agents/pr-worker.md) (merge queue, report-only checks,
+CodeRabbit threads, watch until merged). Both also carry the relayed-instruction
+and RCAPA rules. `org-worker` starts with `omitClaudeMd: true`, so
 it loads none of the attached repositories' CLAUDE.md and AGENTS.md files, and
 reads its own repository's agent files as its first step. The contract: the
 orchestrator names one repository (its checkout path) and the task; the worker
