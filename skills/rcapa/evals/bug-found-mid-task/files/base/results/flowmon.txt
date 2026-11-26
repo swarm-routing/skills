@@ -1,0 +1,6 @@
+scenario: manet-12 seed=3 ns-3.43 FlowMonitor
+flow 1  rxPackets=500  delaySum=+4.25e+10ns
+flow 2  rxPackets=480  delaySum=+3.84e+10ns
+flow 3  rxPackets=495  delaySum=-1.20e+10ns
+flow 4  rxPackets=510  delaySum=+5.10e+10ns
+note: flow 3 has a negative delaySum. The same scenario and seed under ns-3.42 gives flow 3 delaySum=+4.46e+10ns. The routing code under test is identical in both runs; the sum is accumulated inside ns-3's FlowMonitor (flow-monitor, FlowProbe::ReportLastRx).

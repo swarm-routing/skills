@@ -31,6 +31,7 @@ so the script does the work and the skill says when and in what order.
 | [`dependency-bump`](skills/dependency-bump/SKILL.md) | check or bump the release a repository builds on from another org repository: the release lock (`swarm-core.lock`, `ns3-tools.lock`), the places that name its tag or commit, the `swarm-core / pin` check; org-bot's bump PR first, every value read from the release, never typed | `tools/checks/release_lock.py`, `tools/checks/check-swarm-core-pin.py` |
 | [`release`](skills/release/SKILL.md) | cut a release end to end on the maintainer's request: readiness (caller, Commitizen, `make dist`, the version's ladder row, no open `release:vX.Y.Z` issue, a behind bump PR), dry-run, bump, merge, then the aftercare (provenance, the Zenodo DOI read from Zenodo, the site's release-sync, consumers' lock bumps, the vcpkg port, PyPI, the ladder marked shipped) | `tools/release/release_check.py`, `tools/zenodo/zenodo.py` |
 | [`sonar-triage`](skills/sonar-triage/SKILL.md) | record a reviewed SonarQube Cloud finding as a false positive or an accepted wontfix: review the code, list the findings and print the entry from the API, add it to `decisions.toml`, validate and plan, open the PR, then the workflow's plan and apply; no exclusion, no UI marking, no gate change | `tools/sonar-triage/sonar_triage.py` |
+| [`rcapa`](skills/rcapa/SKILL.md) | open the RCAPA ticket the moment an ns-3 bug or a regression in a published library is found, log each investigation step on it, derive the document from the ticket; never investigate first and record later | `tools/rcapa/rcapa.py` |
 
 Planned ([epic #9](https://github.com/swarm-routing/skills/issues/9)): the ns-3-specific `ns3-new-module` (#12), `ns3-anchor-run` (#13) and `ns3-campaign` (#42); `repo-settings` (#44); `vcpkg-port` (#121).
 
@@ -125,8 +126,13 @@ client, register `python3 -I <checkout of swarm-mcp>/tools/swarm-mcp/swarm_mcp.p
 
 ## Delegate to `org-worker`
 
-The plugin ships one subagent, [`org-worker`](agents/org-worker.md)
-(`swarm-routing:org-worker`; #186). It starts with `omitClaudeMd: true`, so
+The plugin ships three subagents: [`org-worker`](agents/org-worker.md)
+(`swarm-routing:org-worker`; #186), and two versioned briefs of procedures a
+coordinator otherwise relearns, [`release-worker`](agents/release-worker.md)
+(ladder row, `ready`, dry-run, bump, merged-bump recovery) and
+[`pr-worker`](agents/pr-worker.md) (merge queue, report-only checks,
+CodeRabbit threads, watch until merged). Both also carry the relayed-instruction
+and RCAPA rules. `org-worker` starts with `omitClaudeMd: true`, so
 it loads none of the attached repositories' CLAUDE.md and AGENTS.md files, and
 reads its own repository's agent files as its first step. The contract: the
 orchestrator names one repository (its checkout path) and the task; the worker

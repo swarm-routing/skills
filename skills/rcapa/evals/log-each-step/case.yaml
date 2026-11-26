@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: log-each-step
+expected_outcome: |
+  NS3-512 is already open in swarm-routing/sim-tools (the ticket for the negative FlowMonitor delay sum). notes/investigation.md lists what the previous session did, in order: a hypothesis (the probe subtracts a send time recorded after the receive time), reading flow-probe.cc (ReportLastRx subtracts the Tx timestamp that FlowMonitor stores per packet), a reproduction (`./ns3 run manet-12 -- --seed=3` printing flow 3 delaySum=-1.20e+10ns under 3.43 and +4.46e+10ns under 3.42) and a duplicate search with no hit. The agent posts each as its own `rcapa log --repo sim-tools NS3-512 --step <step>` comment in actions.md: hypothesis, source, reproduce (with --command and --result copied byte for byte from the notes) and duplicate-search, in the order they happened, then a `rcapa doc --repo sim-tools NS3-512` command to derive the document. It does not run `rcapa open` again (the ID exists), does not fold the steps into one comment, and does not retype or round any number.
+context:
+  scaffold_script: place-files.sh
+---
+tags: [skill-creator]
+max_turns: 30
+timeout_seconds: 600
+allowed_tools: [Read, Glob, Grep, Skill, Write, Edit, Bash]
