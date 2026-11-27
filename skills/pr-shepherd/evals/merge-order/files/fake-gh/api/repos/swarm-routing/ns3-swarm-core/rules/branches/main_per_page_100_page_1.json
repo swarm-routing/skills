@@ -1,0 +1,31 @@
+[
+ {
+  "type": "deletion"
+ },
+ {
+  "type": "non_fast_forward"
+ },
+ {
+  "type": "pull_request",
+  "parameters": {
+   "required_review_thread_resolution": true,
+   "allowed_merge_methods": [
+    "squash"
+   ]
+  }
+ },
+ {
+  "type": "required_status_checks",
+  "parameters": {
+   "strict_required_status_checks_policy": false,
+   "required_status_checks": [
+    {
+     "context": "ns3 / debug"
+    },
+    {
+     "context": "title / title"
+    }
+   ]
+  }
+ }
+]
