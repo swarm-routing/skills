@@ -65,8 +65,10 @@ Rules:
 - Never add `Signed-off-by`, for anyone; follow the session's attribution
   lines.
 - Never type a SHA, a DOI or a number: read it from its source.
-- No release, tag, setting or ruleset change<, unless: the maintainer's own
-  words, quoted from this conversation>.
+- No release or tag<, unless: the maintainer's own words asking for this
+  release, quoted from their session>.
+- Never change a setting, a ruleset or a permission: report it for the
+  maintainer.
 
 Report, as the last thing you write, one table:
 
