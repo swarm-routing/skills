@@ -158,8 +158,12 @@ repository merges; they decide, not a list:
 gh api repos/<owner>/<repo>/rules/branches/main -q '.[].type'                      # `merge_queue` in the output: a queue
 gh api repos/<owner>/<repo>/rules/branches/main \
   -q '.[] | select(.type=="required_status_checks") | .parameters.required_status_checks[].context'   # the required checks
-"$SKILL"/scripts/pr-status merge <REPO#N> --dry-run          # the same answer: stops on `merge queue on main: ...` where there is one
+"$SKILL"/scripts/pr-status merge <REPO#N> --dry-run          # `merge queue on main: ...`: there is one
 ```
+
+The dry run's `merge queue on main: ...` line proves a queue; any other line
+(`would wait: ...` while a check or the review is pending, `would merge`)
+proves nothing about one, so read the rules (the first command).
 
 - A `merge_queue` rule: enable auto-merge (squash), then `pr-status wait
   --merged <REPO#N>` (below, "With a merge queue").
