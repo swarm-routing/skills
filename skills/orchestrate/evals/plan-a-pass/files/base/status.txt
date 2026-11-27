@@ -1,0 +1,10 @@
+AntHocNet release v1.4.0 commit 3f2c9d14be70a1c5e0d27f86a4b3c9e1d5f70a21 doi 10.5281/zenodo.0000101
+AntHocNet scope release:v1.5.0 open 2 next
+AntHocNet p1 #410 fix(adapter): route table not cleared on interface down
+ARA release v0.3.0 commit 9b7e1a20c4d35f6e8a1b2c3d4e5f60718293a4b5 doi 10.5281/zenodo.0000222
+ARA scope release:v0.4.0 open 0 next
+Termite release v0.1.0 commit 0c1d2e3f405162738495a6b7c8d9e0f1a2b3c4d5 doi 10.5281/zenodo.0000333
+Termite scope release:v0.2.0 open 1 next
+.github handoff #1020 [handoff] coordinator: protocol fixes, week 48
+.github maintainer #1004 [maintainer] actions awaiting the maintainer
+.github maintainer #1004 item: decide whether workers may read repositories they are not attached to (swarm-routing/.github#1010)
