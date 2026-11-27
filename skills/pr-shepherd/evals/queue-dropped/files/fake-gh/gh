@@ -6,9 +6,11 @@
 # the recorded response api/<PATH>.json next to this script (`?`, `&` and `=`
 # in PATH read as `_`); a missing file is an HTTP 404. Every call is logged to
 # calls.log. Only GET is served: any other method (-X, --method, --method=),
-# any option that is not a header or -i and any second path are refused. With
-# -i (pr_status.py reads the rate-limit headers) a status line and a blank
-# line come before the body.
+# any option that is not a header, -i or -q and any second path are refused.
+# With -i (pr_status.py reads the rate-limit headers) a status line and a blank
+# line come before the body; -q/--jq EXPR filters the body with jq -r, as gh
+# does. A PATH with no query and no file reads its first page
+# (PATH?per_page=100&page=1), as GitHub serves it.
 set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 printf '%s\n' "$*" >> "$here/calls.log"
@@ -19,7 +21,7 @@ if [ "${1:-}" != api ]; then
 fi
 shift
 refuse() { echo "gh (offline fixture): $1 refused, the fixture is read-only" >&2; exit 1; }
-path="" method=GET head=""
+path="" method=GET head="" query=""
 while [ $# -gt 0 ]; do
     case "$1" in
         -H|--header) [ $# -ge 2 ] || refuse "$1 without a value"; shift 2 ;;
@@ -28,6 +30,8 @@ while [ $# -gt 0 ]; do
         --method=*) method=${1#--method=}; shift ;;
         -X?*) method=${1#-X}; shift ;;
         -i|--include) head=1; shift ;;
+        -q|--jq) [ $# -ge 2 ] || refuse "$1 without a value"; query=$2; shift 2 ;;
+        --jq=*) query=${1#--jq=}; shift ;;
         -*) refuse "option $1" ;;
         *) [ -z "$path" ] || refuse "a second path ($1)"; path=$1; shift ;;
     esac
@@ -35,9 +39,10 @@ done
 [ "$(printf '%s' "$method" | tr '[:lower:]' '[:upper:]')" = GET ] || refuse "method $method"
 [ -n "$path" ] || refuse "a call without a path"
 file="$here/api/$(printf '%s' "${path#/}" | tr '?&=' '___').json"
+case "$path" in *\?*) ;; *) [ -f "$file" ] || file="${file%.json}_per_page_100_page_1.json" ;; esac
 if [ -f "$file" ]; then
     if [ -n "$head" ]; then printf 'HTTP/2.0 200 OK\n\n'; fi
-    cat "$file"
+    if [ -n "$query" ]; then jq -r "$query" "$file"; else cat "$file"; fi
     exit 0
 fi
 echo "gh: Not Found (HTTP 404)" >&2

@@ -151,13 +151,26 @@ A new review round may add threads: start again from step 1.
 
 Merge only PRs the user asked you to merge, and never a draft.
 
-First ask the ruleset how the repository merges; it decides, not a list:
+First, before enabling auto-merge, ask the base branch's rules how the
+repository merges; they decide, not a list:
 
 ```bash
 gh api repos/<owner>/<repo>/rules/branches/main -q '.[].type'                      # `merge_queue` in the output: a queue
 gh api repos/<owner>/<repo>/rules/branches/main \
   -q '.[] | select(.type=="required_status_checks") | .parameters.required_status_checks[].context'   # the required checks
+"$SKILL"/scripts/pr-status merge <REPO#N> --dry-run          # `merge queue on main: ...`: there is one
 ```
+
+The dry run's `merge queue on main: ...` line proves a queue; any other line
+(`would wait: ...` while a check or the review is pending, `would merge`)
+proves nothing about one, so read the rules (the first command).
+
+- A `merge_queue` rule: enable auto-merge (squash), then `pr-status wait
+  --merged <REPO#N>` (below, "With a merge queue").
+- No `merge_queue` rule: `pr-status merge <REPO#N>`, a direct squash pinned
+  to the head SHA ("Without a merge queue"). Not `enable_pr_auto_merge`:
+  there it fails on a PR already `clean` with "already in clean status"
+  (swarm-routing/.github#1011).
 
 ### With a merge queue (the normal case: every public org repository)
 
@@ -165,7 +178,10 @@ A direct merge is refused with HTTP 405 "Changes must be made through the
 merge queue", and `pr-status merge` does not enter a queue: do not use
 either. The way in is **auto-merge with the squash method**: a GitHub tool's
 auto-merge call (MCP `enable_pr_auto_merge`), `gh pr merge --auto --squash`,
-or the PR page. Do not update the branch first: the queue tests the PR on
+or the PR page. MCP `enable_pr_auto_merge` may answer `method: MERGE` when
+`SQUASH` was asked: not an error in a squash-only repository (every org
+repository), which squashes all the same; confirm with `pr-status queued
+<REPO#N>` (it prints the method auto-merge holds). Do not update the branch first: the queue tests the PR on
 `main` plus the PRs ahead of it, and merges it.
 
 **When to enable it.** The review gate is the required check
@@ -206,6 +222,7 @@ and the others were not waited for:
 | `N unresolved thread(s), first: …` | a review thread holds the merge | steps 2 and 3, then `wait --merged` again |
 | `required check failed: <names>` | a required check is red on the head | step 4: fix it in the code (step 2) or report it |
 | `auto-merge off (never enabled, or dropped from the merge queue)` | nothing will merge this PR as it stands | read `queued` |
+| `auto-merge off; no merge queue on main: ...` | the base branch has no `merge_queue` rule: auto-merge is not the way in | `pr-status merge <REPO#N>` ("Without a merge queue") |
 
 ```bash
 "$SKILL"/scripts/pr-status queued <REPO#N> …
@@ -247,7 +264,9 @@ the release.
 ### Without a merge queue
 
 Only where the ruleset has no `merge_queue` rule (a private repository, or
-one outside the org's profiles). Let the script do the whole loop; do not
+one outside the org's profiles); where it has one, `merge` stops before
+merging with `merge queue on main: enable auto-merge (squash) and wait
+--merged`. Let the script do the whole loop; do not
 run `update-branch` or a merge by hand:
 
 ```bash
