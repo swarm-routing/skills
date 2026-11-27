@@ -1,8 +1,8 @@
 ---
 name: orchestrate
-description: "Run a pass of the coordinator loop over the swarm-routing repositories: read the newest open handoff issue and status.py's snapshot, pick the work by priority, start one worker per repository (never two in one repository at once, cross-repository dependencies in order, a fix that belongs in an org template made there once instead of N per-repository PRs), keep one rolling check-in, verify every worker's claim at its source (git ls-remote, zenodo.py, the PR merged, the rules API), tick and close the ticket with criteria.py, archive the worker, post the pass on the handoff issue (never a local state file) and put what only the maintainer can do on the [maintainer] actions issue, never only in chat. Use whenever asked to coordinate, orchestrate, fan out or drive work across the org's repositories with workers, to continue a coordinator handoff, or to write a worker's brief. Script first: status.py and criteria.py hold the facts and the ticks; brief-template.md holds the brief, isolation checklist included."
+description: "Run a pass of the coordinator loop over the swarm-routing repositories: read the newest open handoff issue (handoff.py) and status.py's snapshot, pick the work by priority, start one worker per repository (never two in one repository, dependencies in order, a fix that belongs in an org template made there once instead of N per-repository PRs), keep one rolling check-in, verify every worker's claim at its source (git ls-remote, zenodo.py, the PR, the rules API), tick and close the ticket with criteria.py, archive the worker, post the pass and the state on the handoff issue (never a local file) and put what only the maintainer can do on the [maintainer] actions issue, never only in chat. Use whenever asked to coordinate, orchestrate, fan out or drive work across the org's repositories with workers, to continue a coordinator handoff, or to write a worker's brief. Script first: status.py, criteria.py and handoff.py hold the facts, ticks and state; brief-template.md holds the brief, isolation checklist included."
 license: MIT OR GPL-2.0-only
-compatibility: Needs git, python3 3.11+, the gh CLI logged in (or GH_TOKEN) and network access to github.com (scripts/org-tool clones swarm-routing/.github tools/status, tools/issues, tools/zenodo and tools/pr-status) and zenodo.org; starting workers needs a session tool that creates and archives sessions.
+compatibility: Needs git, python3 3.11+, the gh CLI logged in (or GH_TOKEN) and network access to github.com (scripts/org-tool clones swarm-routing/.github tools/status, tools/issues (criteria.py, handoff.py), tools/zenodo and tools/pr-status) and zenodo.org; starting workers needs a session tool that creates and archives sessions.
 metadata:
   author: swarm-routing
   repository: https://github.com/swarm-routing/skills
@@ -20,12 +20,21 @@ were already done).
 ```bash
 SKILL="${CLAUDE_PLUGIN_ROOT}/skills/orchestrate"   # as the Claude Code plugin
 # installed with skills.sh (npx skills add): SKILL=<the directory this SKILL.md is in>
-T="$SKILL/scripts/org-tool"    # T status|criteria|zenodo|pr-status ...
+T="$SKILL/scripts/org-tool"    # T status|criteria|handoff|zenodo|pr-status ...
+SCRATCH=$(mktemp -d)           # scratch files (a snapshot, evidence): never the working tree
 ```
 
 `ORG_TOOLS_DIR=<checkout of swarm-routing/.github>` points the wrapper at a
-local one. The worker brief is [`brief-template.md`](brief-template.md), next
-to this file; fill it, never write a brief from scratch.
+local one; inside a `.github` checkout `"$T" handoff ...` is `python3 -I
+tools/issues/handoff.py ...`, and so on for each tool. The worker brief is
+[`brief-template.md`](brief-template.md), next to this file; fill it, never
+write a brief from scratch.
+
+The coordinator keeps no state file and writes nothing to the working tree:
+its state is the handoff issue's state section and its pass comments
+(swarm-routing/.github#1009: a local state file was lost with its
+container). Scratch output, like the status snapshot of step 7, goes to
+`$SCRATCH`, never the repository.
 
 ## 1. Read the record
 
@@ -40,8 +49,16 @@ then each unticked item of swarm-routing/.github's newest open
 `[maintainer]` issue. A `REPO error ... (HTTP 403)` line is a repository this
 session cannot read: say so in the pass, never guess its state.
 
-Then the newest open `handoff` issue for this work (its last pass comment is
-where the previous coordinator stopped) and, for each ticket it names, the
+Then the newest open `handoff` issue for the coordinator's work (status
+lists the open ones): read its state and the last pass, and continue from
+there, the state section first:
+
+```bash
+"$T" handoff read swarm-routing/<repo>#N   # the body's state section, then the newest pass comment (time, link, text); --json
+```
+
+Check each item of it against the snapshot before acting on it (a release
+it calls pending may be out already). Then, for each ticket it names, the
 acceptance criteria:
 
 ```bash
@@ -90,8 +107,8 @@ fails it is rewritten, never sent.
 Start each worker as its own session with only its repository attached
 (AGENTS.md "Attach only the repositories the task needs"), the brief as its
 first message and a title `<repo>#N: <subject>`. Tag an AntHocNet worker
-`gpl-protocol-worker` (the checklist). Keep the session id with the ticket in
-this pass's table (step 7); nothing goes to a local file.
+`gpl-protocol-worker` (the checklist). Keep the session id with the ticket for
+this pass's `--worker` item (step 7); nothing goes to a local file.
 
 ## 4. One rolling check-in
 
@@ -127,7 +144,7 @@ The worker records on its ticket (the brief says so). The coordinator
 ticks what it verified and closes the ticket with the evidence:
 
 ```bash
-"$T" criteria close swarm-routing/<repo>#N --evidence evidence.md \
+"$T" criteria close swarm-routing/<repo>#N --evidence "$SCRATCH/evidence.md" \
     --tick "<text of box 1>" --tick "<text of box 2>"
 ```
 
@@ -148,20 +165,26 @@ running a turn.
 
 ## 7. Post the pass on the handoff issue
 
-Each pass ends with one comment on the handoff issue, the only state the
-coordinator keeps (no `ROADMAP_STATE.md` or any local file: the container is
-reclaimed, swarm-routing/.github#1009):
+Each pass ends with one `handoff.py append`, the only state the coordinator
+keeps: it posts the pass as a comment and replaces the issue body's state
+section with the same parts (Closed, Released, Running workers, Maintainer
+items, Scheduled). Releases and the `[maintainer]` items come from a fresh
+snapshot; the rest is one flag per item:
 
-```markdown
-## Pass <YYYY-MM-DD HH:MM UTC>
-
-| Ticket | Worker | Result | Verified at |
-|--------|--------|--------|-------------|
-| swarm-routing/<repo>#N | <session id> | merged <sha7> / blocked: … / running | PR, tag, DOI, rules API |
-
-Next: <what the next pass picks first, and why>
-Maintainer: <the [maintainer] items added this pass, or none>
+```bash
+"$T" status --json > "$SCRATCH/status.json"
+"$T" handoff append swarm-routing/<repo>#N --status "$SCRATCH/status.json" \
+    --closed "swarm-routing/<repo>#M: merged <sha7>, verified at <PR, tag, DOI, rules API>" \
+    --worker "<repo>: <task> (<session id>)" \
+    --scheduled "<when>: <what>"
 ```
+
+`--closed`, `--released`, `--worker`, `--maintainer` and `--scheduled` each
+repeat, one item per flag (a blocked ticket is a `--worker` item while its
+worker runs, else a `--maintainer` item or open work on its ticket). Name
+what the next pass picks first, and why, as a `--scheduled` item. `--at`
+sets the pass's time (default now, UTC); `--dry-run` prints the requests
+without sending them. The issue must be open and labelled `handoff`.
 
 When the work is all done, close the handoff issue (and any older one it
 superseded).

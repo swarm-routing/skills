@@ -5,16 +5,17 @@
 # Thin wrapper: runs one of swarm-routing/.github's coordinator tools from a
 # cached snapshot of the org repo. All the logic is in the tool; this only
 # finds it (org rule 9: the skill works because the scripts do).
-#   org-tool status|criteria|zenodo|pr-status ARGS...
+#   org-tool status|criteria|handoff|zenodo|pr-status ARGS...
 #   ORG_TOOLS_DIR  use this checkout of swarm-routing/.github instead
 #   ORG_TOOLS_REF  branch or tag to fetch (default main)
 set -euo pipefail
 case "${1:-}" in
     status) py=tools/status/status.py ;;
     criteria) py=tools/issues/criteria.py ;;
+    handoff) py=tools/issues/handoff.py ;;
     zenodo) py=tools/zenodo/zenodo.py ;;
     pr-status) py=tools/pr-status/pr_status.py ;;
-    *) echo "usage: org-tool status|criteria|zenodo|pr-status ARGS..." >&2; exit 2 ;;
+    *) echo "usage: org-tool status|criteria|handoff|zenodo|pr-status ARGS..." >&2; exit 2 ;;
 esac
 shift
 # >>> cached-checkout (identical in every wrapper; tools/checks/check-plugins.py checks it)
